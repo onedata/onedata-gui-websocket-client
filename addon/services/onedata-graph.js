@@ -1,3 +1,12 @@
+/**
+ * Onedata Websocket Sync API - Graph level service
+ *
+ * @module services/onedata-graph
+ * @author Jakub Liput
+ * @copyright (C) 2017 ACK CYFRONET AGH
+ * @license This software is released under the MIT license cited in 'LICENSE.txt'.
+ */
+
 import Ember from 'ember';
 
 const {
@@ -26,8 +35,7 @@ export default Service.extend({
     operation,
     data,
     scope = 'private',
-    subscribe =
-    false
+    subscribe = false,
   }) {
     let gri = this._gri(entityType, entityId, aspect, scope);
     return new Promise((resolve, reject) => {
@@ -35,7 +43,7 @@ export default Service.extend({
         gri,
         operation,
         data,
-        subscribe
+        subscribe,
       });
       requesting.then(({ payload: { success, data: payloadData, error } }) => {
         if (success) {
