@@ -49,6 +49,7 @@ export default Ember.Component.extend({
       .then(user => user.get('providerList'))
       .then(providerList => providerList.get('list'))
       .then(list => list.objectAt(0));
+    // NOTE: Only for tests - to uncomment when want to test these models
     // .then(providerZero => providerZero.get('spaceList'))
     // .then(spaceList => spaceList.get('list'))
     // .then(spaceListList => spaceListList.objectAt(0));
@@ -80,8 +81,10 @@ export default Ember.Component.extend({
     },
 
     createRecord() {
-      let userId = this.get('userId');
-      let store = this.get('store');
+      let {
+        userId,
+        store,
+      } = this.getProperties('userId', 'store');
       let record = store.createRecord('space', {
         name: 'one' + this.get('inputValue'),
         _meta: {

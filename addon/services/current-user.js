@@ -18,9 +18,15 @@ export default Service.extend({
 
   userId: computed.oneWay('session.data.authenticated.identity.user'),
 
+  /**
+   * Resolve record of currently signed-in user
+   * @returns {Promise<OnedataWebsocket.User>}
+   */
   getCurrentUserRecord() {
-    let store = this.get('store');
-    let userId = this.get('userId');
+    let {
+      store,
+      userId,
+    } = this.getProperties('store', 'userId');
     if (!userId) {
       throw new 'service:current-user: session unauthenticated or user id is not set';
     }
