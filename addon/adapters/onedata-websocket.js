@@ -10,7 +10,10 @@
 import { inject } from '@ember/service';
 import Adapter from 'ember-data/adapter';
 
+import _ from 'lodash';
+
 import gri from 'onedata-gui-websocket-client/utils/gri';
+import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 /**
  * Strips the object from own properties which values are null or undefined
@@ -33,6 +36,23 @@ export default Adapter.extend({
   onedataGraphContext: inject(),
 
   defaultSerializer: 'onedata-websocket',
+
+  init() {
+    this._super(...arguments);
+    const onedataGraph = this.get('onedataGraph');
+    onedataGraph.on('push:updated', this, this.pushUpdated);
+    onedataGraph.on('push:deleted', this, this.pushDeleted);
+  },
+
+  destroy() {
+    try {
+      this._super(...arguments);
+    } finally {
+      const onedataGraph = this.get('onedataGraph');
+      onedataGraph.off('push:updated', this, this.pushUpdated);
+      onedataGraph.off('push:deleted', this, this.pushDeleted);
+    }
+  },
 
   /**
    * @override
@@ -142,4 +162,23 @@ export default Adapter.extend({
   query() {
     throw new Error('adapter:onedata-websocket: query is not supported');
   },
+
+  pushUpdated(gri, data) {
+    let { entityType: modelName } = parseGri(gri);
+    // TODO: stripping can be unnescessary in future
+    modelName = modelName.match(/(od_)?(.*)/)[2];
+    return this.get('store').push({
+      modelName,
+      data: _.assign({ id: gri, type: modelName, attributes: data }),
+    });
+  },
+
+  pushDeleted(gri) {
+    const store = this.get('store');
+    let { entityType: modelName } = parseGri(gri);
+    // TODO: stripping can be unnescessary in future
+    modelName = modelName.match(/(od_)?(.*)/)[2];
+    return store.findRecord(modelName, gri).then(r => store.unloadRecord(r));
+  },
+
 });
