@@ -10,8 +10,6 @@
 import { inject } from '@ember/service';
 import Adapter from 'ember-data/adapter';
 
-import _ from 'lodash';
-
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
@@ -46,11 +44,11 @@ export default Adapter.extend({
 
   destroy() {
     try {
-      this._super(...arguments);
-    } finally {
       const onedataGraph = this.get('onedataGraph');
       onedataGraph.off('push:updated', this, this.pushUpdated);
       onedataGraph.off('push:deleted', this, this.pushDeleted);
+    } finally {
+      this._super(...arguments);
     }
   },
 
@@ -169,7 +167,7 @@ export default Adapter.extend({
     modelName = modelNameBackToFront(modelName);
     return this.get('store').push({
       modelName,
-      data: _.assign({ id: gri, type: modelName, attributes: data }),
+      data: { id: gri, type: modelName, attributes: data },
     });
   },
 
@@ -197,6 +195,12 @@ function modelNameBackToFront(backendModelName) {
   return backendModelName.match(/(od_)?(.*)/)[2];
 }
 
-function modelNameFrontToBack(frontentModelName) {
-  return 'od_' + frontentModelName;
+/**
+ * Temporary function to create current backend model names from model names
+ * (backend names currently starts with `od_`)
+ * @param {string} frontendModelName
+ * @returns {string}
+ */
+function modelNameFrontToBack(frontendModelName) {
+  return 'od_' + frontendModelName;
 }
