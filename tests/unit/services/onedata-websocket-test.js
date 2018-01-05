@@ -40,7 +40,7 @@ describe('Unit | Service | onedata websocket', function () {
     service.set('_webSocketClass', WebSocketMock);
     let pushHandlerDone = false;
     let pushHandler = function (m) {
-      expect(m.payload).to.equal('hello');
+      expect(m).to.equal('hello');
       pushHandlerDone = true;
     };
 
