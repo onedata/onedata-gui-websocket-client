@@ -43,7 +43,7 @@ export default Service.extend(Evented, {
     subscribe = true,
   }) {
     return new Promise((resolve, reject) => {
-      // FIXME: temporary hack to disable subscription on user model
+      // TODO: temporary hack to disable subscription on user model
       const { entityType } = parseGri(gri);
       if (entityType === 'od_user') {
         subscribe = false;

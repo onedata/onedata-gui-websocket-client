@@ -111,7 +111,7 @@ export default Adapter.extend({
 
     return onedataGraph.request({
       // NOTE: adding od_ because it is needed by early versions of server
-      gri: gri('od_' + modelName, null, 'instance'),
+      gri: gri(modelNameFrontToBack(modelName), null, 'instance'),
       operation: 'create',
       data,
       authHint,
@@ -166,7 +166,7 @@ export default Adapter.extend({
   pushUpdated(gri, data) {
     let { entityType: modelName } = parseGri(gri);
     // TODO: stripping can be unnescessary in future
-    modelName = modelName.match(/(od_)?(.*)/)[2];
+    modelName = modelNameBackToFront(modelName);
     return this.get('store').push({
       modelName,
       data: _.assign({ id: gri, type: modelName, attributes: data }),
@@ -177,8 +177,26 @@ export default Adapter.extend({
     const store = this.get('store');
     let { entityType: modelName } = parseGri(gri);
     // TODO: stripping can be unnescessary in future
-    modelName = modelName.match(/(od_)?(.*)/)[2];
-    return store.findRecord(modelName, gri).then(r => store.unloadRecord(r));
+    modelName = modelNameBackToFront(modelName);
+    const record = store.peekRecord(modelName, gri);
+    if (record) {
+      record.deleteRecord();
+      // TODO: maybe unload record, but we lost deleted flag then...
+    }
   },
 
 });
+
+/**
+ * Temporary function to create model names from current backend model names
+ * that starts with `od_`
+ * @param {string} backendModelName
+ * @returns {string}
+ */
+function modelNameBackToFront(backendModelName) {
+  return backendModelName.match(/(od_)?(.*)/)[2];
+}
+
+function modelNameFrontToBack(frontentModelName) {
+  return 'od_' + frontentModelName;
+}
