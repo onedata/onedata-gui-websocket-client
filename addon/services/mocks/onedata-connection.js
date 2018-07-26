@@ -9,14 +9,14 @@
  */
 
 import Service, { inject } from '@ember/service';
-import AUTHORIZERS from 'onezone-gui/utils/authorizers';
+import authorizersMock from 'onezone-gui/utils/authorizers-mock';
 
 export default Service.extend({
   onedataWebsocket: inject(),
 
   zoneName: 'Hello world',
   serviceVersion: '18.02.0-mock',
-  identityProviders: Object.freeze(AUTHORIZERS.map(auth => auth.type)),
+  identityProviders: authorizersMock,
   brandSubtitle: 'Isolated zone',
   loginNotification: '',
 });
