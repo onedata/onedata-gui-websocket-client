@@ -3,7 +3,7 @@
  * in list record
  *
  * @module mixins/models/list-conflict-model
- * @author Jakub Liput
+ * @author Jakub Liput, Michal Borzecki
  * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
@@ -18,14 +18,14 @@ export default Mixin.create({
     'list.isFulfilled',
     'list.content.@each.name',
     function observeConflictLabels() {
-      if (this.get('list.isFulfilled')) {
+      if (this.hasMany('list').value()) {
         debounce(this, '_addConflictLabels', 100);
       }
     }),
 
   _addConflictLabels() {
     const listContent = this.get('list.content');
-    if (listContent.every(r => get(r, 'name') != null)) {
+    if (listContent && listContent.every(r => get(r, 'name') != null)) {
       addConflictLabels(
         listContent,
         'name',

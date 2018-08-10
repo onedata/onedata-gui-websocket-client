@@ -25,11 +25,9 @@ export default Model.extend(GraphModelMixin, InvitingModelMixin, {
 
   providerList: belongsTo('providerList'),
 
-  groupList: belongsTo('groupList'),
-
   // members of this space
-  sharedUserList: belongsTo('sharedUserList'),
-  sharedGroupList: belongsTo('sharedGroupList'),
+  groupList: belongsTo('groupList'),
+  userList: belongsTo('sharedUserList'),
 
   //#region utils
 
