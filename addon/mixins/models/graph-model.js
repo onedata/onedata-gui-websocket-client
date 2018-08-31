@@ -28,4 +28,8 @@ export default Mixin.create({
   entityId: readOnly('parsedGri.entityId'),
   aspect: readOnly('parsedGri.aspect'),
   scope: readOnly('parsedGri.scope'),
+
+  didDelete() {
+    this.get('store').recalculateListsWithEntity(this.get('entityId'));
+  },
 });
