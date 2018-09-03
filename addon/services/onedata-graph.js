@@ -22,7 +22,7 @@ export default Service.extend(Evented, {
 
   /**
    * @param {string} gri
-   * @param {string} operation one of: get, update, delete
+   * @param {string} operation one of: get, create, update, delete
    * @param {object} data
    * @param {[String,String]} authHint [HintType, Id of subject]
    * @param {string} [subscribe=false]
@@ -34,9 +34,9 @@ export default Service.extend(Evented, {
     operation,
     data,
     authHint,
-    // TODO: change to true if backend will be done
-    subscribe = false,
+    subscribe = true,
   }) {
+    subscribe = operation === 'get' || operation === 'create' ? subscribe : false;
     return new Promise((resolve, reject) => {
       let message = {
         gri,
