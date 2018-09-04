@@ -22,6 +22,7 @@ export default Service.extend({
         aspect: `invite_${receiverType}_token`,
       }),
       operation: 'create',
+      subscribe: false,
     }).then(({ data }) => data);
   },
 });

@@ -9,8 +9,11 @@
 
 import JSONSerializer from 'ember-data/serializers/json';
 import { get, set } from '@ember/object';
+import { inject as service } from '@ember/service';
 
 export default JSONSerializer.extend({
+  modelRegistry: service(),
+
   primaryKey: 'gri',
 
   extractAttributes(modelClass, resourceHash) {
@@ -29,5 +32,14 @@ export default JSONSerializer.extend({
     });
 
     return attributes;
+  },
+
+  normalize(typeClass, hash) {
+    const result = this._super(...arguments);
+    this.get('modelRegistry').registerId(
+      get(hash, 'gri'),
+      get(typeClass, 'modelName')
+    );
+    return result;
   },
 });

@@ -75,6 +75,7 @@ export default Model.extend(GraphModelMixin, {
         data: {
           [camelize(`${type}-id`)]: relationId,
         },
+        subscribe: false,
       })
       .then(() => {
         return this.reload(true);

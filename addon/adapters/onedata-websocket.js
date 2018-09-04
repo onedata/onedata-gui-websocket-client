@@ -2,13 +2,13 @@
  * Uses `service:onedata-graph` for CRUD operations on Onedata model
  *
  * @module adapters/onedata-websocket
- * @author Jakub Liput
- * @copyright (C) 2017 ACK CYFRONET AGH
+ * @author Jakub Liput, Michal Borzecki
+ * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import { get } from '@ember/object';
-import { inject } from '@ember/service';
+import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
 
 import gri from 'onedata-gui-websocket-client/utils/gri';
@@ -31,8 +31,9 @@ function stripObject(data) {
 }
 
 export default Adapter.extend({
-  onedataGraph: inject(),
-  onedataGraphContext: inject(),
+  onedataGraph: service(),
+  onedataGraphContext: service(),
+  modelRegistry: service(),
 
   defaultSerializer: 'onedata-websocket',
 
@@ -59,7 +60,7 @@ export default Adapter.extend({
    * @param {DS.Model} type
    * @param {String} id
    * @param {DS.Snapshot} snapshot
-   * @returns {Promise} promise} store
+   * @returns {Promise}
    */
   findRecord(store, type, id, snapshot) {
     let {
@@ -170,21 +171,27 @@ export default Adapter.extend({
   },
 
   pushUpdated(gri, data) {
-    const { entityType: modelName } = parseGri(gri);
-    return this.get('store').push({
-      modelName,
-      data: { id: gri, type: modelName, attributes: data },
-    });
+    const {
+      store,
+      modelRegistry,
+    } = this.getProperties('store', 'modelRegistry');
+    let modelName = modelRegistry.getModelName(gri);
+    if (!modelName) {
+      modelName = parseGri(gri).entityType;
+    }
+    return store.push(store.normalize(modelName, data));
   },
 
   pushDeleted(gri) {
     const store = this.get('store');
-    const { entityType: modelName } = parseGri(gri);
+    let modelName = this.get('modelRegistry').getModelName(gri);
+    if (!modelName) {
+      modelName = parseGri(gri).entityType;
+    }
     const record = store.peekRecord(modelName, gri);
-    if (record) {
+    if (record && !get(record, 'isDeleted')) {
       record.deleteRecord();
       // TODO: maybe unload record, but we lost deleted flag then...
     }
   },
-
 });

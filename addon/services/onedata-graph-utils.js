@@ -33,6 +33,7 @@ export default Service.extend({
         token,
       },
       authHint,
+      subscribe: false,
     });
   },
 
@@ -54,6 +55,7 @@ export default Service.extend({
         scope: 'private',
       }),
       operation: 'delete',
+      subscribe: false,
     });
   },
 });

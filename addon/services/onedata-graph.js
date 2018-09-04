@@ -25,7 +25,7 @@ export default Service.extend(Evented, {
    * @param {string} operation one of: get, create, update, delete
    * @param {object} data
    * @param {[String,String]} authHint [HintType, Id of subject]
-   * @param {string} [subscribe=false]
+   * @param {boolean} subscribe
    * @returns {Promise<object, object>} resolves with Onedata Graph resource
    *   (typically record data)
    */
