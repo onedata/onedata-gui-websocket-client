@@ -30,6 +30,10 @@ export default Mixin.create({
   scope: readOnly('parsedGri.scope'),
 
   didDelete() {
-    this.get('store').recalculateListsWithEntity(this.get('entityId'));
+    this._super(...arguments);
+    this.get('store').recalculateListsWithEntity(
+      this.get('constructor.modelName'),
+      this.get('entityId')
+    );
   },
 });
