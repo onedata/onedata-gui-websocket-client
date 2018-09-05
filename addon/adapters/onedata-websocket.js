@@ -8,6 +8,7 @@
  */
 
 import { get } from '@ember/object';
+import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
 
@@ -179,7 +180,13 @@ export default Adapter.extend({
     if (!modelName) {
       modelName = parseGri(gri).entityType;
     }
-    return store.push(store.normalize(modelName, data));
+    const model = store.push(store.normalize(modelName, data));
+    if (isArray(model)) {
+      model.forEach(model => model.notifyPropertyChange('isReloading'));
+    } else {
+      model.notifyPropertyChange('isReloading');
+    }
+    return model;
   },
 
   pushDeleted(gri) {
