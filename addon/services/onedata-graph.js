@@ -56,7 +56,16 @@ export default Service.extend(Evented, {
       let requesting = this.get('onedataWebsocket').sendMessage('graph', message);
       requesting.then(({ payload: { success, data: payloadData, error } }) => {
         if (success) {
-          resolve(payloadData);
+          switch (payloadData.format) {
+            case 'resource':
+              resolve(payloadData.resource);
+              break;
+            case 'value':
+              resolve(payloadData.value);
+              break;
+            default:
+              resolve();
+          }
         } else {
           reject(error);
         }

@@ -23,6 +23,6 @@ export default Service.extend({
       }),
       operation: 'create',
       subscribe: false,
-    }).then(({ data }) => data);
+    });
   },
 });
