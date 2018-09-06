@@ -7,7 +7,7 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get } from '@ember/object';
+import { get, set } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
@@ -43,6 +43,7 @@ export default Adapter.extend({
     const onedataGraph = this.get('onedataGraph');
     onedataGraph.on('push:updated', this, this.pushUpdated);
     onedataGraph.on('push:deleted', this, this.pushDeleted);
+    onedataGraph.on('push:forbidden', this, this.pushForbidden);
   },
 
   destroy() {
@@ -50,6 +51,7 @@ export default Adapter.extend({
       const onedataGraph = this.get('onedataGraph');
       onedataGraph.off('push:updated', this, this.pushUpdated);
       onedataGraph.off('push:deleted', this, this.pushDeleted);
+      onedataGraph.off('push:forbidden', this, this.pushForbidden);
     } finally {
       this._super(...arguments);
     }
@@ -172,14 +174,8 @@ export default Adapter.extend({
   },
 
   pushUpdated(gri, data) {
-    const {
-      store,
-      modelRegistry,
-    } = this.getProperties('store', 'modelRegistry');
-    let modelName = modelRegistry.getModelName(gri);
-    if (!modelName) {
-      modelName = parseGri(gri).entityType;
-    }
+    const store = this.get('store');
+    const modelName = this.getModelName(gri);
     const model = store.push(store.normalize(modelName, data));
     if (isArray(model)) {
       model.forEach(model => model.notifyPropertyChange('isReloading'));
@@ -191,14 +187,28 @@ export default Adapter.extend({
 
   pushDeleted(gri) {
     const store = this.get('store');
-    let modelName = this.get('modelRegistry').getModelName(gri);
-    if (!modelName) {
-      modelName = parseGri(gri).entityType;
-    }
+    const modelName = this.getModelName(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
       record.deleteRecord();
       // TODO: maybe unload record, but we lost deleted flag then...
     }
+  },
+
+  pushForbidden(gri) {
+    const store = this.get('store');
+    const modelName = this.getModelName(gri);
+    const record = store.peekRecord(modelName, gri);
+    if (record && !get(record, 'isDeleted')) {
+      set(record, 'isForbidden', true);
+    }
+  },
+
+  getModelName(gri) {
+    let modelName = this.get('modelRegistry').getModelName(gri);
+    if (!modelName) {
+      modelName = parseGri(gri).entityType;
+    }
+    return modelName;
   },
 });

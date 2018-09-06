@@ -10,10 +10,10 @@ import attr from 'ember-data/attr';
 import { inject } from '@ember/service';
 import { camelize } from '@ember/string';
 import { belongsTo } from 'onedata-gui-websocket-client/utils/relationships';
-import GraphModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-model';
+import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 
-export default Model.extend(GraphModelMixin, {
+export default Model.extend(GraphSingleModelMixin, {
   onedataGraph: inject(),
   onedataGraphUtils: inject(),
 

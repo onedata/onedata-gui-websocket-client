@@ -17,7 +17,9 @@ export default Service.extend(Evented, {
 
   init() {
     this._super(...arguments);
-    this.get('onedataWebsocket').on('push:graph', this, this.handlePush);
+    const onedataWebsocket = this.get('onedataWebsocket');
+    onedataWebsocket.on('push:graph', this, this.handlePush);
+    onedataWebsocket.on('push:nosub', this, this.handleNosub);
   },
 
   /**
@@ -81,6 +83,26 @@ export default Service.extend(Evented, {
       default:
         throw new Error(
           `service:onedata-graph: not supported push update type: ${updateType}`
+        );
+    }
+  },
+
+  /**
+   * @param {object} payload payload of push message from server
+   * @param {string} payload.reason reason of nosub. For now the only valid
+   *   value is: forbidden
+   * @param {string} payload.gri GRI of entity
+   * 
+   * @returns {undefined}
+   */
+  handleNosub({ reason, gri }) {
+    switch (reason) {
+      case 'forbidden':
+        this.trigger(`push:${reason}`, gri);
+        break;
+      default:
+        throw new Error(
+          `service:onedata-graph: not supported push nosub reason: ${reason}`
         );
     }
   },

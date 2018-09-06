@@ -9,6 +9,7 @@
  */
 
 import { getOwner } from '@ember/application';
+import { get } from '@ember/object';
 import _ from 'lodash';
 import Store from 'ember-data/store';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
@@ -31,12 +32,16 @@ export default Store.extend({
     return Promise.all(listModelNames.map(modelName => {
       const models = this.peekAll(modelName);
       return Promise.all(models.map(listModel => {
-        const ids = listModel.hasMany('list').ids();
-        if (ids && ids.some(id => parseGri(id).entityId === entityId)) {
-          return listModel.reload().then(() => listModel.hasMany('list').reload());
+        if (!get(listModel, 'isForbidden')) {
+          const ids = listModel.hasMany('list').ids();
+          if (ids && ids.some(id => parseGri(id).entityId === entityId)) {
+            return listModel.reload().then(() => listModel.hasMany('list').reload());
+          } else {
+            // simulate reload to recalculated properties
+            listModel.notifyPropertyChange('isReloading');
+            return resolve();
+          }
         } else {
-          // simulate reload to recalculated properties
-          listModel.notifyPropertyChange('isReloading');
           return resolve();
         }
       }));

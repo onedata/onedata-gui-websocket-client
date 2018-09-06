@@ -16,16 +16,13 @@
 
 import Mixin from '@ember/object/mixin';
 import { computed } from '@ember/object';
+import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 
-export default Mixin.create({
+export default Mixin.create(GraphModel, {
   /**
    * @type {Ember.ComputedProperty<number>}
    */
   length: computed('isLoading', 'isReloading', function length() {
     return this.hasMany('list').ids().length;
   }),
-
-  didLoad() {
-    this.notifyPropertyChange('isLoading');
-  },
 });
