@@ -2,8 +2,8 @@
  * Onedata Websocket Sync API - Graph level service
  *
  * @module services/onedata-graph
- * @author Jakub Liput
- * @copyright (C) 2017 ACK CYFRONET AGH
+ * @author Jakub Liput, Michal Borzecki
+ * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -56,15 +56,19 @@ export default Service.extend(Evented, {
       let requesting = this.get('onedataWebsocket').sendMessage('graph', message);
       requesting.then(({ payload: { success, data: payloadData, error } }) => {
         if (success) {
-          switch (payloadData.format) {
-            case 'resource':
-              resolve(payloadData.resource);
-              break;
-            case 'value':
-              resolve(payloadData.value);
-              break;
-            default:
-              resolve();
+          if (!payloadData) {
+            resolve();
+          } else {
+            switch (payloadData.format) {
+              case 'resource':
+                resolve(payloadData.resource);
+                break;
+              case 'value':
+                resolve(payloadData.value);
+                break;
+              default:
+                resolve();
+            }
           }
         } else {
           reject(error);
