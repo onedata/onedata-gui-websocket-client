@@ -12,6 +12,10 @@ import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 
 export default Mixin.create(GraphModel, {
   didDelete() {
-    this.get('store').recalculateListsWithEntity(this.get('entityId'));
+    this._super(...arguments);
+    this.get('store').recalculateListsWithEntity(
+      this.get('constructor.modelName'),
+      this.get('entityId')
+    );
   },
 });
