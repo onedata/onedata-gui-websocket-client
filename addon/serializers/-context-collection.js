@@ -3,8 +3,8 @@
  * record.
  *
  * @module serializers/-context-collection
- * @author Jakub Liput
- * @copyright (C) 2017 ACK CYFRONET AGH
+ * @author Jakub Liput, Michal Borzecki
+ * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -40,13 +40,9 @@ export default Serializer.extend({
    * @returns {undefined}
    */
   registerContextForItems(hash) {
-    var collectionList = hash.list;
-
+    const collectionList = hash.list;
     if (collectionList) {
-      let onedataGraphContext = this.get('onedataGraphContext');
-      collectionList.forEach(itemId => {
-        onedataGraphContext.register(itemId, hash.gri);
-      });
+      this.get('onedataGraphContext').registerArray(collectionList, hash.gri);
     }
   },
 });

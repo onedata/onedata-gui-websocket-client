@@ -62,18 +62,47 @@ export default Service.extend({
       registeredContexts = [];
       contexts.set(requestedGri, registeredContexts);
     }
-    registeredContexts.push(contextGri);
+    if (registeredContexts.indexOf(requestedGri) === -1) {
+      registeredContexts.push(contextGri);
+    }
   },
 
   /**
-   * Removes GRI from context of all possible requestedGri
-   * @param {string} contextGri GRI
+   * Runs register method over array of GRI
+   * @param {Array<string>} requestedGriArray array of GRI
+   * @param {string} contextGri GRI (just record id)
+   * @param {boolean} removeContextForOthers if true, contextGri for GRI
+   *   different than in requestedGriArray will be removed
    * @returns {undefined}
    */
-  deregister(contextGri) {
+  registerArray(requestedGriArray, contextGri, removeContextForOthers=true) {
+    const findRecordContext = this.get('findRecordContext');
+    requestedGriArray.forEach(requestedGri =>
+      this.register(requestedGri, contextGri)
+    );
+    if (removeContextForOthers) {
+      findRecordContext.forEach((value, key) => {
+        if (requestedGriArray.indexOf(key) === -1 && value.indexOf(contextGri) !== -1) {
+          this.deregister(contextGri, key);
+        }
+      });
+    }
+  },
+
+  /**
+   * Removes GRI from context of all possible (or one specified) requestedGri
+   * @param {string} contextId GRI or entityId
+   * @param {string|null} requestedGri GRI (just record id)
+   * @returns {undefined}
+   */
+  deregister(contextId, requestedGri = null) {
     let contexts = this.get('findRecordContext');
+    if (requestedGri) {
+      const context = contexts.get(requestedGri);
+      contexts = context ? [context] : [];
+    }
     contexts.forEach(registeredContexts =>
-      _.pull(registeredContexts, contextGri)
+      _.remove(registeredContexts, (cid => cid.indexOf(contextId) !== -1))
     );
   },
 

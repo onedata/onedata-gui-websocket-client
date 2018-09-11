@@ -11,6 +11,7 @@ import { get, set } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
+import { reject } from 'rsvp';
 
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
@@ -66,13 +67,14 @@ export default Adapter.extend({
    * @returns {Promise}
    */
   findRecord(store, type, id, snapshot) {
-    let {
+    const {
       onedataGraph,
       onedataGraphContext,
     } = this.getProperties('onedataGraph', 'onedataGraphContext');
 
-    let authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
+    const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
       onedataGraphContext.getAuthHint(id);
+    const record = get(snapshot, 'record');
 
     return onedataGraph.request({
       gri: id,
@@ -83,9 +85,23 @@ export default Adapter.extend({
         `adapter:onedata-websocket: findRecord, gri: ${id}, returned data: `,
         `${JSON.stringify(graphData)}`,
       );
+      // request is successful so access to the resource is not forbidden
+      if (get(record, 'isForbidden')) {
+        set(record, 'isForbidden', false);
+      }
       return graphData;
+    }).catch(findError => {
+      if (get(findError, 'id') === 'forbidden') {
+        return this.searchForNextContext(gri, !!authHint)
+          .catch(() => {
+            if (!get(record, 'isForbidden')) {
+              set(record, 'isForbidden', true);
+            }
+            throw findError;
+          });
+      }
+      throw findError;
     });
-
   },
 
   /**
@@ -155,13 +171,19 @@ export default Adapter.extend({
    * @return {Promise} promise
    */
   deleteRecord(store, type, snapshot) {
-    let onedataGraph = this.get('onedataGraph');
+    const {
+      onedataGraph,
+      onedataGraphContext,
+    } = this.getProperties('onedataGraph', 'onedataGraphContext');
     let recordId = snapshot.record.id;
     const griData = parseGri(recordId);
     griData.scope = 'private';
     return onedataGraph.request({
       gri: gri(griData),
       operation: 'delete',
+    }).then(result => {
+      onedataGraphContext.deregister(recordId);
+      return result;
     });
   },
 
@@ -195,15 +217,76 @@ export default Adapter.extend({
     }
   },
 
-  pushForbidden(gri) {
-    const store = this.get('store');
+  pushForbidden(gri, authHint) {
+    const {
+      onedataGraphContext,
+      store,
+    } = this.getProperties('onedataGraphContext', 'store');
     const modelName = this.getModelName(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
-      set(record, 'isForbidden', true);
+      // deregister not working context
+      if (authHint) {
+        const contextId = authHint.split(':')[1];
+        onedataGraphContext.deregister(contextId, gri);
+      } else {
+        onedataGraphContext.deregister(gri);
+      }
+      // try to find another working context
+      this.searchForNextContext(gri, !!authHint)
+        .then(data => this.pushUpdated(gri, data))
+        .catch(() =>
+          set(record, 'isForbidden', true)
+        );
     }
   },
 
+  /**
+   * Looks for working context (authHint) for specified GRI. Tries each available
+   * context until working one found. If some context does not work, it will be
+   * removed from the list of available contexts.
+   * @param {string} gri GRI
+   * @param {boolean} allowEmptyAuthHint if true, at the end of checking chain
+   *   empty authHint will be used
+   * @returns {Promise} resolves with successful request result, rejects if
+   *   none of available contexts allows to reach specified resource
+   */
+  searchForNextContext(gri, allowEmptyAuthHint = true) {
+    const {
+      onedataGraphContext,
+      onedataGraph,
+    } = this.getProperties('onedataGraphContext', 'onedataGraph');
+    const contextGri = onedataGraphContext.getContext(gri);
+    const authHint = onedataGraphContext.getAuthHint(gri);
+    if (!allowEmptyAuthHint && !authHint) {
+      return reject();
+    }
+    console.debug(
+      `adapter:onedata-websocket: trying to subscribe to ${gri} using authHint ${authHint}`
+    );
+    return onedataGraph.request({
+      gri,
+      operation: 'get',
+      authHint,
+    }).catch(error => {
+      console.debug(
+        `adapter:onedata-websocket: cannot subscribe to ${gri} using authHint ${authHint}, returned data :`,
+        `${JSON.stringify(error)}`,
+      );
+      if (contextGri) {
+        onedataGraphContext.deregister(contextGri, gri);
+      }
+      return this.searchForNextContext(gri, allowEmptyAuthHint && !!contextGri);
+    });
+  },
+
+  /**
+   * Returns model name for given GRI.
+   * WARNING: It uses entityType from GRI if model was not fetched earlier.
+   * EntityType does not always map directly to model name.
+   * @param {string} gri
+   * @returns {string}
+   */
   getModelName(gri) {
     let modelName = this.get('modelRegistry').getModelName(gri);
     if (!modelName) {

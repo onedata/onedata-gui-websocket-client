@@ -105,13 +105,14 @@ export default Service.extend(Evented, {
    * @param {string} payload.reason reason of nosub. For now the only valid
    *   value is: forbidden
    * @param {string} payload.gri GRI of entity
+   * @param {string|undefined} authHint
    * 
    * @returns {undefined}
    */
-  handleNosub({ reason, gri }) {
+  handleNosub({ reason, gri, authHint }) {
     switch (reason) {
       case 'forbidden':
-        this.trigger(`push:${reason}`, gri);
+        this.trigger(`push:${reason}`, gri, authHint);
         break;
       default:
         throw new Error(

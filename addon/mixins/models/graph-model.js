@@ -11,7 +11,7 @@
 import { oneWay, readOnly } from '@ember/object/computed';
 
 import Mixin from '@ember/object/mixin';
-import { computed, observer, get } from '@ember/object';
+import { computed, observer } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default Mixin.create({
@@ -84,12 +84,6 @@ export default Mixin.create({
           this.set('isForbidden', false);
         }
         return result;
-      })
-      .catch(error => {
-        if (error && get(error, 'id') === 'forbidden' && !this.get('isForbidden')) {
-          this.set('isForbidden', true);
-        }
-        throw error;
       });
   },
 });
