@@ -21,8 +21,8 @@ export default Model.extend(GraphModelMixin, InvitingModelMixin, {
   name: attr('string'),
   type: attr('string'),
   scope: attr('string'),
-  directMembership: attr('boolean'),
-  canViewPrivileges: attr('boolean'),
+  directMembership: attr('boolean', { defaultValue: false }),
+  canViewPrivileges: attr('boolean', { defaultValue: false }),
 
   // for features, that will be moved from OP GUI to OZ GUI
   // spaceList: belongsTo('spaceList'),
