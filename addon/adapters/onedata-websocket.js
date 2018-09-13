@@ -198,6 +198,13 @@ export default Adapter.extend({
   pushUpdated(gri, data) {
     const store = this.get('store');
     const modelName = this.getModelName(gri);
+    const existingRecord = store.peekRecord(modelName, gri);
+
+    // ignore update if model is deleted
+    if (existingRecord && get(existingRecord, 'isDeleted')) {
+      return;
+    }
+    
     const model = store.push(store.normalize(modelName, data));
     if (isArray(model)) {
       model.forEach(model => model.notifyPropertyChange('isReloading'));

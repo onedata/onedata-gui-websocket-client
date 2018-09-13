@@ -22,8 +22,10 @@ export const groupedFlags = [{
     'space_write_data',
     'space_manage_shares',
     'space_view_transfers',
-    'space_schedule_transfers',
-    'space_cancel_transfers',
+    'space_schedule_replication',
+    'space_cancel_replication',
+    'space_schedule_eviction',
+    'space_cancel_eviction',
   ],
 }, {
   groupName: 'userManagement',
