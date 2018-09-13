@@ -20,7 +20,7 @@ export default Model.extend(GraphSingleModelMixin, {
   isCollection: true,
 
   name: attr('string'),
-  login: attr('string'),
+  alias: attr('string'),
 
   /**
    * Entity ID of default space ID for user.
