@@ -75,14 +75,15 @@ export default Service.extend({
    *   different than in requestedGriArray will be removed
    * @returns {undefined}
    */
-  registerArray(requestedGriArray, contextGri, removeContextForOthers=true) {
+  registerArray(requestedGriArray, contextGri, removeContextForOthers = true) {
     const findRecordContext = this.get('findRecordContext');
     requestedGriArray.forEach(requestedGri =>
       this.register(requestedGri, contextGri)
     );
     if (removeContextForOthers) {
       findRecordContext.forEach((value, key) => {
-        if (requestedGriArray.indexOf(key) === -1 && value.indexOf(contextGri) !== -1) {
+        if (requestedGriArray.indexOf(key) === -1 &&
+          value.indexOf(contextGri) !== -1) {
           this.deregister(contextGri, key);
         }
       });

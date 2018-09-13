@@ -24,10 +24,11 @@ describe('Unit | Model | group', function () {
     const TOKEN = 'abcd';
     let graph = lookupService(this, 'onedata-graph');
     let graphRequestStub = sinon.stub(graph, 'request');
-    let graphData = { data: TOKEN };
+    let graphData = TOKEN;
     let graphValidArgs = {
       gri: sinon.match(new RegExp('.*group.*some_id.*invite.*user.*')),
       operation: 'create',
+      subscribe: false,
     };
     graphRequestStub
       .withArgs(graphValidArgs)
