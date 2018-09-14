@@ -47,9 +47,10 @@ export default Service.extend({
   },
 
   __handle_getLoginEndpoint( /*idp*/ ) {
+    // address of mock OpenID provider
     return Promise.resolve({
       method: 'get',
-      url: window.location.origin + '/dev_login',
+      url: 'http://localhost:4209',
     });
   },
 
