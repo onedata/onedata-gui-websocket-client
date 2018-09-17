@@ -1,5 +1,5 @@
 /**
- * Registry with all models available for applications. Contains information
+ * Registry with all models available for the application. Contains information
  * about relations between IDs and model names.
  *
  * @module services/model-registry
@@ -13,9 +13,9 @@ import { computed } from '@ember/object';
 
 export default Service.extend({
   /**
-   * @type {Map<string, string>}
+   * @type {Ember.ComputedProperty<Map<string,string>>}
    */
-  modelNameMapping: computed(function () {
+  modelNameMapping: computed(function modelNameMapping() {
     return new Map();
   }),
 

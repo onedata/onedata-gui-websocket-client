@@ -26,12 +26,6 @@ export default Serializer.extend({
     return this._super(typeClass, hash);
   },
 
-  // TODO: globally setting is hazardous, consider:
-  /// - get group1 with list of users - user1 will have context of group1
-  /// - get group2 with list of users - user1 will have context of group2
-  /// - leave group2
-  /// - go to group1 and fetch users - user1 will try to be fetched by group2
-  // TODO: deregister from onedataGraphContext after each removing in adapter etc.
   /**
    * Registers context ("through what record should we ask for record?")
    * for each of elements of list of this raw record.

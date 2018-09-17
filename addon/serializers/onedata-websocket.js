@@ -69,7 +69,7 @@ export default JSONSerializer.extend({
         });
       }
     });
-    
+
     return this._super(...arguments);
   },
 });

@@ -204,7 +204,7 @@ export default Adapter.extend({
     if (existingRecord && get(existingRecord, 'isDeleted')) {
       return;
     }
-    
+
     const model = store.push(store.normalize(modelName, data));
     if (isArray(model)) {
       model.forEach(model => model.notifyPropertyChange('isReloading'));
@@ -295,10 +295,6 @@ export default Adapter.extend({
    * @returns {string}
    */
   getModelName(gri) {
-    let modelName = this.get('modelRegistry').getModelName(gri);
-    if (!modelName) {
-      modelName = parseGri(gri).entityType;
-    }
-    return modelName;
+    return this.get('modelRegistry').getModelName(gri) || parseGri(gri).entityType;
   },
 });

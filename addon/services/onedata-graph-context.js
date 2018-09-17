@@ -68,7 +68,7 @@ export default Service.extend({
   },
 
   /**
-   * Runs register method over array of GRI
+   * Runs register method over an array of GRI
    * @param {Array<string>} requestedGriArray array of GRI
    * @param {string} contextGri GRI (just record id)
    * @param {boolean} removeContextForOthers if true, contextGri for GRI

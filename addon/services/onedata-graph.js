@@ -105,7 +105,7 @@ export default Service.extend(Evented, {
    * @param {string} payload.reason reason of nosub. For now the only valid
    *   value is: forbidden
    * @param {string} payload.gri GRI of entity
-   * @param {string|undefined} authHint
+   * @param {string|undefined} payload.authHint authHint
    * 
    * @returns {undefined}
    */
