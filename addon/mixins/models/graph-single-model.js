@@ -9,6 +9,7 @@
 
 import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
+import { resolve } from 'rsvp';
 
 export default Mixin.create(GraphModel, {
   didDelete() {
@@ -17,5 +18,21 @@ export default Mixin.create(GraphModel, {
       this.get('constructor.modelName'),
       this.get('entityId')
     );
+  },
+
+  /**
+   * Reloads list relation. If list has not been fetched, nothing is reloaded.
+   * @param {string} listName 
+   * @returns {Promise}
+   */
+  reloadList(listName) {
+    const list = this.belongsTo(listName).value();
+    const hasMany = list ? list.hasMany('list').value() : null;
+    if (list) {
+      return list.reload().then(result => {
+        return hasMany ? list.hasMany('list').reload() : result;
+      });
+    }
+    return resolve();
   },
 });
