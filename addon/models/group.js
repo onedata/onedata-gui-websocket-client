@@ -24,6 +24,8 @@ export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
   directMembership: attr('boolean', { defaultValue: false }),
   canViewPrivileges: attr('boolean', { defaultValue: false }),
 
+  membership: belongsTo('membership'),
+
   // for features, that will be moved from OP GUI to OZ GUI
   // spaceList: belongsTo('spaceList'),
 
@@ -41,7 +43,7 @@ export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
    * True if user is an effective member of that group
    * @type {Ember.ComputedProperty<boolean>}
    */
-  membership: computed('scope', function membership() {
+  isEffectiveMember: computed('scope', function membership() {
     return ['private', 'protected'].indexOf(this.get('scope')) !== -1;
   }),
 
