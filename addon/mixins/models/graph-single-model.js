@@ -1,5 +1,5 @@
 /**
- * Adds properties and methods specific to single (non-list) models
+ * Adds properties and methods specific to single (non-list) records
  *
  * @module mixins/models/graph-single-model
  * @author Michal Borzecki

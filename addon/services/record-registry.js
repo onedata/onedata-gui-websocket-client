@@ -1,8 +1,8 @@
 /**
- * Registry with all models available for the application. Contains information
- * about relations between IDs and model names.
+ * Registry with all records available for the application. Contains information
+ * about relations between records IDs and model names.
  *
- * @module services/model-registry
+ * @module services/record-registry
  * @author Michal Borzecki
  * @copyright (C) 2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

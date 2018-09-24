@@ -42,7 +42,7 @@
 export default function privilegesArrayToObject(arr, privilegesGroups) {
   return arr ? privilegesGroups.reduce((tree, group) => {
     tree[group.groupName] = group.privileges.reduce((groupPerms, name) => {
-      groupPerms[name] = arr.indexOf(name) !== -1;
+      groupPerms[name] = arr.includes(name);
       return groupPerms;
     }, {});
     return tree;

@@ -14,9 +14,9 @@ export default Service.extend({
   onedataGraph: service(),
 
   /**
-   * Creates a relation between model specified by invitation token
-   * and model specified by authHint
-   * @param {string} entityType Entity type of model specified by token
+   * Creates a relation between record specified by invitation token
+   * and record specified by authHint
+   * @param {string} entityType Entity type of record specified by token
    * @param {string} token invitation token
    * @param {[string, string]} authHint
    * @return {Promise}
@@ -38,7 +38,7 @@ export default Service.extend({
   },
 
   /**
-   * Deletes a relation between two models
+   * Deletes a relation between two records
    * @param {string} entityType
    * @param {string} entityId
    * @param {string} aspect

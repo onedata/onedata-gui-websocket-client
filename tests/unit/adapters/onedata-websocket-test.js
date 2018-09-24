@@ -10,7 +10,7 @@ const {
 import { registerService, lookupService } from '../../helpers/stub-service';
 import OnedataGraphStub from '../../helpers/stubs/services/onedata-graph';
 import OnedataGraphContextStub from '../../helpers/stubs/services/onedata-graph-context';
-import ModelRegistryStub from '../../helpers/stubs/services/onedata-graph-context';
+import RecordRegistryStub from '../../helpers/stubs/services/onedata-graph-context';
 
 describe('Unit | Adapter | onedata websocket', function () {
   setupTest('adapter:onedata-websocket', {
@@ -20,7 +20,7 @@ describe('Unit | Adapter | onedata websocket', function () {
   beforeEach(function () {
     registerService(this, 'onedata-graph', OnedataGraphStub);
     registerService(this, 'onedata-graph-context', OnedataGraphContextStub);
-    registerService(this, 'model-registry', ModelRegistryStub);
+    registerService(this, 'record-registry', RecordRegistryStub);
   });
 
   it('uses graph service to findRecord', function (done) {

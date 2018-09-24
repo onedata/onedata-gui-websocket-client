@@ -24,7 +24,7 @@ export default Model.extend(GraphSingleModelMixin, {
 
   /**
    * Entity ID of default space ID for user.
-   * To change it, use `setDefaultSpaceId` method - model updates will not work.
+   * To change it, use `setDefaultSpaceId` method - record updates will not work.
    * @type {DS.attr}
    */
   defaultSpaceId: attr('string'),

@@ -13,7 +13,7 @@ import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
 import { reject } from 'rsvp';
 
-import gri from 'onedata-gui-websocket-client/utils/gri';
+import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 /**
@@ -35,7 +35,7 @@ function stripObject(data) {
 export default Adapter.extend({
   onedataGraph: service(),
   onedataGraphContext: service(),
-  modelRegistry: service(),
+  recordRegistry: service(),
 
   defaultSerializer: 'onedata-websocket',
 
@@ -92,15 +92,16 @@ export default Adapter.extend({
       return graphData;
     }).catch(findError => {
       if (get(findError, 'id') === 'forbidden') {
-        return this.searchForNextContext(gri, !!authHint)
+        return this.searchForNextContext(id, !!authHint)
           .catch(() => {
             if (!get(record, 'isForbidden')) {
               set(record, 'isForbidden', true);
             }
             throw findError;
           });
+      } else {
+        throw findError;
       }
-      throw findError;
     });
   },
 
@@ -130,7 +131,7 @@ export default Adapter.extend({
     stripObject(data);
 
     return onedataGraph.request({
-      gri: gri({
+      gri: createGri({
         entityType: modelName,
         aspect: 'instance',
       }),
@@ -156,7 +157,7 @@ export default Adapter.extend({
     const griData = parseGri(recordId);
     griData.scope = 'private';
     return onedataGraph.request({
-      gri: gri(griData),
+      gri: createGri(griData),
       operation: 'update',
       data,
     });
@@ -179,7 +180,7 @@ export default Adapter.extend({
     const griData = parseGri(recordId);
     griData.scope = 'private';
     return onedataGraph.request({
-      gri: gri(griData),
+      gri: createGri(griData),
       operation: 'delete',
     }).then(result => {
       onedataGraphContext.deregister(recordId);
@@ -200,18 +201,18 @@ export default Adapter.extend({
     const modelName = this.getModelName(gri);
     const existingRecord = store.peekRecord(modelName, gri);
 
-    // ignore update if model is deleted
+    // ignore update if record is deleted
     if (existingRecord && get(existingRecord, 'isDeleted')) {
       return;
     }
 
-    const model = store.push(store.normalize(modelName, data));
-    if (isArray(model)) {
-      model.forEach(model => model.notifyPropertyChange('isReloading'));
+    const record = store.push(store.normalize(modelName, data));
+    if (isArray(record)) {
+      record.forEach(r => r.notifyPropertyChange('isReloading'));
     } else {
-      model.notifyPropertyChange('isReloading');
+      record.notifyPropertyChange('isReloading');
     }
-    return model;
+    return record;
   },
 
   pushDeleted(gri) {
@@ -235,7 +236,7 @@ export default Adapter.extend({
       // deregister not working context
       if (authHint) {
         const contextId = authHint.split(':')[1];
-        onedataGraphContext.deregister(contextId, gri);
+        onedataGraphContext.deregister(contextId, null, gri);
       } else {
         onedataGraphContext.deregister(gri);
       }
@@ -281,7 +282,7 @@ export default Adapter.extend({
         `${JSON.stringify(error)}`,
       );
       if (contextGri) {
-        onedataGraphContext.deregister(contextGri, gri);
+        onedataGraphContext.deregister(contextGri, null, gri);
       }
       return this.searchForNextContext(gri, allowEmptyAuthHint && !!contextGri);
     });
@@ -289,12 +290,12 @@ export default Adapter.extend({
 
   /**
    * Returns model name for given GRI.
-   * WARNING: It uses entityType from GRI if model was not fetched earlier.
+   * WARNING: It uses entityType from GRI if record was not fetched earlier.
    * EntityType does not always map directly to model name.
    * @param {string} gri
    * @returns {string}
    */
   getModelName(gri) {
-    return this.get('modelRegistry').getModelName(gri) || parseGri(gri).entityType;
+    return this.get('recordRegistry').getModelName(gri) || parseGri(gri).entityType;
   },
 });
