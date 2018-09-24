@@ -42,7 +42,7 @@ export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
    * @type {Ember.ComputedProperty<boolean>}
    */
   membership: computed('scope', function membership() {
-    return ['private', 'protected'].indexOf(this.get('scope')) !== -1;
+    return ['private', 'protected'].includes(this.get('scope'));
   }),
 
   /**
