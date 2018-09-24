@@ -29,7 +29,7 @@ export default Model.extend(GraphSingleModelMixin, {
   spaceList: belongsTo('space-list'),
 
   isStatusValid: computed('status', function () {
-    return providerStatusList.indexOf(this.get('status')) !== -1;
+    return providerStatusList.includes(this.get('status'));
   }),
 
   //#region Aliases and backward-compatibility

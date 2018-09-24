@@ -1,5 +1,5 @@
 /**
- * Produce first part of authHint for getting model from Onedata Graph API
+ * Produce first part of authHint for getting record from Onedata Graph API
  * Eg. throughSpace, throughGroup
  *
  * @module utils/auth-hint-get
