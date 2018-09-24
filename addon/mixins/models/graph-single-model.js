@@ -21,18 +21,20 @@ export default Mixin.create(GraphModel, {
   },
 
   /**
-   * Reloads list relation. If list has not been fetched, nothing is reloaded.
+   * Deeply reloads list relation. If list has not been fetched, nothing is
+   * reloaded.
    * @param {string} listName 
    * @returns {Promise}
    */
   reloadList(listName) {
     const list = this.belongsTo(listName).value();
-    const hasMany = list ? list.hasMany('list').value() : null;
     if (list) {
+      const hasMany = list.hasMany('list').value();
       return list.reload().then(result => {
         return hasMany ? list.hasMany('list').reload() : result;
       });
+    } else {
+      return resolve();
     }
-    return resolve();
   },
 });
