@@ -11,11 +11,11 @@ import Model from 'ember-data/model';
 import attr from 'ember-data/attr';
 import { computed } from '@ember/object';
 import { belongsTo } from 'onedata-gui-websocket-client/utils/relationships';
-import GraphModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-model';
+import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
 
 export const providerStatusList = ['online', 'offline'];
 
-export default Model.extend(GraphModelMixin, {
+export default Model.extend(GraphSingleModelMixin, {
   name: attr('string'),
   // TODO: add array transform
   // urls: attr('array'),
@@ -29,7 +29,7 @@ export default Model.extend(GraphModelMixin, {
   spaceList: belongsTo('space-list'),
 
   isStatusValid: computed('status', function () {
-    return providerStatusList.indexOf(this.get('status')) !== -1;
+    return providerStatusList.includes(this.get('status'));
   }),
 
   //#region Aliases and backward-compatibility

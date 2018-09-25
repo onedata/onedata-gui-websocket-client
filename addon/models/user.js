@@ -10,21 +10,21 @@ import attr from 'ember-data/attr';
 import { inject } from '@ember/service';
 import { camelize } from '@ember/string';
 import { belongsTo } from 'onedata-gui-websocket-client/utils/relationships';
-import GraphModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-model';
+import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 
-export default Model.extend(GraphModelMixin, {
+export default Model.extend(GraphSingleModelMixin, {
   onedataGraph: inject(),
   onedataGraphUtils: inject(),
 
   isCollection: true,
 
   name: attr('string'),
-  login: attr('string'),
+  alias: attr('string'),
 
   /**
    * Entity ID of default space ID for user.
-   * To change it, use `setDefaultSpaceId` method - model updates will not work.
+   * To change it, use `setDefaultSpaceId` method - record updates will not work.
    * @type {DS.attr}
    */
   defaultSpaceId: attr('string'),
@@ -75,6 +75,7 @@ export default Model.extend(GraphModelMixin, {
         data: {
           [camelize(`${type}-id`)]: relationId,
         },
+        subscribe: false,
       })
       .then(() => {
         return this.reload(true);

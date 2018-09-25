@@ -2,8 +2,8 @@
  * Onedata Websocket Sync API - Graph level service
  *
  * @module services/onedata-graph
- * @author Jakub Liput
- * @copyright (C) 2017 ACK CYFRONET AGH
+ * @author Jakub Liput, Michal Borzecki
+ * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -17,15 +17,17 @@ export default Service.extend(Evented, {
 
   init() {
     this._super(...arguments);
-    this.get('onedataWebsocket').on('push:graph', this, this.handlePush);
+    const onedataWebsocket = this.get('onedataWebsocket');
+    onedataWebsocket.on('push:graph', this, this.handlePush);
+    onedataWebsocket.on('push:nosub', this, this.handleNosub);
   },
 
   /**
    * @param {string} gri
-   * @param {string} operation one of: get, update, delete
+   * @param {string} operation one of: get, create, update, delete
    * @param {object} data
    * @param {[String,String]} authHint [HintType, Id of subject]
-   * @param {string} [subscribe=false]
+   * @param {boolean} subscribe
    * @returns {Promise<object, object>} resolves with Onedata Graph resource
    *   (typically record data)
    */
@@ -34,9 +36,9 @@ export default Service.extend(Evented, {
     operation,
     data,
     authHint,
-    // TODO: change to true if backend will be done
-    subscribe = false,
+    subscribe = true,
   }) {
+    subscribe = operation === 'get' || operation === 'create' ? subscribe : false;
     return new Promise((resolve, reject) => {
       let message = {
         gri,
@@ -54,7 +56,20 @@ export default Service.extend(Evented, {
       let requesting = this.get('onedataWebsocket').sendMessage('graph', message);
       requesting.then(({ payload: { success, data: payloadData, error } }) => {
         if (success) {
-          resolve(payloadData);
+          if (!payloadData) {
+            resolve();
+          } else {
+            switch (payloadData.format) {
+              case 'resource':
+                resolve(payloadData.resource);
+                break;
+              case 'value':
+                resolve(payloadData.value);
+                break;
+              default:
+                resolve();
+            }
+          }
         } else {
           reject(error);
         }
@@ -81,6 +96,27 @@ export default Service.extend(Evented, {
       default:
         throw new Error(
           `service:onedata-graph: not supported push update type: ${updateType}`
+        );
+    }
+  },
+
+  /**
+   * @param {object} payload payload of push message from server
+   * @param {string} payload.reason reason of nosub. For now the only valid
+   *   value is: forbidden
+   * @param {string} payload.gri GRI of entity
+   * @param {string|undefined} payload.authHint authHint
+   * 
+   * @returns {undefined}
+   */
+  handleNosub({ reason, gri, authHint }) {
+    switch (reason) {
+      case 'forbidden':
+        this.trigger(`push:${reason}`, gri, authHint);
+        break;
+      default:
+        throw new Error(
+          `service:onedata-graph: not supported push nosub reason: ${reason}`
         );
     }
   },

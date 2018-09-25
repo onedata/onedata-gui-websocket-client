@@ -18,22 +18,23 @@ describe('Unit | Model | group', function () {
   });
 
   it('resolves invite token using token api service and graph', function (done) {
-    let model = this.subject();
-    model.set('id', 'group.some_id.instance');
+    let record = this.subject();
+    record.set('id', 'group.some_id.instance');
 
     const TOKEN = 'abcd';
     let graph = lookupService(this, 'onedata-graph');
     let graphRequestStub = sinon.stub(graph, 'request');
-    let graphData = { data: TOKEN };
+    let graphData = TOKEN;
     let graphValidArgs = {
       gri: sinon.match(new RegExp('.*group.*some_id.*invite.*user.*')),
       operation: 'create',
+      subscribe: false,
     };
     graphRequestStub
       .withArgs(graphValidArgs)
       .resolves(graphData);
 
-    let promise = model.getInviteToken('user');
+    let promise = record.getInviteToken('user');
     expect(graphRequestStub).to.be.calledWith(graphValidArgs);
     promise.then(token => {
       expect(token).to.equal(TOKEN);

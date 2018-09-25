@@ -9,8 +9,9 @@
 
 import Model from 'ember-data/model';
 import attr from 'ember-data/attr';
+import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
 
-export default Model.extend({
+export default Model.extend(GraphSingleModelMixin, {
   /**
    * It is an array of privileges (as strings).
    * WARNING: It is intended to be an immutable data structure! To persist 
