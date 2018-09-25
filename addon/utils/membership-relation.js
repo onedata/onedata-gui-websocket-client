@@ -7,8 +7,8 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import EmberObject, { computed, observer, get, getProperties } from '@ember/object';
-import { and } from '@ember/object/computed';
+import EmberObject, { computed, observer, get } from '@ember/object';
+import { and, reads } from '@ember/object/computed';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default EmberObject.extend({
@@ -29,17 +29,29 @@ export default EmberObject.extend({
   exists: undefined,
 
   /**
+   * @type {string}
+   */
+  parentType: reads('parent.entityType'),
+
+  /**
+   * @type {string}
+   */
+  childType: reads('child.entityType'),
+
+  /**
    * @type {Ember.ComputedProperty<string>}
    */
   parentListName: computed(
-    'parent.entityType',
-    'child.entityType',
+    'parentType',
+    'childType',
     function parentListName() {
-      const parentEntityType = this.get('parent.entityType');
-      const childEntityType = this.get('child.entityType');
-      if (parentEntityType === 'space') {
+      const {
+        parentType,
+        childType,
+      } = this.getProperties('parentType', 'childType');
+      if (parentType === 'space') {
         return 'spaceList';
-      } else if (childEntityType === 'group') {
+      } else if (childType === 'group') {
         return 'parentList';
       } else {
         return 'groupList';
@@ -51,14 +63,16 @@ export default EmberObject.extend({
    * @type {Ember.ComputedProperty<string>}
    */
   childListName: computed(
-    'parent.entityType',
-    'child.entityType',
+    'parentType',
+    'childType',
     function parentListName() {
-      const parentEntityType = this.get('parent.entityType');
-      const childEntityType = this.get('child.entityType');
-      if (childEntityType === 'user') {
+      const {
+        parentType,
+        childType,
+      } = this.getProperties('parentType', 'childType');
+      if (childType === 'user') {
         return 'userList';
-      } else if (parentEntityType === 'group') {
+      } else if (parentType === 'group') {
         return 'childList';
       } else {
         return 'groupList';
@@ -107,18 +121,18 @@ export default EmberObject.extend({
       child,
       parentListName,
       childListName,
-    } = this.getProperties('parent', 'child', 'parentListName', 'childListName');
+      parentType,
+      childType,
+    } = this.getProperties(
+      'parent',
+      'child',
+      'parentListName',
+      'childListName',
+      'parentType',
+      'childType'
+    );
 
-    const {
-      entityType: parentEntityType,
-      entityId: parentId,
-    } = getProperties(parent, 'entityType', 'entityId');
-    const {
-      entityType: childEntityType,
-      entityId: childId,
-    } = getProperties(child, 'entityType', 'entityId');
-
-    if (parentEntityType === 'group' && childEntityType === 'group') {
+    if (parentType === 'group' && childType === 'group') {
       const hasParentViewPrivilege = get(parent, 'hasViewPrivilege');
       const hasChildViewPrivilege = get(child, 'hasViewPrivilege');
       // If we cannot get relation information, then we can't assume that
@@ -143,6 +157,9 @@ export default EmberObject.extend({
     if (childIds) {
       childIds = childIds.map(gri => parseGri(gri).entityId);
     }
+
+    const parentId = get(parent, 'entityId');
+    const childId = get(child, 'entityId');
 
     if (parentIds && childIds) {
       return parentIds.indexOf(parentId) !== -1 &&
