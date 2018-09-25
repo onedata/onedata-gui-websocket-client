@@ -43,8 +43,8 @@ export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
    * True if user is an effective member of that group
    * @type {Ember.ComputedProperty<boolean>}
    */
-  isEffectiveMember: computed('scope', function membership() {
-    return ['private', 'protected'].indexOf(this.get('scope')) !== -1;
+  isEffectiveMember: computed('scope', function isEffectiveMember() {
+    return ['private', 'protected'].includes(this.get('scope'));
   }),
 
   /**

@@ -14,7 +14,7 @@ import { isArray } from '@ember/array';
 import _ from 'lodash';
 
 export default JSONSerializer.extend({
-  modelRegistry: service(),
+  recordRegistry: service(),
 
   primaryKey: 'gri',
 
@@ -40,7 +40,7 @@ export default JSONSerializer.extend({
     const result = this._super(...arguments);
 
     // Register relation between gri and modelName
-    this.get('modelRegistry').registerId(
+    this.get('recordRegistry').registerId(
       get(hash, 'gri'),
       get(typeClass, 'modelName')
     );

@@ -4,7 +4,7 @@ import { setupTest } from 'ember-mocha';
 
 import { registerService, lookupService } from '../../helpers/stub-service';
 import GraphContextStub from '../../helpers/stubs/services/onedata-graph-context';
-import ModelRegistryStub from '../../helpers/stubs/services/onedata-graph-context';
+import RecordRegistryStub from '../../helpers/stubs/services/onedata-graph-context';
 import sinon from 'sinon';
 
 describe('Unit | Serializer | context collection', function () {
@@ -14,7 +14,7 @@ describe('Unit | Serializer | context collection', function () {
 
   beforeEach(function () {
     registerService(this, 'onedata-graph-context', GraphContextStub);
-    registerService(this, 'model-registry', ModelRegistryStub);
+    registerService(this, 'record-registry', RecordRegistryStub);
   });
 
   it('uses onedata-graph-context to register context of list records', function () {

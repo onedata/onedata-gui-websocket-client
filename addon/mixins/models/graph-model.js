@@ -1,6 +1,6 @@
 /**
  * Adds convenience computed properties for desctructuring Graph Resource Identifier
- * from ID of models
+ * from ID of records
  *
  * @module mixins/models/graph-model
  * @author Jakub Liput, Michal Borzecki

@@ -18,8 +18,8 @@ describe('Unit | Model | group', function () {
   });
 
   it('resolves invite token using token api service and graph', function (done) {
-    let model = this.subject();
-    model.set('id', 'group.some_id.instance');
+    let record = this.subject();
+    record.set('id', 'group.some_id.instance');
 
     const TOKEN = 'abcd';
     let graph = lookupService(this, 'onedata-graph');
@@ -34,7 +34,7 @@ describe('Unit | Model | group', function () {
       .withArgs(graphValidArgs)
       .resolves(graphData);
 
-    let promise = model.getInviteToken('user');
+    let promise = record.getInviteToken('user');
     expect(graphRequestStub).to.be.calledWith(graphValidArgs);
     promise.then(token => {
       expect(token).to.equal(TOKEN);
