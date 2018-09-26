@@ -39,11 +39,25 @@ export default JSONSerializer.extend({
   normalize(typeClass, hash) {
     const result = this._super(...arguments);
 
+    const modelName = get(typeClass, 'modelName');
+    const gri = get(hash, 'gri');
+
+    const record = this.get('store').peekRecord(modelName, gri);
+    if (record) {
+      // Replace all unchanged (the same as in local record) values in
+      // normalized hash with values from record itself. It prevents from
+      // unnecessary recalculations due to changed reference of the array/object.
+      const incomingAttrs = get(result, 'data.attributes');
+      Object.keys(incomingAttrs).forEach(key => {
+        const recordValue = get(record, key);
+        if (_.isEqual(recordValue, get(incomingAttrs, key))) {
+          set(incomingAttrs, key, recordValue);
+        }
+      });
+    }
+
     // Register relation between gri and modelName
-    this.get('recordRegistry').registerId(
-      get(hash, 'gri'),
-      get(typeClass, 'modelName')
-    );
+    this.get('recordRegistry').registerId(gri, modelName);
 
     return result;
   },
