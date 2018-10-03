@@ -16,6 +16,7 @@ import InvitingModelMixin from 'onedata-gui-websocket-client/mixins/models/invit
 
 export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
   name: attr('string'),
+  canViewPrivileges: attr('boolean', { defaultValue: false }),
 
   /**
    * Maps: provider name => capacity in bytes provided for this space

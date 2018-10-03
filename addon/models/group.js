@@ -26,12 +26,10 @@ export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
 
   membership: belongsTo('membership'),
 
-  // for features, that will be moved from OP GUI to OZ GUI
-  // spaceList: belongsTo('spaceList'),
-
   parentList: belongsTo('groupList'),
   childList: belongsTo('groupList'),
   userList: belongsTo('sharedUserList'),
+  spaceList: belongsTo('spaceList'),
 
   /**
    * Alias to make access to the group/user members compatible with the space model
