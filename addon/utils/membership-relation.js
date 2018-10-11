@@ -138,7 +138,7 @@ export default EmberObject.extend({
       // If we cannot get relation information, then we can't assume that
       // relation exists
       if (!hasChildViewPrivilege && !hasParentViewPrivilege) {
-        return false;
+        return true;
       }
     }
 
@@ -146,18 +146,9 @@ export default EmberObject.extend({
     // they can update separatedly and there may be a situation when one list does
     // not satisfy relation while the second one does it (because it
     // is outdated).
-    const parentList = child.belongsTo(parentListName).value();
-    const childList = parent.belongsTo(childListName).value();
-    let parentIds = parentList ? parentList.hasMany('list').ids() : null;
-    let childIds = childList ? childList.hasMany('list').ids() : null;
 
-    if (parentIds) {
-      parentIds = parentIds.map(gri => parseGri(gri).entityId);
-    }
-    if (childIds) {
-      childIds = childIds.map(gri => parseGri(gri).entityId);
-    }
-
+    const parentIds = this.getListEntityIds(child, parentListName);
+    const childIds = this.getListEntityIds(parent, childListName);
     const parentId = get(parent, 'entityId');
     const childId = get(child, 'entityId');
 
@@ -169,7 +160,23 @@ export default EmberObject.extend({
     } else if (childIds) {
       return childIds.indexOf(childId) !== -1;
     } else {
-      return false;
+      return true;
+    }
+  },
+
+  /**
+   * Returns array of entityIds, that are located in `listName` list inside record.
+   * @param {GraphSingleModel} record 
+   * @param {string} listName
+   * @returns {Array<string>} entity ids
+   */
+  getListEntityIds(record, listName) {
+    if (get(record, 'constructor.relationshipNames.belongsTo').includes(listName)) {
+      const list = record.belongsTo(listName).value();
+      let ids = list ? list.hasMany('list').ids() : null;
+      return ids ? ids.map(gri => parseGri(gri).entityId) : ids;
+    } else {
+      return null;
     }
   },
 });
