@@ -12,6 +12,16 @@ import attr from 'ember-data/attr';
 import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
 
 export default Model.extend(GraphSingleModelMixin, {
+  /**
+   * Array of direct members gri (of record related to entityId), which are
+   * elements of membership paths. 
+   * @type {Array<string>}
+   */
   intermediaries: attr('array'),
+
+  /**
+   * True if two membership related records are related via direct membership
+   * @type {boolean}
+   */
   directMembership: attr('boolean'),
 });

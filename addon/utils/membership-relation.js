@@ -13,17 +13,19 @@ import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default EmberObject.extend({
   /**
+   * @virtual
    * @type {Group|Space}
    */
   parent: undefined,
 
   /**
+   * @virtual
    * @type {User|Group}
    */
   child: undefined,
 
   /**
-   * If true, relation really exists
+   * If true, relation really exists. Created in listNamesObserver.
    * @type {Ember.ComputedProperty<boolean>}
    */
   exists: undefined,
@@ -65,7 +67,7 @@ export default EmberObject.extend({
   childListName: computed(
     'parentType',
     'childType',
-    function parentListName() {
+    function childListName() {
       const {
         parentType,
         childType,
@@ -153,12 +155,11 @@ export default EmberObject.extend({
     const childId = get(child, 'entityId');
 
     if (parentIds && childIds) {
-      return parentIds.indexOf(parentId) !== -1 &&
-        childIds.indexOf(childId) !== -1;
+      return parentIds.includes(parentId) && childIds.includes(childId);
     } else if (parentIds) {
-      return parentIds.indexOf(parentId) !== -1;
+      return parentIds.includes(parentId);
     } else if (childIds) {
-      return childIds.indexOf(childId) !== -1;
+      return childIds.includes(childId);
     } else {
       return true;
     }
