@@ -32,6 +32,8 @@ export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
   // members of this space
   groupList: belongsTo('groupList'),
   userList: belongsTo('sharedUserList'),
+  effGroupList: belongsTo('groupList'),
+  effUserList: belongsTo('sharedUserList'),
 
   //#region utils
 
