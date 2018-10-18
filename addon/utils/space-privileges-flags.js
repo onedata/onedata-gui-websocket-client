@@ -19,11 +19,21 @@ export const groupedFlags = [{
 }, {
   groupName: 'dataManagement',
   privileges: [
+    'space_read_data',
     'space_write_data',
     'space_manage_shares',
+    'space_manage_indexes',
+    'space_query_indexes',
+    'space_view_statistics',
+  ],
+}, {
+  groupName: 'transferManagement',
+  privileges: [
     'space_view_transfers',
-    'space_schedule_transfers',
-    'space_cancel_transfers',
+    'space_schedule_replication',
+    'space_cancel_replication',
+    'space_schedule_eviction',
+    'space_cancel_eviction',
   ],
 }, {
   groupName: 'userManagement',

@@ -12,10 +12,10 @@ import { inject as service } from '@ember/service';
 import { computed } from '@ember/object';
 import { alias, equal } from '@ember/object/computed';
 
-import GraphModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-model';
+import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
 import InvitingModelMixin from 'onedata-gui-websocket-client/mixins/models/inviting-model';
 
-export default Model.extend(GraphModelMixin, InvitingModelMixin, {
+export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
   onedataGraphUtils: service(),
 
   name: attr('string'),
@@ -24,12 +24,12 @@ export default Model.extend(GraphModelMixin, InvitingModelMixin, {
   directMembership: attr('boolean', { defaultValue: false }),
   canViewPrivileges: attr('boolean', { defaultValue: false }),
 
-  // for features, that will be moved from OP GUI to OZ GUI
-  // spaceList: belongsTo('spaceList'),
+  membership: belongsTo('membership'),
 
   parentList: belongsTo('groupList'),
   childList: belongsTo('groupList'),
   userList: belongsTo('sharedUserList'),
+  spaceList: belongsTo('spaceList'),
 
   /**
    * Alias to make access to the group/user members compatible with the space model
@@ -41,8 +41,8 @@ export default Model.extend(GraphModelMixin, InvitingModelMixin, {
    * True if user is an effective member of that group
    * @type {Ember.ComputedProperty<boolean>}
    */
-  membership: computed('scope', function membership() {
-    return ['private', 'protected'].indexOf(this.get('scope')) !== -1;
+  isEffectiveMember: computed('scope', function isEffectiveMember() {
+    return ['private', 'protected'].includes(this.get('scope'));
   }),
 
   /**

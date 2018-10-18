@@ -11,11 +11,12 @@ import { belongsTo } from 'onedata-gui-websocket-client/utils/relationships';
 import { computed } from '@ember/object';
 import _ from 'lodash';
 
-import GraphModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-model';
+import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
 import InvitingModelMixin from 'onedata-gui-websocket-client/mixins/models/inviting-model';
 
-export default Model.extend(GraphModelMixin, InvitingModelMixin, {
+export default Model.extend(GraphSingleModelMixin, InvitingModelMixin, {
   name: attr('string'),
+  canViewPrivileges: attr('boolean', { defaultValue: false }),
 
   /**
    * Maps: provider name => capacity in bytes provided for this space

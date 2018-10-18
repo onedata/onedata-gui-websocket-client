@@ -4,6 +4,7 @@ import { setupTest } from 'ember-mocha';
 
 import { registerService, lookupService } from '../../helpers/stub-service';
 import GraphContextStub from '../../helpers/stubs/services/onedata-graph-context';
+import RecordRegistryStub from '../../helpers/stubs/services/onedata-graph-context';
 import sinon from 'sinon';
 
 describe('Unit | Serializer | context collection', function () {
@@ -13,6 +14,7 @@ describe('Unit | Serializer | context collection', function () {
 
   beforeEach(function () {
     registerService(this, 'onedata-graph-context', GraphContextStub);
+    registerService(this, 'record-registry', RecordRegistryStub);
   });
 
   it('uses onedata-graph-context to register context of list records', function () {
@@ -22,12 +24,12 @@ describe('Unit | Serializer | context collection', function () {
     };
 
     let graphContext = lookupService(this, 'onedata-graph-context');
-    let registerStub = sinon.stub(graphContext, 'register');
+    let registerStub = sinon.stub(graphContext, 'registerArray');
 
     let serializer = this.subject();
 
     serializer.registerContextForItems(hash);
 
-    expect(registerStub).to.have.callCount(hash.list.length);
+    expect(registerStub).to.have.been.calledOnce;
   });
 });

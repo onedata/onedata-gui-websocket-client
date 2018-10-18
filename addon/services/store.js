@@ -8,34 +8,39 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
+import { get } from '@ember/object';
 import Store from 'ember-data/store';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { resolve } from 'rsvp';
 
 export default Store.extend({
   /**
-   * Iterates over all list models to reload/recalculate length. Basically it
+   * Iterates over all list records to reload/recalculate length. Basically it
    * should be called right after record deletion.
    * @param {string} modelName
-   * @param {string} entityId entityId of the model, which existence should be
-   *   checked in list models (e.g. after deletion)
+   * @param {string} entityId entityId of the record, which existence should be
+   *   checked in list records (e.g. after deletion)
    * @returns {Promise} resolves when all lists all properly reloaded/recalculated
    */
   recalculateListsWithEntity(modelName, entityId) {
     const listModelName = `${modelName}-list`;
-    const models = this.peekAll(listModelName);
-    return Promise.all(models.map(listModel => {
-      const ids = listModel.hasMany('list').ids();
-      if (ids && ids.some(id => parseGri(id).entityId === entityId)) {
-        let promise = listModel.reload();
-        // reload models in list only if they have been loaded earlier
-        if (listModel.hasMany('list').value()) {
-          promise = promise.then(() => listModel.hasMany('list').reload());
+    const records = this.peekAll(listModelName);
+    return Promise.all(records.map(listModel => {
+      if (!get(listModel, 'isForbidden')) {
+        const ids = listModel.hasMany('list').ids();
+        if (ids && ids.some(id => parseGri(id).entityId === entityId)) {
+          let promise = listModel.reload();
+          // reload records in list only if they have been loaded earlier
+          if (listModel.hasMany('list').value()) {
+            promise = promise.then(() => listModel.hasMany('list').reload());
+          }
+          return promise;
+        } else {
+          // simulate reload to recalculated properties
+          listModel.notifyPropertyChange('isReloading');
+          return resolve();
         }
-        return promise;
       } else {
-        // simulate reload to recalculated properties
-        listModel.notifyPropertyChange('isReloading');
         return resolve();
       }
     }));

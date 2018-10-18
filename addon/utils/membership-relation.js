@@ -1,0 +1,176 @@
+/**
+ * Represents a relation between two records - parent and child.
+ *
+ * @module utils/membership-relation
+ * @author Michal Borzecki
+ * @copyright (C) 2018 ACK CYFRONET AGH
+ * @license This software is released under the MIT license cited in 'LICENSE.txt'.
+ */
+
+import EmberObject, { computed, observer, get } from '@ember/object';
+import { and, reads } from '@ember/object/computed';
+import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
+
+export default EmberObject.extend({
+  /**
+   * @virtual
+   * @type {Group|Space}
+   */
+  parent: undefined,
+
+  /**
+   * @virtual
+   * @type {User|Group}
+   */
+  child: undefined,
+
+  /**
+   * If true, relation really exists. Created in listNamesObserver.
+   * @type {Ember.ComputedProperty<boolean>}
+   */
+  exists: undefined,
+
+  /**
+   * @type {string}
+   */
+  parentType: reads('parent.entityType'),
+
+  /**
+   * @type {string}
+   */
+  childType: reads('child.entityType'),
+
+  /**
+   * @type {Ember.ComputedProperty<string>}
+   */
+  parentListName: computed(
+    'parentType',
+    'childType',
+    function parentListName() {
+      const {
+        parentType,
+        childType,
+      } = this.getProperties('parentType', 'childType');
+      if (parentType === 'space') {
+        return 'spaceList';
+      } else if (childType === 'group') {
+        return 'parentList';
+      } else {
+        return 'groupList';
+      }
+    }
+  ),
+
+  /**
+   * @type {Ember.ComputedProperty<string>}
+   */
+  childListName: computed(
+    'parentType',
+    'childType',
+    function childListName() {
+      const {
+        parentType,
+        childType,
+      } = this.getProperties('parentType', 'childType');
+      if (childType === 'user') {
+        return 'userList';
+      } else if (parentType === 'group') {
+        return 'childList';
+      } else {
+        return 'groupList';
+      }
+    }
+  ),
+
+  /**
+   * @type {Ember.ComputedProperty<boolean>}
+   */
+  canViewPrivileges: and('exists', 'parent.canViewPrivileges'),
+
+  listNamesObserver: observer(
+    'parentListName',
+    'childListName',
+    function listNamesObserver() {
+      const {
+        parentListName,
+        childListName,
+      } = this.getProperties(
+        'parentListName',
+        'childListName'
+      );
+      this.set('exists', computed(
+        `parent.${childListName}.{list.[],isReloading}`,
+        `child.${parentListName}.{list.[],isReloading}`,
+        function () {
+          return this.checkExistence();
+        }
+      ));
+    }
+  ),
+
+  init() {
+    this._super(...arguments);
+    this.listNamesObserver();
+  },
+
+  /**
+   * Returns true if relation really exists
+   * @returns {boolean}
+   */
+  checkExistence() {
+    const {
+      parent,
+      child,
+      parentListName,
+      childListName,
+      parentType,
+      childType,
+    } = this.getProperties(
+      'parent',
+      'child',
+      'parentListName',
+      'childListName',
+      'parentType',
+      'childType'
+    );
+
+    if (parentType === 'group' && childType === 'group') {
+      const hasParentViewPrivilege = get(parent, 'hasViewPrivilege');
+      const hasChildViewPrivilege = get(child, 'hasViewPrivilege');
+      // If we cannot get relation information, then we can't assume that
+      // relation exists
+      if (!hasChildViewPrivilege && !hasParentViewPrivilege) {
+        return false;
+      }
+    }
+
+    // We need to check both children and parents lists if possible, because
+    // they can update separatedly and there may be a situation when one list does
+    // not satisfy relation while the second one does it (because it
+    // is outdated).
+    const parentList = child.belongsTo(parentListName).value();
+    const childList = parent.belongsTo(childListName).value();
+    let parentIds = parentList ? parentList.hasMany('list').ids() : null;
+    let childIds = childList ? childList.hasMany('list').ids() : null;
+
+    if (parentIds) {
+      parentIds = parentIds.map(gri => parseGri(gri).entityId);
+    }
+    if (childIds) {
+      childIds = childIds.map(gri => parseGri(gri).entityId);
+    }
+
+    const parentId = get(parent, 'entityId');
+    const childId = get(child, 'entityId');
+
+    if (parentIds && childIds) {
+      return parentIds.includes(parentId) && childIds.includes(childId);
+    } else if (parentIds) {
+      return parentIds.includes(parentId);
+    } else if (childIds) {
+      return childIds.includes(childId);
+    } else {
+      return false;
+    }
+  },
+});

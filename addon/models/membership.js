@@ -1,7 +1,7 @@
 /**
- * A set of privileges
+ * Membership information
  * 
- * @module models/privilege
+ * @module models/membership
  * @author Michal Borzecki
  * @copyright (C) 2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
@@ -13,9 +13,15 @@ import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/gr
 
 export default Model.extend(GraphSingleModelMixin, {
   /**
-   * It is an array of privileges (as strings).
-   * WARNING: It is intended to be an immutable data structure! To persist 
-   * modifications it must be replaced by a new array.
+   * Array of direct members gri (of record related to entityId), which are
+   * elements of membership paths. 
+   * @type {Array<string>}
    */
-  privileges: attr('array'),
+  intermediaries: attr('array'),
+
+  /**
+   * True if two membership related records are related via direct membership
+   * @type {boolean}
+   */
+  directMembership: attr('boolean'),
 });
