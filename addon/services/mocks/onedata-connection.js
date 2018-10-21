@@ -8,15 +8,8 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import Service, { inject } from '@ember/service';
-import authorizersMock from 'onezone-gui/utils/authorizers-mock';
+import Service from '@ember/service';
 
 export default Service.extend({
-  onedataWebsocket: inject(),
-
-  zoneName: 'Hello world',
   serviceVersion: '18.02.0-mock',
-  identityProviders: authorizersMock,
-  brandSubtitle: 'Isolated zone',
-  loginNotification: '',
 });
