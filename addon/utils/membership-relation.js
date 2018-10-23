@@ -137,8 +137,8 @@ export default EmberObject.extend({
     if (parentType === 'group' && childType === 'group') {
       const hasParentViewPrivilege = get(parent, 'hasViewPrivilege');
       const hasChildViewPrivilege = get(child, 'hasViewPrivilege');
-      // If we cannot get relation information, then we can't assume that
-      // relation exists
+      // If we cannot get relation information, it is better to assume,
+      // that the relation exists.
       if (!hasChildViewPrivilege && !hasParentViewPrivilege) {
         return true;
       }
@@ -173,8 +173,8 @@ export default EmberObject.extend({
    */
   getListEntityIds(record, listName) {
     if (get(record, 'constructor.relationshipNames.belongsTo').includes(listName)) {
-      const list = record.belongsTo(listName).value();
-      let ids = list ? list.hasMany('list').ids() : null;
+      const listRecord = record.belongsTo(listName).value();
+      const ids = listRecord ? listRecord.hasMany('list').ids() : null;
       return ids ? ids.map(gri => parseGri(gri).entityId) : ids;
     } else {
       return null;
