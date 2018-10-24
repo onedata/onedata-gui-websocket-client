@@ -28,7 +28,7 @@ export default Service.extend({
   serviceVersion: reads('attributes.serviceVersion'),
 
   /**
-   * @type {Ember.Computed<Array<string>>}
+   * @type {Ember.Computed<Array<IdentityProvider>>}
    */
   idps: reads('attributes.idps'),
 
@@ -36,7 +36,8 @@ export default Service.extend({
    * Stores list of identity provider ids,
    * which is a list of authorizers that are available on login screen.
    * It's an alias to `idps` attribute.
-   * @type {Ember.Computed<Array<string>>}
+   * Each idp has: id, displayName, iconPath, iconBackgroundColor
+   * @type {Ember.Computed<Array<IdentityProvider>>}
    */
   identityProviders: reads('idps'),
 
