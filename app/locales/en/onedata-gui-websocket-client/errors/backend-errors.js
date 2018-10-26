@@ -69,5 +69,5 @@ export default {
     'belongs to the {{parentType}} (Id: {{parentId}}).',
   cannotDeleteEntity: 'Unexpected error while deleting the {{entityType}} (Id: ' +
     '"{{entityId}}").',
-  cannotJoinGroupToItself: 'Cannot join group to itself.',
+  cannotAddRelationToSelf: 'Cannot join group to itself.',
 };

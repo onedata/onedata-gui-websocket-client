@@ -36,7 +36,7 @@ export default Serializer.extend({
   registerContextForItems(hash) {
     const collectionList = hash.list;
     if (collectionList) {
-      this.get('onedataGraphContext').registerArray(collectionList, hash.gri);
+      this.get('onedataGraphContext').registerArray(collectionList, hash.gri, hash.gri);
     }
   },
 });
