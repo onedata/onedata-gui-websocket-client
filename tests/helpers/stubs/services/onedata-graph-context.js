@@ -7,4 +7,6 @@ export default Service.extend({
   register( /*requestedId, contextEntityId*/ ) {
     throw 'onedata-graph-context#register stub not implemented';
   },
+  registerArray() {},
+  deregister() {},
 });

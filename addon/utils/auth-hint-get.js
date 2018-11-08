@@ -1,5 +1,5 @@
 /**
- * Produce first part of authHint for getting model from Onedata Graph API
+ * Produce first part of authHint for getting record from Onedata Graph API
  * Eg. throughSpace, throughGroup
  *
  * @module utils/auth-hint-get
@@ -16,7 +16,9 @@ import { camelize } from '@ember/string';
  * @returns {string} first part of authHint
  */
 export default function authHintGet(gri) {
-  let griMatch = gri.match(/(space|group)\..*\.(users|groups|children)/);
+  let griMatch = gri.match(
+    /(space|group)\..*\.(users|groups|children|eff_users|eff_groups|eff_children)/
+  );
   if (griMatch) {
     let modelName = griMatch[1];
     return camelize(`through-${modelName}`);

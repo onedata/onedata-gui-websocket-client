@@ -8,9 +8,14 @@
  */
 
 import JSONSerializer from 'ember-data/serializers/json';
-import { get, set } from '@ember/object';
+import { get, set, getProperties } from '@ember/object';
+import { inject as service } from '@ember/service';
+import { isArray } from '@ember/array';
+import _ from 'lodash';
 
 export default JSONSerializer.extend({
+  recordRegistry: service(),
+
   primaryKey: 'gri',
 
   extractAttributes(modelClass, resourceHash) {
@@ -29,5 +34,56 @@ export default JSONSerializer.extend({
     });
 
     return attributes;
+  },
+
+  normalize(typeClass, hash) {
+    const result = this._super(...arguments);
+
+    const modelName = get(typeClass, 'modelName');
+    const gri = get(hash, 'gri');
+
+    const record = this.get('store').peekRecord(modelName, gri);
+    if (record) {
+      // Replace all unchanged (the same as in local record) values in
+      // normalized hash with values from record itself. It prevents from
+      // unnecessary recalculations due to changed reference of the array/object.
+      const incomingAttrs = get(result, 'data.attributes');
+      Object.keys(incomingAttrs).forEach(key => {
+        const recordValue = get(record, key);
+        if (_.isEqual(recordValue, get(incomingAttrs, key))) {
+          set(incomingAttrs, key, recordValue);
+        }
+      });
+    }
+
+    // Register relation between gri and modelName
+    this.get('recordRegistry').registerId(gri, modelName);
+
+    return result;
+  },
+
+  extractRelationships(modelClass, resourceHash) {
+    const store = this.get('store');
+
+    // Removes ids of records which are considered as deleted. It is important
+    // because, due to the subscription latency, there can be an update that
+    // tries to change data of a model, that is already deleted.
+    modelClass.eachRelationship((key, relationshipMeta) => {
+      const {
+        kind,
+        type,
+      } = getProperties(relationshipMeta, 'kind', 'type');
+      const relationshipKey = this.keyForRelationship(key, kind, 'deserialize');
+      const relationshipHash = get(resourceHash, relationshipKey);
+
+      if (kind === 'hasMany' && isArray(relationshipHash)) {
+        _.remove(relationshipHash, id => {
+          const record = store.peekRecord(type, id);
+          return record ? get(record, 'isDeleted') : false;
+        });
+      }
+    });
+
+    return this._super(...arguments);
   },
 });

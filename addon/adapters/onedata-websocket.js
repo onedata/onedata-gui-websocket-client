@@ -2,16 +2,18 @@
  * Uses `service:onedata-graph` for CRUD operations on Onedata model
  *
  * @module adapters/onedata-websocket
- * @author Jakub Liput
- * @copyright (C) 2017 ACK CYFRONET AGH
+ * @author Jakub Liput, Michal Borzecki
+ * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get } from '@ember/object';
-import { inject } from '@ember/service';
+import { get, set } from '@ember/object';
+import { isArray } from '@ember/array';
+import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
+import { reject } from 'rsvp';
 
-import gri from 'onedata-gui-websocket-client/utils/gri';
+import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 /**
@@ -31,8 +33,9 @@ function stripObject(data) {
 }
 
 export default Adapter.extend({
-  onedataGraph: inject(),
-  onedataGraphContext: inject(),
+  onedataGraph: service(),
+  onedataGraphContext: service(),
+  recordRegistry: service(),
 
   defaultSerializer: 'onedata-websocket',
 
@@ -41,6 +44,7 @@ export default Adapter.extend({
     const onedataGraph = this.get('onedataGraph');
     onedataGraph.on('push:updated', this, this.pushUpdated);
     onedataGraph.on('push:deleted', this, this.pushDeleted);
+    onedataGraph.on('push:forbidden', this, this.pushForbidden);
   },
 
   destroy() {
@@ -48,6 +52,7 @@ export default Adapter.extend({
       const onedataGraph = this.get('onedataGraph');
       onedataGraph.off('push:updated', this, this.pushUpdated);
       onedataGraph.off('push:deleted', this, this.pushDeleted);
+      onedataGraph.off('push:forbidden', this, this.pushForbidden);
     } finally {
       this._super(...arguments);
     }
@@ -59,16 +64,17 @@ export default Adapter.extend({
    * @param {DS.Model} type
    * @param {String} id
    * @param {DS.Snapshot} snapshot
-   * @returns {Promise} promise} store
+   * @returns {Promise}
    */
   findRecord(store, type, id, snapshot) {
-    let {
+    const {
       onedataGraph,
       onedataGraphContext,
     } = this.getProperties('onedataGraph', 'onedataGraphContext');
 
-    let authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
+    const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
       onedataGraphContext.getAuthHint(id);
+    const record = get(snapshot, 'record') || {};
 
     return onedataGraph.request({
       gri: id,
@@ -79,9 +85,24 @@ export default Adapter.extend({
         `adapter:onedata-websocket: findRecord, gri: ${id}, returned data: `,
         `${JSON.stringify(graphData)}`,
       );
+      // request is successful so access to the resource is not forbidden
+      if (get(record, 'isForbidden')) {
+        set(record, 'isForbidden', false);
+      }
       return graphData;
+    }).catch(findError => {
+      if (get(findError, 'id') === 'forbidden') {
+        return this.searchForNextContext(id, !!authHint)
+          .catch(() => {
+            if (!get(record, 'isForbidden')) {
+              set(record, 'isForbidden', true);
+            }
+            throw findError;
+          });
+      } else {
+        throw findError;
+      }
     });
-
   },
 
   /**
@@ -110,7 +131,7 @@ export default Adapter.extend({
     stripObject(data);
 
     return onedataGraph.request({
-      gri: gri({
+      gri: createGri({
         entityType: modelName,
         aspect: 'instance',
       }),
@@ -136,7 +157,7 @@ export default Adapter.extend({
     const griData = parseGri(recordId);
     griData.scope = 'private';
     return onedataGraph.request({
-      gri: gri(griData),
+      gri: createGri(griData),
       operation: 'update',
       data,
     });
@@ -151,13 +172,19 @@ export default Adapter.extend({
    * @return {Promise} promise
    */
   deleteRecord(store, type, snapshot) {
-    let onedataGraph = this.get('onedataGraph');
+    const {
+      onedataGraph,
+      onedataGraphContext,
+    } = this.getProperties('onedataGraph', 'onedataGraphContext');
     let recordId = snapshot.record.id;
     const griData = parseGri(recordId);
     griData.scope = 'private';
     return onedataGraph.request({
-      gri: gri(griData),
+      gri: createGri(griData),
       operation: 'delete',
+    }).then(result => {
+      onedataGraphContext.deregister(recordId);
+      return result;
     });
   },
 
@@ -170,21 +197,105 @@ export default Adapter.extend({
   },
 
   pushUpdated(gri, data) {
-    const { entityType: modelName } = parseGri(gri);
-    return this.get('store').push({
-      modelName,
-      data: { id: gri, type: modelName, attributes: data },
-    });
+    const store = this.get('store');
+    const modelName = this.getModelName(gri);
+    const existingRecord = store.peekRecord(modelName, gri);
+
+    // ignore update if record is deleted
+    if (existingRecord && get(existingRecord, 'isDeleted')) {
+      return;
+    }
+
+    const record = store.push(store.normalize(modelName, data));
+    if (isArray(record)) {
+      record.forEach(r => r.notifyPropertyChange('isReloading'));
+    } else {
+      record.notifyPropertyChange('isReloading');
+    }
+    return record;
   },
 
   pushDeleted(gri) {
     const store = this.get('store');
-    const { entityType: modelName } = parseGri(gri);
+    const modelName = this.getModelName(gri);
     const record = store.peekRecord(modelName, gri);
-    if (record) {
+    if (record && !get(record, 'isDeleted')) {
       record.deleteRecord();
       // TODO: maybe unload record, but we lost deleted flag then...
     }
   },
 
+  pushForbidden(gri, authHint) {
+    const {
+      onedataGraphContext,
+      store,
+    } = this.getProperties('onedataGraphContext', 'store');
+    const modelName = this.getModelName(gri);
+    const record = store.peekRecord(modelName, gri);
+    if (record && !get(record, 'isDeleted')) {
+      // deregister not working context
+      if (authHint) {
+        const contextId = authHint.split(':')[1];
+        onedataGraphContext.deregister(contextId, null, gri);
+      } else {
+        onedataGraphContext.deregister(gri);
+      }
+      // try to find another working context
+      this.searchForNextContext(gri, !!authHint)
+        .then(data => this.pushUpdated(gri, data))
+        .catch(() =>
+          set(record, 'isForbidden', true)
+        );
+    }
+  },
+
+  /**
+   * Looks for working context (authHint) for specified GRI. Tries each available
+   * context until working one found. If some context does not work, it will be
+   * removed from the list of available contexts.
+   * @param {string} gri GRI
+   * @param {boolean} allowEmptyAuthHint if true, at the end of checking chain
+   *   empty authHint will be used
+   * @returns {Promise} resolves with successful request result, rejects if
+   *   none of available contexts allows to reach specified resource
+   */
+  searchForNextContext(gri, allowEmptyAuthHint = true) {
+    const {
+      onedataGraphContext,
+      onedataGraph,
+    } = this.getProperties('onedataGraphContext', 'onedataGraph');
+    const contextGri = onedataGraphContext.getContext(gri);
+    const authHint = onedataGraphContext.getAuthHint(gri);
+    if (!allowEmptyAuthHint && !authHint) {
+      return reject();
+    }
+    console.debug(
+      `adapter:onedata-websocket: trying to subscribe to ${gri} using authHint ${authHint}`
+    );
+    return onedataGraph.request({
+      gri,
+      operation: 'get',
+      authHint,
+    }).catch(error => {
+      console.debug(
+        `adapter:onedata-websocket: cannot subscribe to ${gri} using authHint ${authHint}, returned data :`,
+        `${JSON.stringify(error)}`,
+      );
+      if (contextGri) {
+        onedataGraphContext.deregister(contextGri, null, gri);
+      }
+      return this.searchForNextContext(gri, allowEmptyAuthHint && !!contextGri);
+    });
+  },
+
+  /**
+   * Returns model name for given GRI.
+   * WARNING: It uses entityType from GRI if record was not fetched earlier.
+   * EntityType does not always map directly to model name.
+   * @param {string} gri
+   * @returns {string}
+   */
+  getModelName(gri) {
+    return this.get('recordRegistry').getModelName(gri) || parseGri(gri).entityType;
+  },
 });

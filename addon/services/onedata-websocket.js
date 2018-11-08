@@ -296,7 +296,7 @@ export default Service.extend(Evented, {
    */
   _handshake(options) {
     options = options || {};
-    const protocolVersion = (options.protocolVersion === undefined) ? 1 : options.protocolVersion;
+    const protocolVersion = (options.protocolVersion === undefined) ? 2 : options.protocolVersion;
 
     return new Promise((resolve, reject) => {
       let handshaking = this.sendMessage('handshake', {
