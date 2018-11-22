@@ -28,12 +28,17 @@ export default Service.extend({
   serviceVersion: reads('attributes.serviceVersion'),
 
   /**
-   * @type {Ember.Computed<Array<string>>}
+   * @type {Ember.Computed<string>}
    */
   brandSubtitle: reads('attributes.brandSubtitle'),
 
   /**
-   * @type {Ember.Computed<Array<string>>}
+   * @type {Ember.Computed<string>}
    */
   loginNotification: reads('attributes.loginNotification'),
+
+  /**
+   * @type {Ember.Computed<string>}
+   */
+  onepanelRedirectPath: reads('attributes.onepanelRedirectPath'),
 });
