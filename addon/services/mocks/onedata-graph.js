@@ -88,6 +88,18 @@ export default Service.extend(Evented, {
   },
 
   handlers: Object.freeze({
+    provider: {
+      provider_registration_token(operation) {
+        if (operation === 'create') {
+          return {
+            success: true,
+            data: randomToken(),
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+    },
     space: {
       invite_provider_token(operation, /* spaceId, data, authHint*/ ) {
         if (operation === 'create') {
