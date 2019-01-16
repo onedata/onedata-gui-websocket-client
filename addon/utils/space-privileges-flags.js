@@ -3,7 +3,7 @@
  * 
  * @module utils/space-privileges-flags
  * @author Michal Borzecki
- * @copyright (C) 2018 ACK CYFRONET AGH
+ * @copyright (C) 2018-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -38,7 +38,7 @@ export const groupedFlags = [{
 }, {
   groupName: 'userManagement',
   privileges: [
-    'space_invite_user',
+    'space_add_user',
     'space_remove_user',
   ],
 }, {
@@ -50,7 +50,7 @@ export const groupedFlags = [{
 }, {
   groupName: 'providerManagement',
   privileges: [
-    'space_invite_provider',
+    'space_add_provider',
     'space_remove_provider',
   ],
 }];

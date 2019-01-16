@@ -3,7 +3,7 @@
  * 
  * @module utils/group-privileges-flags
  * @author Michal Borzecki
- * @copyright (C) 2018 ACK CYFRONET AGH
+ * @copyright (C) 2018-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -27,7 +27,7 @@ export const groupedFlags = [{
 }, {
   groupName: 'userManagement',
   privileges: [
-    'group_invite_user',
+    'group_add_user',
     'group_remove_user',
   ],
 }, {
