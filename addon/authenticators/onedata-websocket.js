@@ -44,7 +44,7 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
    *  invalidated successfully
    */
   remoteInvalidate() {
-    return xhrToPromise($.get('/logout'));
+    return xhrToPromise($.post('/logout'));
   },
 });
 

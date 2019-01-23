@@ -67,8 +67,8 @@ export default Mixin.create({
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         data: JSON.stringify({
-          serviceId: 'onezone',
-          serviceType: 'onezone',
+          clusterId: 'onezone',
+          clusterType: 'onezone',
         }),
       }).then(resolve, reject))
       .then(({ token }) => token);
