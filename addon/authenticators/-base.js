@@ -9,6 +9,7 @@
  */
 
 import BaseAuthenticator from 'ember-simple-auth/authenticators/base';
+import xhrToPromise from 'onedata-gui-websocket-client/utils/xhr-to-promise';
 
 import { Promise } from 'rsvp';
 
@@ -34,14 +35,6 @@ export default BaseAuthenticator.extend({
    * @returns {Promise<undefined>}
    */
   closeConnection() {
-    throw new Error('not implemented');
-  },
-
-  /**
-   * @virtual
-   * @returns {Promise<undefined>}
-   */
-  remoteInvalidate() {
     throw new Error('not implemented');
   },
 
@@ -95,5 +88,14 @@ export default BaseAuthenticator.extend({
       });
       remoteInvalidation.catch(reject);
     });
+  },
+
+  /**
+   * Invalidate session on remote
+   * @returns {Promise} resolves when session on server side has been
+   *  invalidated successfully
+   */
+  remoteInvalidate() {
+    return xhrToPromise($.post('/logout'));
   },
 });

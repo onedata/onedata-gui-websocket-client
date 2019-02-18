@@ -37,15 +37,6 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
   closeConnection() {
     return this.get('onedataWebsocket').closeConnection(...arguments);
   },
-
-  /**
-   * Invalidate session on remote
-   * @returns {Promise} resolves when session on server side has been
-   *  invalidated successfully
-   */
-  remoteInvalidate() {
-    return xhrToPromise($.post('/logout'));
-  },
 });
 
 /**
