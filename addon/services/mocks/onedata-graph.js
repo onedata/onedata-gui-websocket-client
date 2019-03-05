@@ -143,6 +143,13 @@ export default Service.extend(Evented, {
           return messageNotSupported;
         }
       },
+      provider_registration_token(operation) {
+        if (operation === 'create') {
+          return randomToken();
+        } else {
+          return messageNotSupported;
+        }
+      },
     },
   }),
 });
