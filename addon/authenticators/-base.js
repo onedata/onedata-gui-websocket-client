@@ -80,8 +80,8 @@ export default BaseAuthenticator.extend({
       remoteInvalidation.then(() => {
         let closing = this.closeConnection();
         closing.then(() => {
-          // FIXME: this will cause to fetch new token!
-          // NOTE: reject and resolve are inverted here!
+          // NOTE: reject and resolve are inverted here, because rejection
+          // of token request means success
           return this.tryHandshake().then(reject, resolve);
         });
         closing.catch(reject);
