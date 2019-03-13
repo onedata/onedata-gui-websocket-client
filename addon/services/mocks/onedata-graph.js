@@ -99,6 +99,36 @@ export default Service.extend(Evented, {
           throw messageNotSupported;
         }
       },
+      eff_users(operation, entityId) {
+        if (operation === 'get') {
+          return {
+            gri: `provider.${entityId}.eff_users`,
+            list: ['user1', 'user2'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+      eff_groups(operation, entityId) {
+        if (operation === 'get') {
+          return {
+            gri: `provider.${entityId}.groups`,
+            list: ['group1', 'group2', 'group3'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+      spaces(operation, entityId) {
+        if (operation === 'get') {
+          return {
+            gri: `provider.${entityId}.spaces`,
+            list: ['space1', 'space2', 'space3', 'space4'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
     },
     space: {
       invite_provider_token(operation, /* spaceId, data, authHint*/ ) {
