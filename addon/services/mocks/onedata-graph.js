@@ -112,6 +112,20 @@ export default Service.extend(Evented, {
         }
       },
     },
+    harvester: {
+      all_plugins(operation) {
+        if (operation === 'get') {
+          return {
+            success: true,
+            allPlugins: [
+              'elasticsearch_plugin',
+            ],
+          };
+        } else {
+          return messageNotSupported;
+        }
+      },
+    },
     user: {
       client_tokens(operation) {
         if (operation === 'create') {
