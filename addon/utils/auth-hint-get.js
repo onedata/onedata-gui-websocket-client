@@ -17,7 +17,7 @@ import { camelize } from '@ember/string';
  */
 export default function authHintGet(gri) {
   let griMatch = gri.match(
-    /(space|group)\..*\.(users|groups|children|eff_users|eff_groups|eff_children)/
+    /(cluster|space|group)\..*\.(users|groups|children|eff_users|eff_groups|eff_children)/
   );
   if (griMatch) {
     let modelName = griMatch[1];
