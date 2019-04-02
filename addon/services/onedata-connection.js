@@ -34,6 +34,11 @@ export default Service.extend({
   serviceVersion: reads('attributes.serviceVersion'),
 
   /**
+   * @type {Ember.ComputedProperty<string>}
+   */
+  serviceBuildVersion: reads('attributes.serviceBuildVersion'),
+
+  /**
    * @type {Ember.Computed<string>}
    */
   brandSubtitle: reads('attributes.brandSubtitle'),
