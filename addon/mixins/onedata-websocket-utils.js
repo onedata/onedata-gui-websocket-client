@@ -12,6 +12,7 @@
 import Mixin from '@ember/object/mixin';
 import { inject as service } from '@ember/service';
 import { reject } from 'rsvp';
+import getGuiAuthToken from 'onedata-gui-websocket-client/utils/get-gui-auth-token';
 
 const NOBODY_IDENTITY = 'nobody';
 
@@ -39,7 +40,7 @@ export default Mixin.create({
    */
   tryHandshake() {
     let onedataWebsocket = this.get('onedataWebsocket');
-    return this.getToken()
+    return getGuiAuthToken()
       .catch(error => {
         if (!error || error.status !== 401) {
           console.error(`Error on fetching authentication token: ${error}`);
@@ -59,18 +60,5 @@ export default Mixin.create({
           return data;
         }
       });
-  },
-
-  getToken() {
-    return new Promise((resolve, reject) => $.ajax('/gui-token', {
-        method: 'POST',
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        data: JSON.stringify({
-          clusterId: 'onezone',
-          clusterType: 'onezone',
-        }),
-      }).then(resolve, reject))
-      .then(({ token }) => token);
   },
 });
