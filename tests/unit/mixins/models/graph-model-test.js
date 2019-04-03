@@ -5,7 +5,7 @@ import GraphModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-mo
 
 describe('Unit | Mixin | models/graph model', function () {
   it('has parsed gri computed properties', function () {
-    const gri = 'aa.bb.cc:dd';
+    const gri = 'aa.bb.cc,dd:ee';
     let GraphModelObject = EmberObject.extend(GraphModelMixin, {
       id: gri,
     });
@@ -13,6 +13,7 @@ describe('Unit | Mixin | models/graph model', function () {
     expect(subject.get('entityType')).to.equal('aa');
     expect(subject.get('entityId')).to.equal('bb');
     expect(subject.get('aspect')).to.equal('cc');
-    expect(subject.get('scope')).to.equal('dd');
+    expect(subject.get('aspectId')).to.equal('dd');
+    expect(subject.get('scope')).to.equal('ee');
   });
 });

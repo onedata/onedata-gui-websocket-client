@@ -53,6 +53,11 @@ export default Mixin.create({
   /**
    * @type {Ember.ComputedProperty<string>}
    */
+  aspectId: readOnly('parsedGri.aspectId'),
+
+  /**
+   * @type {Ember.ComputedProperty<string>}
+   */
   scope: readOnly('parsedGri.scope'),
 
   /**
