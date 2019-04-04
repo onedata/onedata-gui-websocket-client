@@ -19,7 +19,7 @@ export default OnedataAuthenticatorBase.extend(OnedataWebsocketUtilsMock, {
 
   // TODO validate username/password
   authenticate() {
-    this.get('cookies').write('is-authenticated', 'true');
+    this.get('cookies').write('is-authenticated', 'true', { path: '/' });
     return this._super(...arguments);
   },
 
@@ -29,16 +29,5 @@ export default OnedataAuthenticatorBase.extend(OnedataWebsocketUtilsMock, {
    */
   closeConnection() {
     return Promise.resolve();
-  },
-
-  /**
-   * @override
-   * @returns {Promise<undefined>}
-   */
-  remoteInvalidate() {
-    return new Promise(resolve => {
-      this.get('cookies').write('is-authenticated', 'false');
-      resolve();
-    });
   },
 });

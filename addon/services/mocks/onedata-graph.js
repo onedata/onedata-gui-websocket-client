@@ -88,6 +88,48 @@ export default Service.extend(Evented, {
   },
 
   handlers: Object.freeze({
+    provider: {
+      provider_registration_token(operation) {
+        if (operation === 'create') {
+          return {
+            success: true,
+            data: randomToken(),
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+      eff_users(operation, entityId) {
+        if (operation === 'get') {
+          return {
+            gri: `provider.${entityId}.eff_users`,
+            list: ['user1', 'user2'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+      eff_groups(operation, entityId) {
+        if (operation === 'get') {
+          return {
+            gri: `provider.${entityId}.groups`,
+            list: ['group1', 'group2', 'group3'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+      spaces(operation, entityId) {
+        if (operation === 'get') {
+          return {
+            gri: `provider.${entityId}.spaces`,
+            list: ['space1', 'space2', 'space3', 'space4'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+    },
     space: {
       invite_provider_token(operation, /* spaceId, data, authHint*/ ) {
         if (operation === 'create') {
@@ -127,6 +169,13 @@ export default Service.extend(Evented, {
                   token,
                 }));
             });
+        } else {
+          return messageNotSupported;
+        }
+      },
+      provider_registration_token(operation) {
+        if (operation === 'create') {
+          return randomToken();
         } else {
           return messageNotSupported;
         }
