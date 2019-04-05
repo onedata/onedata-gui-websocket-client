@@ -15,6 +15,6 @@ export default function userGri(userId) {
     entityType: 'user',
     entityId: userId,
     aspect: 'instance',
-    scope: 'private',
+    scope: 'auto',
   });
 }

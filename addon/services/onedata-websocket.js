@@ -118,6 +118,7 @@ export default Service.extend(Evented, {
   /**
    * @param {object} options
    * @param {number} options.protocolVersion
+   * @param {string} options.token
    * @returns {Promise} resolves with success handshake message
    */
   initConnection(options) {
@@ -212,21 +213,29 @@ export default Service.extend(Evented, {
 
   /**
    * Creates WebSocket and opens connection
+   * @param {object} options
+   * @param {string} options.token
    * @returns {Promise} resolves when websocket is opened successfully
    */
-  _initWebsocket() {
+  _initWebsocket(options) {
     let {
       _webSocketClass: WebSocketClass,
     } = this.getProperties('_webSocketClass');
 
-    let _initDefer = defer();
+    const token = options && options.token;
+
+    const _initDefer = defer();
     this.set('_initDefer', _initDefer);
-    let protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    let host = window.location.hostname;
-    let port = window.location.port;
-    let suffix = '/graph_sync/gui';
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const host = window.location.hostname;
+    const port = window.location.port;
+    const suffix = '/graph_sync/gui';
 
     let url = protocol + host + (port === '' ? '' : ':' + port) + suffix;
+
+    if (token) {
+      url += `?token=${token}`;
+    }
 
     _initDefer.promise.catch(() => {
       console.error('Websocket initialization error');
@@ -248,7 +257,7 @@ export default Service.extend(Evented, {
   },
 
   _initNewConnection(options) {
-    return this._initWebsocket().then(() => this._handshake(options));
+    return this._initWebsocket(options).then(() => this._handshake(options));
   },
 
   _closeConnectionStart() {

@@ -51,12 +51,15 @@ export default EmberObject.extend({
         parentType,
         childType,
       } = this.getProperties('parentType', 'childType');
-      if (parentType === 'space') {
-        return 'spaceList';
-      } else if (childType === 'group') {
-        return 'parentList';
-      } else {
-        return 'groupList';
+      switch (parentType) {
+        case 'group':
+          if (childType === 'group') {
+            return 'parentList';
+          } else {
+            return 'groupList';
+          }
+        default:
+          return `${parentType}List`;
       }
     }
   ),
