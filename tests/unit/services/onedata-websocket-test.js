@@ -1,9 +1,13 @@
 import EmberObject from '@ember/object';
 import Evented from '@ember/object/evented';
 import { expect } from 'chai';
-import { describe, it } from 'mocha';
+import { describe, it, beforeEach } from 'mocha';
 import { setupTest } from 'ember-mocha';
 import wait from 'ember-test-helpers/wait';
+import { registerService, lookupService } from '../../helpers/stub-service';
+import Service from '@ember/service';
+import sinon from 'sinon';
+import { get } from '@ember/object';
 
 class WebSocketMock {
   constructor() {
@@ -11,9 +15,22 @@ class WebSocketMock {
   }
 }
 
+const OnedataWebsocketErrorHandler = Service.extend({
+  errorOccured() {},
+  abnormalClose() {},
+});
+
 describe('Unit | Service | onedata websocket', function () {
   setupTest('service:onedata-websocket', {
     needs: [],
+  });
+
+  beforeEach(function () {
+    registerService(
+      this,
+      'onedataWebsocketErrorHandler',
+      OnedataWebsocketErrorHandler
+    );
   });
 
   it('resolves initWebsocket promise by opening ws connection', function (done) {
@@ -95,6 +112,87 @@ describe('Unit | Service | onedata websocket', function () {
         expect(m.payload).has.property('x');
         expect(m.payload.x).to.equal(responsePayload.x);
         done();
+      });
+    });
+  });
+
+  it('does not invoke abnormal close handler when closed manually', function () {
+    const onedataWebsocketErrorHandler =
+      lookupService(this, 'onedataWebsocketErrorHandler');
+    let openResolved = false;
+    let closeResolved = false;
+    const abnormalClose = sinon.spy(onedataWebsocketErrorHandler, 'abnormalClose');
+
+    const service = this.subject();
+
+    service.set('_webSocketClass', WebSocketMock);
+
+    const initPromise = service._initWebsocket();
+    initPromise.then(() => {
+      openResolved = true;
+    });
+
+    return wait().then(() => {
+      expect(openResolved).to.be.true;
+      const closePromise = service.closeConnection();
+      closePromise.then(() => {
+        closeResolved = true;
+      });
+      return wait().then(() => {
+        expect(closeResolved).to.be.true;
+        expect(abnormalClose).to.be.notCalled;
+      });
+    });
+  });
+
+  it('invokes abnormal close handler when not closed manually', function () {
+    const onedataWebsocketErrorHandler =
+      lookupService(this, 'onedataWebsocketErrorHandler');
+    let openResolved = false;
+    const abnormalClose = sinon.spy(onedataWebsocketErrorHandler, 'abnormalClose');
+    const closeEvent = {};
+
+    const service = this.subject();
+
+    service.set('_webSocketClass', WebSocketMock);
+
+    const initPromise = service._initWebsocket();
+    initPromise.then(() => {
+      openResolved = true;
+    });
+
+    return wait().then(() => {
+      expect(openResolved).to.be.true;
+      const webSocket = get(service, '_webSocket');
+      webSocket.onclose(closeEvent);
+      return wait().then(() => {
+        expect(abnormalClose).to.be.calledWith(closeEvent);
+      });
+    });
+  });
+
+  it('invokes error handler when WebSocket onerror occures', function () {
+    const onedataWebsocketErrorHandler =
+      lookupService(this, 'onedataWebsocketErrorHandler');
+    let openResolved = false;
+    const errorOccured = sinon.spy(onedataWebsocketErrorHandler, 'errorOccured');
+    const errorEvent = {};
+
+    const service = this.subject();
+
+    service.set('_webSocketClass', WebSocketMock);
+
+    const initPromise = service._initWebsocket();
+    initPromise.then(() => {
+      openResolved = true;
+    });
+
+    return wait().then(() => {
+      expect(openResolved).to.be.true;
+      const webSocket = get(service, '_webSocket');
+      webSocket.onerror(errorEvent);
+      return wait().then(() => {
+        expect(errorOccured).to.be.calledWith(errorEvent);
       });
     });
   });

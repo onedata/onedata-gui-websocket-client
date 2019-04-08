@@ -15,7 +15,6 @@
  */
 
 import { computed } from '@ember/object';
-
 import { readOnly, reads } from '@ember/object/computed';
 import Evented from '@ember/object/evented';
 import { camelize } from '@ember/string';
@@ -23,8 +22,9 @@ import ObjectProxy from '@ember/object/proxy';
 import PromiseProxyMixin from '@ember/object/promise-proxy-mixin';
 import { Promise, defer } from 'rsvp';
 import { isArray } from '@ember/array';
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import _ from 'lodash';
+import safeExec from 'onedata-gui-websocket-client/utils/safe-method-execution';
 
 const ObjectPromiseProxy = ObjectProxy.extend(PromiseProxyMixin);
 
@@ -37,6 +37,8 @@ const RESPONSE_TIMEOUT_MS = 10 * 1000;
 const AVAIL_MESSAGE_HANDLERS = ['response', 'push'];
 
 export default Service.extend(Evented, {
+  onedataWebsocketErrorHandler: service(),
+
   /**
    * Max time in milliseconds for receiving a response for message
    *
@@ -122,9 +124,11 @@ export default Service.extend(Evented, {
    * @returns {Promise} resolves with success handshake message
    */
   initConnection(options) {
-    const init = this._initNewConnection(options);
-    init.then(data => this.set('connectionAttributes', data.attributes));
-    return init;
+    return this._initNewConnection(options)
+      .then(data => {
+        safeExec(this, 'set', 'connectionAttributes', data.attributes);
+        return data;
+      });
   },
 
   closeConnection() {
@@ -218,9 +222,7 @@ export default Service.extend(Evented, {
    * @returns {Promise} resolves when websocket is opened successfully
    */
   _initWebsocket(options) {
-    let {
-      _webSocketClass: WebSocketClass,
-    } = this.getProperties('_webSocketClass');
+    const WebSocketClass = this.get('_webSocketClass');
 
     const token = options && options.token;
 
@@ -237,8 +239,8 @@ export default Service.extend(Evented, {
       url += `?token=${token}`;
     }
 
-    _initDefer.promise.catch(() => {
-      console.error('Websocket initialization error');
+    _initDefer.promise.catch((error) => {
+      console.error(`Websocket initialization error: ${error}`);
     });
 
     try {
@@ -249,7 +251,7 @@ export default Service.extend(Evented, {
       socket.onclose = this._onClose.bind(this);
       this.set('_webSocket', socket);
     } catch (error) {
-      console.error(`WebSocket initialization error: ${error}`);
+      console.error(`WebSocket constructor or events bind error: ${error}`);
       _initDefer.reject(error);
     }
 
@@ -269,7 +271,11 @@ export default Service.extend(Evented, {
       let _closeDefer = defer();
       this.set('_closeDefer', _closeDefer);
       _webSocket.close();
-      return _closeDefer.promise;
+      return _closeDefer.promise
+        .then(closeResult => {
+          safeExec(this, 'set', 'connectionAttributes', null);
+          return closeResult;
+        });
     } else {
       // if there is no _webSocket or active connection, we assume,
       // that there is no connection at all
@@ -278,7 +284,9 @@ export default Service.extend(Evented, {
   },
 
   _onOpen( /*event*/ ) {
-    this.get('_initDefer').resolve();
+    const _initDefer = this.get('_initDefer');
+    _initDefer.resolve();
+    safeExec(this, 'set', '_initDefer', null);
   },
 
   // TODO: move unpacking into protocol level?
@@ -305,7 +313,8 @@ export default Service.extend(Evented, {
    */
   _handshake(options) {
     options = options || {};
-    const protocolVersion = (options.protocolVersion === undefined) ? 2 : options.protocolVersion;
+    const protocolVersion = (options.protocolVersion === undefined) ?
+      2 : options.protocolVersion;
 
     return new Promise((resolve, reject) => {
       let handshaking = this.sendMessage('handshake', {
@@ -323,15 +332,32 @@ export default Service.extend(Evented, {
     });
   },
 
-  // TODO: handle errors - reject inits, etc.
-  _onError( /* event */ ) {
-    this.get('_initDefer').reject();
+  _onError(errorEvent) {
+    const _initDefer = this.get('_initDefer');
+    if (_initDefer) {
+      _initDefer.reject();
+      safeExec(this, 'set', '_initDefer', null);
+    } else {
+      this.get('onedataWebsocketErrorHandler').errorOccured(errorEvent);
+    }
   },
 
-  _onClose( /*event*/ ) {
+  _onClose(closeEvent) {
     let _closeDefer = this.get('_closeDefer');
     if (_closeDefer) {
       _closeDefer.resolve();
+      safeExec(this, 'set', '_closeDefer', null);
+    } else {
+      const _initDefer = this.get('_initDefer');
+      const openingCompleted = !_initDefer;
+      if (!openingCompleted) {
+        _initDefer.reject();
+        safeExec(this, 'set', '_initDefer', null);
+      }
+      this.get('onedataWebsocketErrorHandler').abnormalClose(
+        closeEvent,
+        openingCompleted
+      );
     }
   },
 
