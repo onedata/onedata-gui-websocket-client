@@ -11,6 +11,7 @@
 
 import Mixin from '@ember/object/mixin';
 import { inject } from '@ember/service';
+import { resolve, reject } from 'rsvp';
 
 export default Mixin.create({
   cookies: inject(),
@@ -19,18 +20,20 @@ export default Mixin.create({
    * @override
    * @returns {Promise<object>} resolves with session data
    */
-  tryHandshake() {
+  initWebSocketConnection(type) {
     let isAuthenticated = this.get('cookies').read('is-authenticated') === 'true';
     let user = 'stub_user_id';
-    if (isAuthenticated) {
-      return Promise.resolve({
-        version: 1,
-        sessionId: 'stub_session_id',
-        identity: { user },
-        attributes: {},
-      });
-    } else {
-      return Promise.reject();
+    if (type === 'authenticated') {
+      if (isAuthenticated) {
+        return resolve({
+          version: 1,
+          sessionId: 'stub_session_id',
+          identity: { user },
+          attributes: {},
+        });
+      } else {
+        return reject();
+      }
     }
   },
 

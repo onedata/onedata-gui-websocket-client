@@ -26,14 +26,6 @@ export default BaseAuthenticator.extend({
    * @virtual
    * @returns {Promise<undefined>}
    */
-  tryHandshake() {
-    throw new Error('not implemented');
-  },
-
-  /**
-   * @virtual
-   * @returns {Promise<undefined>}
-   */
   closeConnection() {
     throw new Error('not implemented');
   },
@@ -57,7 +49,12 @@ export default BaseAuthenticator.extend({
    * @returns {Promise}
    */
   authenticate() {
-    return this.forceCloseConnection().then(() => this.tryHandshake());
+    return this.forceCloseConnection()
+      .then(() => this.initWebSocketConnection('authenticated'))
+      .catch(() =>
+        this.forceCloseConnection()
+        .then(() => this.initWebSocketConnection('anonymous'))
+      );
   },
 
   /**
@@ -75,19 +72,24 @@ export default BaseAuthenticator.extend({
    * @returns {Promise} resolves when an anonymous connection is established
    */
   invalidate() {
-    return new Promise((resolve, reject) => {
-      let remoteInvalidation = this.remoteInvalidate();
-      remoteInvalidation.then(() => {
-        let closing = this.closeConnection();
-        closing.then(() => {
-          // NOTE: reject and resolve are inverted here, because rejection
-          // of token request means success
-          return this.tryHandshake().then(reject, resolve);
-        });
-        closing.catch(reject);
+    this.get('onedataWebsocket').waitForConnectionClose();
+    return this.remoteInvalidate()
+      // NOTE: connection should be closed anyway by server, but ensure it
+      .then(() => this.forceCloseConnection())
+      .then(() => {
+        // NOTE: reject and resolve are inverted here, because rejection
+        // of token request means success
+        return this.getToken()
+          .then(() => {
+            throw { onedataCustomError: true, type: 'session-not-invalidated' };
+          })
+          .catch(error => {
+            if (error && error.onedataCustomError &&
+              error.type === 'session-not-invalidated') {
+              throw error;
+            }
+          });
       });
-      remoteInvalidation.catch(reject);
-    });
   },
 
   /**

@@ -10,12 +10,12 @@
  *
  * @module services/onedata-websocket
  * @author Jakub Liput
- * @copyright (C) 2017-2018 ACK CYFRONET AGH
+ * @copyright (C) 2017-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import { computed } from '@ember/object';
-import { readOnly, reads } from '@ember/object/computed';
+import { reads } from '@ember/object/computed';
 import Evented from '@ember/object/evented';
 import { camelize } from '@ember/string';
 import ObjectProxy from '@ember/object/proxy';
@@ -47,23 +47,6 @@ export default Service.extend(Evented, {
    * @type {number}
    */
   responseTimeout: RESPONSE_TIMEOUT_MS,
-
-  /**
-   * Object promise proxy that isResolved when WebSocket is initialized
-   * @type {ObjectPromiseProxy}
-   */
-  webSocketInitializedProxy: computed('_initDefer.promise', function () {
-    return ObjectPromiseProxy.create({
-      promise: this.get('_initDefer.promise') ||
-        new Promise((_, reject) => reject()),
-    });
-  }).readOnly(),
-
-  /**
-   * True if there is opened WebSocket available in this service
-   * @type {boolean}
-   */
-  webSocketIsOpened: readOnly('webSocketInitializedProxy.isFulfilled'),
 
   /**
    * @type {object}
@@ -99,9 +82,6 @@ export default Service.extend(Evented, {
    */
   _webSocket: null,
 
-  initPromise: readOnly('_initDefer.promise'),
-  closePromise: readOnly('_initDefer.promise'),
-
   /**
    * An object containing connection attributes sent after successful handshake.
    * Properties:
@@ -111,6 +91,17 @@ export default Service.extend(Evented, {
    * @type {Ember.ComputedProperty<object>}
    */
   connectionAttributes: reads('_connectionAttributes'),
+
+  /**
+   * Object promise proxy that isFulfilled when WebSocket opens
+   * @type {ObjectPromiseProxy}
+   */
+  webSocketInitializedProxy: computed('_initDefer.promise', function () {
+    const promise = this.get('_initDefer.promise');
+    if (promise) {
+      return ObjectPromiseProxy.create({ promise });
+    }
+  }),
 
   init() {
     this._super(...arguments);
@@ -133,6 +124,15 @@ export default Service.extend(Evented, {
 
   closeConnection() {
     return this._closeConnectionStart();
+  },
+
+  waitForConnectionClose() {
+    const _closeWaitDefer = this.get('_closeWaitDefer');
+    if (_closeWaitDefer) {
+      return _closeWaitDefer.promise;
+    } else {
+      this.set('_closeWaitDefer', defer()).promise;
+    }
   },
 
   /**
@@ -263,22 +263,28 @@ export default Service.extend(Evented, {
   },
 
   _closeConnectionStart() {
-    let {
-      _webSocket,
-      webSocketIsOpened,
-    } = this.getProperties('_webSocket', 'webSocketIsOpened');
-    if (_webSocket && webSocketIsOpened) {
-      let _closeDefer = defer();
+    const _webSocket = this.get('_webSocket');
+    if (_webSocket &&
+      _webSocket.readyState >= WebSocket.CONNECTING &&
+      _webSocket.readyState <= WebSocket.OPEN) {
+      const _closeDefer = defer();
       this.set('_closeDefer', _closeDefer);
       _webSocket.close();
       return _closeDefer.promise
         .then(closeResult => {
           safeExec(this, 'set', 'connectionAttributes', null);
+          safeExec(this, 'set', '_webSocket', null);
           return closeResult;
         });
     } else {
       // if there is no _webSocket or active connection, we assume,
       // that there is no connection at all
+      const _closeWaitDefer = this.get('_closeWaitDefer');
+      if (_closeWaitDefer) {
+        _closeWaitDefer.resolve();
+        safeExec(this, 'set', '_closeWaitDefer', null);
+      }
+      safeExec(this, 'set', '_webSocket', null);
       return Promise.resolve();
     }
   },
@@ -286,7 +292,6 @@ export default Service.extend(Evented, {
   _onOpen( /*event*/ ) {
     const _initDefer = this.get('_initDefer');
     _initDefer.resolve();
-    safeExec(this, 'set', '_initDefer', null);
   },
 
   // TODO: move unpacking into protocol level?
@@ -333,32 +338,30 @@ export default Service.extend(Evented, {
   },
 
   _onError(errorEvent) {
-    const _initDefer = this.get('_initDefer');
-    if (_initDefer) {
-      _initDefer.reject();
-      safeExec(this, 'set', '_initDefer', null);
-    } else {
-      this.get('onedataWebsocketErrorHandler').errorOccured(errorEvent);
-    }
+    this.get('_initDefer').reject();
+    this.get('onedataWebsocketErrorHandler').errorOccured(errorEvent);
   },
 
   _onClose(closeEvent) {
-    let _closeDefer = this.get('_closeDefer');
+    const _closeDefer = this.get('_closeDefer');
+    const _closeWaitDefer = this.get('_closeWaitDefer');
+    if (_closeWaitDefer) {
+      _closeWaitDefer.resolve();
+    }
     if (_closeDefer) {
       _closeDefer.resolve();
       safeExec(this, 'set', '_closeDefer', null);
     } else {
-      const _initDefer = this.get('_initDefer');
-      const openingCompleted = !_initDefer;
-      if (!openingCompleted) {
-        _initDefer.reject();
-        safeExec(this, 'set', '_initDefer', null);
+      const openingCompleted = this.get('webSocketInitializedProxy.isFulfilled');
+      this.get('_initDefer').reject();
+      if (!_closeWaitDefer) {
+        this.get('onedataWebsocketErrorHandler').abnormalClose(
+          closeEvent,
+          openingCompleted
+        );
       }
-      this.get('onedataWebsocketErrorHandler').abnormalClose(
-        closeEvent,
-        openingCompleted
-      );
     }
+    safeExec(this, 'set', '_closeWaitDefer', null);
   },
 
   /** 

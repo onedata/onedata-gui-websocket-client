@@ -12,7 +12,7 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { Promise } from 'rsvp';
+import { resolve } from 'rsvp';
 
 import BaseSessionStore from 'ember-simple-auth/session-stores/base';
 
@@ -28,28 +28,22 @@ export default BaseSessionStore.extend({
     throw new Error('not implemented');
   },
 
-  /**
-   * @virtual
-   * @returns {Promise<undefined>}
-   */
-  tryHandshake() {
-    throw new Error('not implemented');
-  },
-
   persist( /* data */ ) {
     // complete ignore of persist - the "store" is remote server
-    return Promise.resolve();
+    return resolve();
   },
 
   restore() {
-    let closing = this.forceCloseConnection();
-    let handshaking = closing.then(() => this.tryHandshake());
-    return new Promise(resolve => {
-      handshaking.then(handshakeData =>
-        resolve({
-          authenticated: _.merge(handshakeData, { authenticator: 'authenticator:one-application' }),
-        }));
-      handshaking.catch(() => resolve({}));
-    });
+    return this.forceCloseConnection()
+      .then(() => this.initWebSocketConnection('authenticated'))
+      .then(handshakeData => ({
+        authenticated: _.merge(
+          handshakeData, { authenticator: 'authenticator:one-application' }),
+      }))
+      .catch(() =>
+        this.forceCloseConnection()
+        .then(() => this.initWebSocketConnection('anonymous'))
+        .then(() => {})
+      );
   },
 });

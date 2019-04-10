@@ -12,8 +12,6 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { readOnly } from '@ember/object/computed';
-
 import Service from '@ember/service';
 import { Promise } from 'rsvp';
 import { camelize } from '@ember/string';
@@ -23,8 +21,6 @@ export default Service.extend({
   closePromise: null,
 
   handshakeData: undefined,
-
-  webSocketIsOpened: readOnly('webSocketInitializedProxy.isFulfilled'),
 
   init() {
     this._super(...arguments);
