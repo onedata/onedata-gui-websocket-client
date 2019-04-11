@@ -228,6 +228,8 @@ export default Service.extend(Evented, {
 
     const _initDefer = defer();
     this.set('_initDefer', _initDefer);
+    // force initialization of proxy
+    this.get('webSocketInitializedProxy');
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const host = window.location.hostname;
     const port = window.location.port;
