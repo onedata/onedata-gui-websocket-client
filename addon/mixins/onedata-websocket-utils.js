@@ -47,10 +47,24 @@ export default Mixin.create({
     const onedataWebsocket = this.get('onedataWebsocket');
     return ((type === 'any' || type === 'authenticated') ? this.getToken() : resolve())
       .catch(error => {
-        if (type === 'any' && error && error.status === 401) {
-          return null;
+        if (error && error.status === 401) {
+          if (type === 'any') {
+            return null;
+          } else {
+            throw {
+              isOnedataCustomError: true,
+              type: 'fetch-token-error',
+              reason: 'unauthorized',
+              error,
+            };
+          }
         } else {
-          throw new Error(`Error on fetching authentication token: ${error}`);
+          throw {
+            isOnedataCustomError: true,
+            type: 'fetch-token-error',
+            reason: 'unknown',
+            error,
+          };
         }
       })
       .then(token => onedataWebsocket.initConnection({ token }))
