@@ -23,7 +23,7 @@ export default JSONSerializer.extend({
 
     // Sets default values for attributes, that are optional in requests. It is
     // needed, because after reload, if some attributes disappear from the
-    // payload, their values are not resetted.
+    // payload, their values are not reset.
     get(modelClass, 'attributes').forEach((meta, name) => {
       if (get(attributes, name) === undefined) {
         const defaultValue = get(meta, 'options.defaultValue');
