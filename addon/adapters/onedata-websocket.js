@@ -134,6 +134,7 @@ export default Adapter.extend({
       gri: createGri({
         entityType: modelName,
         aspect: 'instance',
+        scope: 'auto',
       }),
       operation: 'create',
       data,

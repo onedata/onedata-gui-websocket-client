@@ -66,6 +66,22 @@ export default Service.extend(Evented, {
     });
   },
 
+  /**
+   * @returns {Promise}
+   */
+  unsubscribe() {
+    return new Promise(resolve => {
+      setTimeout(
+        () => resolve({
+          success: true,
+          error: null,
+          data: {},
+        }),
+        responseDelay
+      );
+    });
+  },
+
   response({
     gri,
     operation,

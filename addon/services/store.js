@@ -12,8 +12,11 @@ import { get } from '@ember/object';
 import Store from 'ember-data/store';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { resolve } from 'rsvp';
+import { inject as service } from '@ember/service';
 
 export default Store.extend({
+  onedataGraph: service(),
+
   /**
    * Iterates over all list records to reload/recalculate length. Basically it
    * should be called right after record deletion.
@@ -44,5 +47,26 @@ export default Store.extend({
         return resolve();
       }
     }));
+  },
+
+  /**
+   * @override
+   */
+  unloadRecord(record) {
+    this.unsubscribeFromChanges(record);
+    return this._super(...arguments);
+  },
+
+  /**
+   * Cancels subscription for specified record
+   * 
+   * @param {GraphModel} record
+   * @returns {Promise}
+   */
+  unsubscribeFromChanges(record) {
+    const onedataGraph = this.get('onedataGraph');
+    const gri = get(record, 'gri');
+
+    return onedataGraph.scheduleUnsubscription(gri);
   },
 });

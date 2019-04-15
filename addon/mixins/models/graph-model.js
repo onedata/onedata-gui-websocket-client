@@ -91,4 +91,13 @@ export default Mixin.create({
         return result;
       });
   },
+
+  /**
+   * @override
+   */
+  unloadRecord() {
+    const store = this.get('store');
+    store.unsubscribeFromChanges(this);
+    return this._super(...arguments);
+  },
 });
