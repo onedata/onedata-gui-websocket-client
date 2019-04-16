@@ -80,15 +80,17 @@ export default BaseAuthenticator.extend({
         // NOTE: reject and resolve are inverted here, because rejection
         // of token request means success
         return this.getToken()
-          .then(() => {
-            throw { onedataCustomError: true, type: 'session-not-invalidated' };
-          })
-          .catch(error => {
-            if (error && error.onedataCustomError &&
-              error.type === 'session-not-invalidated') {
-              throw error;
+          .then(
+            () => {
+              throw { onedataCustomError: true, type: 'session-not-invalidated' };
+            },
+            (error) => {
+              if (error && error.onedataCustomError &&
+                error.type === 'session-not-invalidated') {
+                throw error;
+              }
             }
-          });
+          );
       });
   },
 

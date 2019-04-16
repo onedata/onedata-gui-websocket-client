@@ -32,20 +32,20 @@ export default Mixin.create({
 
   /**
    * @param {string} type one of:
-   *  - any (use authorized if token is avail, otherwise try anonymous; will
+   *  - any (use authorized if token is available, otherwise try anonymous; will
    *    fail if fetched token is invalid!)
    *  - authenticated (fails if cannot get token),
    *  - anonymous (do not try to fetch the token)
    * @returns {Promise}
    */
   initWebSocketConnection(type = 'any') {
-    if (type !== 'authenticated' && type !== 'anonymous' && type !== 'any') {
+    if (!['authenticated', 'anonymous', 'type'].includes(type)) {
       throw new Error(
         `mixin:onedata-websocket-utils#initWebSocketConnection: wrong type specified: ${type}`
       );
     }
     const onedataWebsocket = this.get('onedataWebsocket');
-    return ((type === 'any' || type === 'authenticated') ? this.getToken() : resolve())
+    return ((['any', 'authenticated'].includes(type)) ? this.getToken() : resolve())
       .catch(error => {
         if (error && error.status === 401) {
           if (type === 'any') {

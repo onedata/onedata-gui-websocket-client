@@ -14,7 +14,6 @@ import OnedataWebsocketUtils from 'onedata-gui-websocket-client/mixins/onedata-w
 
 export default Service.extend(OnedataWebsocketUtils, {
   onedataWebsocket: service(),
-  session: service(),
 
   /**
    * Invoked when WebSocket `onclose` is invoked unexpectedly (without explicit
@@ -56,10 +55,7 @@ export default Service.extend(OnedataWebsocketUtils, {
   },
 
   reconnect() {
-    const isAuthenticated = this.get('session.isAuthenticated');
     return this.forceCloseConnection()
-      .then(() =>
-        this.initWebSocketConnection(isAuthenticated ? 'authenticated' : 'anonymous')
-      );
+      .then(() => this.initWebSocketConnection());
   },
 });

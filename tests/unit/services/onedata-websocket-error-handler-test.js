@@ -21,8 +21,6 @@ describe('Unit | Service | onedata websocket error handler', function () {
 
   it('forces close and handshake on websocket service on abnormal close', function () {
     const onedataWebsocket = lookupService(this, 'onedata-websocket');
-    const token = 'token';
-    const initData = {};
     const closeEvent = {};
     const openingCompleted = true;
 
@@ -30,17 +28,13 @@ describe('Unit | Service | onedata websocket error handler', function () {
 
     const closeConnection = sinon.stub(onedataWebsocket, 'closeConnection')
       .resolves();
-    const getToken = sinon.stub(service, 'getToken')
-      .resolves(token);
-    const initConnection = sinon.stub(onedataWebsocket, 'initConnection')
-      .resolves(initData);
+    const initWebSocketConnection = sinon.stub(service, 'initWebSocketConnection')
+      .resolves();
 
     service.abnormalClose(closeEvent, openingCompleted);
     return wait().then(() => {
       expect(closeConnection).to.be.calledOnce;
-      expect(getToken).to.be.calledOnce;
-      expect(initConnection).to.be.calledOnce;
-      expect(initConnection).to.be.calledWith({ token });
+      expect(initWebSocketConnection).to.be.calledOnce;
     });
   });
 });
