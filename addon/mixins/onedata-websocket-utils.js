@@ -11,7 +11,7 @@
 
 import Mixin from '@ember/object/mixin';
 import { inject as service } from '@ember/service';
-import { reject } from 'rsvp';
+import { resolve } from 'rsvp';
 
 const NOBODY_IDENTITY = 'nobody';
 
@@ -24,41 +24,68 @@ export default Mixin.create({
    *   (with onedata-WS close connection data or error)
    */
   forceCloseConnection() {
-    let onedataWebsocket = this.get('onedataWebsocket');
+    const onedataWebsocket = this.get('onedataWebsocket');
     return new Promise(resolve =>
       onedataWebsocket.closeConnection().then(resolve, resolve)
     );
   },
 
   /**
-   * Try to get the token to connect with backend WebSocket and see if we got
-   * anonymous or non-anonymous session.
-   * Resolve on non-anonymous session, reject otherwise (if: no browser session,
-   * so cannot fetch token, or using token causes to estabilish anonymous session).
-   * @returns {Promise.Object} resolves with handshake data (Object)
+   * @param {string} type one of:
+   *  - any (use authorized if token is available, otherwise try anonymous; will
+   *    fail if fetched token is invalid!)
+   *  - authenticated (fails if cannot get token),
+   *  - anonymous (do not try to fetch the token)
+   * @returns {Promise}
    */
-  tryHandshake() {
-    let onedataWebsocket = this.get('onedataWebsocket');
-    return this.getToken()
+  initWebSocketConnection(type = 'any') {
+    if (!['authenticated', 'anonymous', 'type'].includes(type)) {
+      throw new Error(
+        `mixin:onedata-websocket-utils#initWebSocketConnection: wrong type specified: ${type}`
+      );
+    }
+    const onedataWebsocket = this.get('onedataWebsocket');
+    return ((['any', 'authenticated'].includes(type)) ? this.getToken() : resolve())
       .catch(error => {
-        if (!error || error.status !== 401) {
-          console.error(`Error on fetching authentication token: ${error}`);
+        if (error && error.status === 401) {
+          if (type === 'any') {
+            return null;
+          } else {
+            throw {
+              isOnedataCustomError: true,
+              type: 'fetch-token-error',
+              reason: 'unauthorized',
+              error,
+            };
+          }
+        } else {
+          throw {
+            isOnedataCustomError: true,
+            type: 'fetch-token-error',
+            reason: 'unknown',
+            error,
+          };
         }
-        return null;
       })
       .then(token => onedataWebsocket.initConnection({ token }))
       .then(data => {
-        if (typeof data !== 'object') {
-          throw new Error(
-            'authorizer:onedata-websocket: invalid handshake response'
-          );
-        }
-        if (data.identity === NOBODY_IDENTITY) {
-          return reject();
-        } else {
-          return data;
+        if (type === 'authenticated') {
+          return this.checkHandshake(data);
         }
       });
+  },
+
+  checkHandshake(data) {
+    if (typeof data !== 'object') {
+      throw new Error(
+        'authorizer:onedata-websocket: invalid handshake response'
+      );
+    }
+    if (data.identity === NOBODY_IDENTITY) {
+      throw new Error('onedata-websocket-utils#checkHandshake: nobody identity');
+    } else {
+      return data;
+    }
   },
 
   getToken() {

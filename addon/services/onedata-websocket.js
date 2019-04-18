@@ -10,21 +10,21 @@
  *
  * @module services/onedata-websocket
  * @author Jakub Liput
- * @copyright (C) 2017-2018 ACK CYFRONET AGH
+ * @copyright (C) 2017-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import { computed } from '@ember/object';
-
-import { readOnly, reads } from '@ember/object/computed';
+import { reads } from '@ember/object/computed';
 import Evented from '@ember/object/evented';
 import { camelize } from '@ember/string';
 import ObjectProxy from '@ember/object/proxy';
 import PromiseProxyMixin from '@ember/object/promise-proxy-mixin';
 import { Promise, defer } from 'rsvp';
 import { isArray } from '@ember/array';
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import _ from 'lodash';
+import safeExec from 'onedata-gui-websocket-client/utils/safe-method-execution';
 
 const ObjectPromiseProxy = ObjectProxy.extend(PromiseProxyMixin);
 
@@ -37,6 +37,8 @@ const RESPONSE_TIMEOUT_MS = 10 * 1000;
 const AVAIL_MESSAGE_HANDLERS = ['response', 'push'];
 
 export default Service.extend(Evented, {
+  onedataWebsocketErrorHandler: service(),
+
   /**
    * Max time in milliseconds for receiving a response for message
    *
@@ -45,23 +47,6 @@ export default Service.extend(Evented, {
    * @type {number}
    */
   responseTimeout: RESPONSE_TIMEOUT_MS,
-
-  /**
-   * Object promise proxy that isResolved when WebSocket is initialized
-   * @type {ObjectPromiseProxy}
-   */
-  webSocketInitializedProxy: computed('_initDefer.promise', function () {
-    return ObjectPromiseProxy.create({
-      promise: this.get('_initDefer.promise') ||
-        new Promise((_, reject) => reject()),
-    });
-  }).readOnly(),
-
-  /**
-   * True if there is opened WebSocket available in this service
-   * @type {boolean}
-   */
-  webSocketIsOpened: readOnly('webSocketInitializedProxy.isFulfilled'),
 
   /**
    * @type {object}
@@ -97,9 +82,6 @@ export default Service.extend(Evented, {
    */
   _webSocket: null,
 
-  initPromise: readOnly('_initDefer.promise'),
-  closePromise: readOnly('_initDefer.promise'),
-
   /**
    * An object containing connection attributes sent after successful handshake.
    * Properties:
@@ -109,6 +91,17 @@ export default Service.extend(Evented, {
    * @type {Ember.ComputedProperty<object>}
    */
   connectionAttributes: reads('_connectionAttributes'),
+
+  /**
+   * Object promise proxy that isFulfilled when WebSocket opens
+   * @type {ObjectPromiseProxy}
+   */
+  webSocketInitializedProxy: computed('_initDefer.promise', function () {
+    const promise = this.get('_initDefer.promise');
+    if (promise) {
+      return ObjectPromiseProxy.create({ promise });
+    }
+  }),
 
   init() {
     this._super(...arguments);
@@ -122,13 +115,24 @@ export default Service.extend(Evented, {
    * @returns {Promise} resolves with success handshake message
    */
   initConnection(options) {
-    const init = this._initNewConnection(options);
-    init.then(data => this.set('connectionAttributes', data.attributes));
-    return init;
+    return this._initNewConnection(options)
+      .then(data => {
+        safeExec(this, 'set', 'connectionAttributes', data.attributes);
+        return data;
+      });
   },
 
   closeConnection() {
     return this._closeConnectionStart();
+  },
+
+  waitForConnectionClose() {
+    const _closeWaitDefer = this.get('_closeWaitDefer');
+    if (_closeWaitDefer) {
+      return _closeWaitDefer.promise;
+    } else {
+      this.set('_closeWaitDefer', defer()).promise;
+    }
   },
 
   /**
@@ -218,14 +222,14 @@ export default Service.extend(Evented, {
    * @returns {Promise} resolves when websocket is opened successfully
    */
   _initWebsocket(options) {
-    let {
-      _webSocketClass: WebSocketClass,
-    } = this.getProperties('_webSocketClass');
+    const WebSocketClass = this.get('_webSocketClass');
 
     const token = options && options.token;
 
     const _initDefer = defer();
     this.set('_initDefer', _initDefer);
+    // force initialization of proxy
+    this.get('webSocketInitializedProxy');
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const host = window.location.hostname;
     const port = window.location.port;
@@ -237,8 +241,8 @@ export default Service.extend(Evented, {
       url += `?token=${token}`;
     }
 
-    _initDefer.promise.catch(() => {
-      console.error('Websocket initialization error');
+    _initDefer.promise.catch((error) => {
+      console.error(`Websocket initialization error: ${error}`);
     });
 
     try {
@@ -249,7 +253,7 @@ export default Service.extend(Evented, {
       socket.onclose = this._onClose.bind(this);
       this.set('_webSocket', socket);
     } catch (error) {
-      console.error(`WebSocket initialization error: ${error}`);
+      console.error(`WebSocket constructor or events bind error: ${error}`);
       _initDefer.reject(error);
     }
 
@@ -261,24 +265,35 @@ export default Service.extend(Evented, {
   },
 
   _closeConnectionStart() {
-    let {
-      _webSocket,
-      webSocketIsOpened,
-    } = this.getProperties('_webSocket', 'webSocketIsOpened');
-    if (_webSocket && webSocketIsOpened) {
-      let _closeDefer = defer();
+    const _webSocket = this.get('_webSocket');
+    if (_webSocket &&
+      _webSocket.readyState >= WebSocket.CONNECTING &&
+      _webSocket.readyState <= WebSocket.OPEN) {
+      const _closeDefer = defer();
       this.set('_closeDefer', _closeDefer);
       _webSocket.close();
-      return _closeDefer.promise;
+      return _closeDefer.promise
+        .then(closeResult => {
+          safeExec(this, 'set', 'connectionAttributes', null);
+          safeExec(this, 'set', '_webSocket', null);
+          return closeResult;
+        });
     } else {
       // if there is no _webSocket or active connection, we assume,
       // that there is no connection at all
+      const _closeWaitDefer = this.get('_closeWaitDefer');
+      if (_closeWaitDefer) {
+        _closeWaitDefer.resolve();
+        safeExec(this, 'set', '_closeWaitDefer', null);
+      }
+      safeExec(this, 'set', '_webSocket', null);
       return Promise.resolve();
     }
   },
 
   _onOpen( /*event*/ ) {
-    this.get('_initDefer').resolve();
+    const _initDefer = this.get('_initDefer');
+    _initDefer.resolve();
   },
 
   // TODO: move unpacking into protocol level?
@@ -305,7 +320,8 @@ export default Service.extend(Evented, {
    */
   _handshake(options) {
     options = options || {};
-    const protocolVersion = (options.protocolVersion === undefined) ? 2 : options.protocolVersion;
+    const protocolVersion = (options.protocolVersion === undefined) ?
+      2 : options.protocolVersion;
 
     return new Promise((resolve, reject) => {
       let handshaking = this.sendMessage('handshake', {
@@ -323,16 +339,31 @@ export default Service.extend(Evented, {
     });
   },
 
-  // TODO: handle errors - reject inits, etc.
-  _onError( /* event */ ) {
+  _onError(errorEvent) {
     this.get('_initDefer').reject();
+    this.get('onedataWebsocketErrorHandler').errorOccured(errorEvent);
   },
 
-  _onClose( /*event*/ ) {
-    let _closeDefer = this.get('_closeDefer');
+  _onClose(closeEvent) {
+    const _closeDefer = this.get('_closeDefer');
+    const _closeWaitDefer = this.get('_closeWaitDefer');
+    if (_closeWaitDefer) {
+      _closeWaitDefer.resolve();
+    }
     if (_closeDefer) {
       _closeDefer.resolve();
+      safeExec(this, 'set', '_closeDefer', null);
+    } else {
+      const openingCompleted = this.get('webSocketInitializedProxy.isFulfilled');
+      this.get('_initDefer').reject();
+      if (!_closeWaitDefer) {
+        this.get('onedataWebsocketErrorHandler').abnormalClose(
+          closeEvent,
+          openingCompleted
+        );
+      }
     }
+    safeExec(this, 'set', '_closeWaitDefer', null);
   },
 
   /** 

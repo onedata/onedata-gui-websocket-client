@@ -15,14 +15,11 @@
 import Service from '@ember/service';
 
 import { Promise } from 'rsvp';
-import { readOnly } from '@ember/object/computed';
 import { camelize } from '@ember/string';
 
 export default Service.extend({
   initPromise: null,
   closePromise: null,
-
-  webSocketIsOpened: readOnly('webSocketInitializedProxy.isFulfilled'),
 
   initConnection(options) {
     return this._initNewConnection(options);

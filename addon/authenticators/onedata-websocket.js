@@ -27,7 +27,7 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
   authenticate(username, password) {
     return ((username && password) ? doLogin(username, password) : resolve())
       .then(() => this.forceCloseConnection())
-      .then(() => this.tryHandshake());
+      .then(() => this.initWebSocketConnection('authenticated'));
   },
 
   /**
