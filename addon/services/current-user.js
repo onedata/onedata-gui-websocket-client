@@ -20,7 +20,12 @@ export default Service.extend({
 
   userId: oneWay('session.data.authenticated.identity.user'),
 
-  getCurrentUserRecord() {
+  /**
+   * Loads currently logged in user record
+   * @param {boolean} [backgroundReload=false]
+   * @returns {Promise<models.User>}
+   */
+  getCurrentUserRecord(backgroundReload = false) {
     const {
       store,
       userId,
@@ -32,7 +37,8 @@ export default Service.extend({
     }
     return store.findRecord(
       'user',
-      userGri(userId)
+      userGri(userId),
+      { backgroundReload }
     );
   },
 
