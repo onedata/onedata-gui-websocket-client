@@ -163,9 +163,10 @@ export default Service.extend(Evented, {
         if (operation === 'get') {
           return {
             success: true,
-            allPlugins: [
-              'elasticsearch_plugin',
-            ],
+            allPlugins: [{
+              id: 'elasticsearch_plugin',
+              name: 'Elasticsearch plugin',
+            }],
           };
         } else {
           return messageNotSupported;
