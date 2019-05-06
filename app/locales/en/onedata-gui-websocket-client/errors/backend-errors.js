@@ -57,7 +57,7 @@ export default {
   badValueTokenType: 'The token provided in "{{key}}" has invalid type.',
   badValueIntentifier: 'Value of "{{key}}" provided in request must be a ' +
     'valid identifier.',
-  badValueAlias: 'Value provided in request must be a valid alias.',
+  badValueLogin: 'Value provided in request must be a valid login.',
   badValueUserName: 'Value provided in request must be a valid user name.',
   badValueName: 'Value provided in request must be a valid name.',
   subdomainDelegationDisabled: 'This operation is not available while ' +
