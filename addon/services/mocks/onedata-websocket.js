@@ -13,13 +13,11 @@
  */
 
 import Service from '@ember/service';
+import { resolve } from 'rsvp';
 
 export default Service.extend({
-  init() {
-    this._super(...arguments);
-    throw new Error(
-      'service:mocks/onedata-websocket: Cannot use service:onedata-websocket ' +
-      'in mocked environment'
-    );
+  webSocketInitializedProxy: resolve(),
+  waitForConnectionClose() {
+    return resolve();
   },
 });
