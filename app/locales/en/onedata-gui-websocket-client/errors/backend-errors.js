@@ -58,7 +58,7 @@ export default {
   badValueIntentifier: 'Value of "{{key}}" provided in request must be a ' +
     'valid identifier.',
   badValueUsername: 'Value provided in request must be a valid username.',
-  badValueDisplayName: 'Value provided in request must be a valid display name.',
+  badValueFullName: 'Value provided in request must be a valid full name.',
   badValuePassword: 'Value provided in request must be a valid password.',
   badValueName: 'Value provided in request must be a valid name.',
   subdomainDelegationDisabled: 'This operation is not available while ' +
