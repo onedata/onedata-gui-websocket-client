@@ -15,7 +15,6 @@
  */
 
 import { computed } from '@ember/object';
-import { reads } from '@ember/object/computed';
 import Evented from '@ember/object/evented';
 import { camelize } from '@ember/string';
 import ObjectProxy from '@ember/object/proxy';
@@ -47,11 +46,6 @@ export default Service.extend(Evented, {
    * @type {number}
    */
   responseTimeout: RESPONSE_TIMEOUT_MS,
-
-  /**
-   * @type {object}
-   */
-  _connectionAttributes: null,
 
   /**
    * @type {RSVP.Deferred}
@@ -90,7 +84,7 @@ export default Service.extend(Evented, {
    * - `ipds`: string[] (id providers - names of identity providers for authentication)
    * @type {Ember.ComputedProperty<object>}
    */
-  connectionAttributes: reads('_connectionAttributes'),
+  connectionAttributes: null,
 
   /**
    * Object promise proxy that isFulfilled when WebSocket opens
