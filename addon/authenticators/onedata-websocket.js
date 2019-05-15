@@ -12,7 +12,7 @@
 import OnedataBaseAuthenticator from 'onedata-gui-websocket-client/authenticators/-base';
 import OnedataWebsocketUtils from 'onedata-gui-websocket-client/mixins/onedata-websocket-utils';
 import xhrToPromise from 'onedata-gui-websocket-client/utils/xhr-to-promise';
-import { resolve } from 'rsvp';
+import { reject } from 'rsvp';
 
 import { inject } from '@ember/service';
 
@@ -25,7 +25,7 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
    * @param {string} password
    */
   authenticate(username, password) {
-    return ((username && password) ? doLogin(username, password) : resolve())
+    return ((username && password) ? doLogin(username, password) : reject())
       .then(() => this.forceCloseConnection())
       .then(() => this.initWebSocketConnection('authenticated'));
   },

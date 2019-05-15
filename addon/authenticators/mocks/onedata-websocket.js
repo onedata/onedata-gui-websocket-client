@@ -11,16 +11,24 @@
 import OnedataAuthenticatorBase from 'onedata-gui-websocket-client/authenticators/-base';
 import OnedataWebsocketUtilsMock from 'onedata-gui-websocket-client/mixins/onedata-websocket-utils-mock';
 
-import { Promise } from 'rsvp';
-import { inject } from '@ember/service';
+import { resolve, reject } from 'rsvp';
+import { inject as service } from '@ember/service';
 
 export default OnedataAuthenticatorBase.extend(OnedataWebsocketUtilsMock, {
-  cookies: inject(),
+  cookies: service(),
 
-  // TODO validate username/password
-  authenticate() {
-    this.get('cookies').write('is-authenticated', 'true', { path: '/' });
-    return this._super(...arguments);
+  authenticate(username, password) {
+    if (username === 'admin' && password === 'password') {
+      this.get('cookies').write('is-authenticated', 'true', { path: '/' });
+      return this._super(...arguments);
+    } else {
+      return reject();
+    }
+  },
+
+  invalidate() {
+    this.get('cookies').write('is-authenticated', 'false', { path: '/' });
+    return resolve();
   },
 
   /**
@@ -28,6 +36,10 @@ export default OnedataAuthenticatorBase.extend(OnedataWebsocketUtilsMock, {
    * @returns {Promise<undefined>}
    */
   closeConnection() {
-    return Promise.resolve();
+    return resolve();
+  },
+
+  getToken() {
+    return resolve({ token: 'some-mock-token' });
   },
 });
