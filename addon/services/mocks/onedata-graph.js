@@ -82,6 +82,10 @@ export default Service.extend(Evented, {
     });
   },
 
+  scheduleUnsubscription() {
+    return true;
+  },
+
   response({
     gri,
     operation,
