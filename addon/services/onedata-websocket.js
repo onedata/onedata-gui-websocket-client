@@ -90,12 +90,15 @@ export default Service.extend(Evented, {
    * Object promise proxy that isFulfilled when WebSocket opens
    * @type {ObjectPromiseProxy}
    */
-  webSocketInitializedProxy: computed('_initDefer.promise', function () {
-    const promise = this.get('_initDefer.promise');
-    if (promise) {
-      return ObjectPromiseProxy.create({ promise });
+  webSocketInitializedProxy: computed(
+    '_initDefer.promise',
+    function webSocketInitializedProxy() {
+      const promise = this.get('_initDefer.promise');
+      if (promise) {
+        return ObjectPromiseProxy.create({ promise });
+      }
     }
-  }),
+  ),
 
   init() {
     this._super(...arguments);
@@ -120,12 +123,16 @@ export default Service.extend(Evented, {
     return this._closeConnectionStart();
   },
 
+  resetWaitForConnectionClose() {
+    this.set('_closeWaitDefer', null);
+  },
+
   waitForConnectionClose() {
     const _closeWaitDefer = this.get('_closeWaitDefer');
     if (_closeWaitDefer) {
       return _closeWaitDefer.promise;
     } else {
-      this.set('_closeWaitDefer', defer()).promise;
+      return this.set('_closeWaitDefer', defer()).promise;
     }
   },
 
@@ -262,7 +269,7 @@ export default Service.extend(Evented, {
     const _webSocket = this.get('_webSocket');
     if (_webSocket &&
       _webSocket.readyState >= WebSocket.CONNECTING &&
-      _webSocket.readyState <= WebSocket.OPEN) {
+      _webSocket.readyState <= WebSocket.CLOSING) {
       const _closeDefer = defer();
       this.set('_closeDefer', _closeDefer);
       _webSocket.close();
@@ -278,7 +285,6 @@ export default Service.extend(Evented, {
       const _closeWaitDefer = this.get('_closeWaitDefer');
       if (_closeWaitDefer) {
         _closeWaitDefer.resolve();
-        safeExec(this, 'set', '_closeWaitDefer', null);
       }
       safeExec(this, 'set', '_webSocket', null);
       return Promise.resolve();
@@ -357,7 +363,6 @@ export default Service.extend(Evented, {
         );
       }
     }
-    safeExec(this, 'set', '_closeWaitDefer', null);
   },
 
   /** 
