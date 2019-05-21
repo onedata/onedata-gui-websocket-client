@@ -8,7 +8,7 @@
  */
 
 import EmberObject, { computed, observer, get } from '@ember/object';
-import { and, reads } from '@ember/object/computed';
+import { reads } from '@ember/object/computed';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default EmberObject.extend({
@@ -23,6 +23,12 @@ export default EmberObject.extend({
    * @type {User|Group}
    */
   child: undefined,
+
+  /**
+   * Is true if child is a currently logged in user
+   * @type {boolean}
+   */
+  isChildCurrentUser: false,
 
   /**
    * If true, relation really exists. Created in listNamesObserver.
@@ -88,7 +94,19 @@ export default EmberObject.extend({
   /**
    * @type {Ember.ComputedProperty<boolean>}
    */
-  canViewPrivileges: and('exists', 'parent.canViewPrivileges'),
+  canViewPrivileges: computed(
+    'exists',
+    'isChildCurrentUser',
+    'parent.canViewPrivileges',
+    function canViewPrivileges() {
+      const {
+        exists,
+        isChildCurrentUser,
+        parent,
+      } = this.getProperties('exists', 'isChildCurrentUser', 'parent');
+      return exists && (isChildCurrentUser || get(parent, 'canViewPrivileges'));
+    }
+  ),
 
   listNamesObserver: observer(
     'parentListName',
