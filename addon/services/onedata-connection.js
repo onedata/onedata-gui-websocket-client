@@ -47,9 +47,4 @@ export default Service.extend({
    * @type {Ember.Computed<string>}
    */
   loginNotification: reads('attributes.loginNotification'),
-
-  /**
-   * @type {Ember.Computed<string>}
-   */
-  harvesterGuiPluginPathPrefix: '/var/www',
 });
