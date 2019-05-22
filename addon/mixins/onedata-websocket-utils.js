@@ -88,6 +88,9 @@ export default Mixin.create({
     }
   },
 
+  /**
+   * @returns {Promise<string>}
+   */
   getToken() {
     return new Promise((resolve, reject) => $.ajax('/gui-token', {
         method: 'POST',

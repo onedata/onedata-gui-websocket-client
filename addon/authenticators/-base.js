@@ -11,7 +11,6 @@
 import BaseAuthenticator from 'ember-simple-auth/authenticators/base';
 import xhrToPromise from 'onedata-gui-websocket-client/utils/xhr-to-promise';
 import { inject as service } from '@ember/service';
-
 import { Promise } from 'rsvp';
 
 export default BaseAuthenticator.extend({

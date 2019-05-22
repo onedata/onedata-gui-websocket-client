@@ -16,13 +16,17 @@ import { resolve, reject } from 'rsvp';
 export default Mixin.create({
   cookies: inject(),
 
+  getIsAutheticated() {
+    return this.get('cookies').read('is-authenticated') === 'true';
+  },
+
   /**
    * @override
    * @returns {Promise<object>} resolves with session data
    */
   initWebSocketConnection(type) {
-    let isAuthenticated = this.get('cookies').read('is-authenticated') === 'true';
-    let user = 'stub_user_id';
+    const isAuthenticated = this.getIsAutheticated();
+    const user = 'stub_user_id';
     if (type === 'authenticated') {
       if (isAuthenticated) {
         return resolve({
@@ -43,5 +47,12 @@ export default Mixin.create({
    */
   forceCloseConnection() {
     return Promise.resolve();
+  },
+
+  /**
+   * @returns {Promise<string>}
+   */
+  getToken() {
+    return this.getIsAutheticated() ? resolve('mock-token') : reject();
   },
 });

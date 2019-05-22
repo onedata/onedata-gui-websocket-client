@@ -219,13 +219,10 @@ export default Service.extend(Evented, {
   /**
    * Creates WebSocket and opens connection
    * @param {object} options
-   * @param {string} options.token
    * @returns {Promise} resolves when websocket is opened successfully
    */
-  _initWebsocket(options) {
+  _initWebsocket( /* options */ ) {
     const WebSocketClass = this.get('_webSocketClass');
-
-    const token = options && options.token;
 
     const _initDefer = defer();
     this.set('_initDefer', _initDefer);
@@ -237,10 +234,6 @@ export default Service.extend(Evented, {
     const suffix = '/graph_sync/gui';
 
     let url = protocol + host + (port === '' ? '' : ':' + port) + suffix;
-
-    if (token) {
-      url += `?token=${token}`;
-    }
 
     _initDefer.promise.catch((error) => {
       console.error(`Websocket initialization error: ${error}`);
@@ -322,12 +315,21 @@ export default Service.extend(Evented, {
     options = options || {};
     const protocolVersion = (options.protocolVersion === undefined) ?
       2 : options.protocolVersion;
+    const token = options.token;
+
+    const handshakeData = {
+      supportedVersions: [protocolVersion],
+      sessionId: null,
+    };
+
+    if (token) {
+      handshakeData.auth = {
+        macaroon: token,
+      };
+    }
 
     return new Promise((resolve, reject) => {
-      let handshaking = this.sendMessage('handshake', {
-        supportedVersions: [protocolVersion],
-        sessionId: null,
-      });
+      let handshaking = this.sendMessage('handshake', handshakeData);
       handshaking.then(({ payload: { success, data, error } }) => {
         if (success) {
           resolve(data);
