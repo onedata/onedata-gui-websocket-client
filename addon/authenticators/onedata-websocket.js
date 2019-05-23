@@ -14,17 +14,17 @@ import OnedataWebsocketUtils from 'onedata-gui-websocket-client/mixins/onedata-w
 import xhrToPromise from 'onedata-gui-websocket-client/utils/xhr-to-promise';
 import { reject } from 'rsvp';
 
-import { inject } from '@ember/service';
+import { inject as service } from '@ember/service';
 
 export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
-  onedataWebsocket: inject(),
+  onedataWebsocket: service(),
 
   /**
    * @override
    * @param {string} username 
    * @param {string} password
    */
-  authenticate(username, password) {
+  authenticate({ username, password }) {
     return ((username && password) ? doLogin(username, password) : reject())
       .then(() => this.forceCloseConnection())
       .then(() => this.initWebSocketConnection('authenticated'));
