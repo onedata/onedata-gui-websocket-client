@@ -16,22 +16,6 @@ import { reject } from 'rsvp';
 import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
-/**
- * Strips the object from own properties which values are null or undefined
- * Modifies input object.
- * It is not recursive!
- * @param {Object} data
- * @returns {Object} modified data object
- */
-function stripObject(data) {
-  for (let prop in data) {
-    if (data.hasOwnProperty(prop) && data[prop] == null) {
-      delete data[prop];
-    }
-  }
-  return data;
-}
-
 export default Adapter.extend({
   onedataGraph: service(),
   onedataGraphContext: service(),
@@ -128,8 +112,6 @@ export default Adapter.extend({
       authHint = meta.authHint;
     }
 
-    stripObject(data);
-
     return onedataGraph.request({
       gri: createGri({
         entityType: modelName,
@@ -154,7 +136,6 @@ export default Adapter.extend({
     let onedataGraph = this.get('onedataGraph');
     let data = snapshot.record.toJSON();
     let recordId = snapshot.record.id;
-    stripObject(data);
     const griData = parseGri(recordId);
     griData.scope = 'private';
     return onedataGraph.request({

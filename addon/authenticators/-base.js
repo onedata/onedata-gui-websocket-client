@@ -12,6 +12,7 @@ import BaseAuthenticator from 'ember-simple-auth/authenticators/base';
 import xhrToPromise from 'onedata-gui-websocket-client/utils/xhr-to-promise';
 import { inject as service } from '@ember/service';
 import { Promise } from 'rsvp';
+import getGuiAuthToken from 'onedata-gui-websocket-client/utils/get-gui-auth-token';
 
 export default BaseAuthenticator.extend({
   onedataWebsocket: service(),
@@ -81,7 +82,7 @@ export default BaseAuthenticator.extend({
       .then(() => {
         // NOTE: reject and resolve are inverted here, because rejection
         // of token request means success
-        return this.getToken()
+        return getGuiAuthToken()
           .then(
             () => {
               throw { onedataCustomError: true, type: 'session-not-invalidated' };

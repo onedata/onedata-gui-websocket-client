@@ -86,4 +86,31 @@ export default JSONSerializer.extend({
 
     return this._super(...arguments);
   },
+
+  /**
+   * @override
+   */
+  serializeAttribute(snapshot, json, key /*, attribute */) {
+    const record = get(snapshot, 'record');
+
+    if (record.changedAttributes()[key]) {
+      return this._super(...arguments);
+    }
+  },
+
+  /**
+   * @override
+   */
+  serializeBelongsTo(snapshot , json, relationship) {
+    const key = get(relationship, 'key');
+    const record = get(snapshot, 'record');
+    const isNewRecord = !get(record, 'id');
+    var belongsToId = snapshot.belongsTo(key, { id: true });
+
+    if (isNewRecord && belongsToId == null) {
+      return;
+    } else {
+      this._super(...arguments);
+    }
+  },
 });
