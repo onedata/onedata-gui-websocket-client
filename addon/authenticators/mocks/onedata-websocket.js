@@ -17,7 +17,7 @@ import { inject as service } from '@ember/service';
 export default OnedataAuthenticatorBase.extend(OnedataWebsocketUtilsMock, {
   cookies: service(),
 
-  authenticate(username, password) {
+  authenticate({ username, password }) {
     if (username === 'admin' && password === 'password') {
       this.get('cookies').write('is-authenticated', 'true', { path: '/' });
       return this._super(...arguments);

@@ -92,8 +92,9 @@ export default JSONSerializer.extend({
    */
   serializeAttribute(snapshot, json, key /*, attribute */) {
     const record = get(snapshot, 'record');
+    const value = snapshot.attr(key);
 
-    if (record.changedAttributes()[key]) {
+    if (value != null || record.changedAttributes()[key]) {
       return this._super(...arguments);
     }
   },
