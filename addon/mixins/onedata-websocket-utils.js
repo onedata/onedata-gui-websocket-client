@@ -39,7 +39,7 @@ export default Mixin.create({
    * @returns {Promise}
    */
   initWebSocketConnection(type = 'any') {
-    if (!['authenticated', 'anonymous', 'type'].includes(type)) {
+    if (!['authenticated', 'anonymous', 'any'].includes(type)) {
       throw new Error(
         `mixin:onedata-websocket-utils#initWebSocketConnection: wrong type specified: ${type}`
       );

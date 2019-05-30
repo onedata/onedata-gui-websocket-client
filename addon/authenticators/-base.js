@@ -75,10 +75,13 @@ export default BaseAuthenticator.extend({
    * @returns {Promise} resolves when an anonymous connection is established
    */
   invalidate() {
-    this.get('onedataWebsocket').waitForConnectionClose();
+    const onedataWebsocket = this.get('onedataWebsocket');
+    const closeWait = onedataWebsocket.waitForConnectionClose();
     return this.remoteInvalidate()
       // NOTE: connection should be closed anyway by server, but ensure it
       .then(() => this.forceCloseConnection())
+      .then(() => closeWait)
+      .finally(() => onedataWebsocket.resetWaitForConnectionClose())
       .then(() => {
         // NOTE: reject and resolve are inverted here, because rejection
         // of token request means success
