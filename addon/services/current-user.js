@@ -37,8 +37,7 @@ export default Service.extend({
     }
     return store.findRecord(
       'user',
-      userGri(userId),
-      { backgroundReload }
+      userGri(userId), { backgroundReload }
     );
   },
 

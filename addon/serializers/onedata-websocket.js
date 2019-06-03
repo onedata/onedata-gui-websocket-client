@@ -91,7 +91,7 @@ export default JSONSerializer.extend({
    * Omits serializing empty values if they are not changed
    * @override
    */
-  serializeAttribute(snapshot, json, key /*, attribute */) {
+  serializeAttribute(snapshot, json, key /*, attribute */ ) {
     const record = get(snapshot, 'record');
     const value = snapshot.attr(key);
 
@@ -104,7 +104,7 @@ export default JSONSerializer.extend({
    * Omits serializing empty relations in newly created records
    * @override
    */
-  serializeBelongsTo(snapshot , json, relationship) {
+  serializeBelongsTo(snapshot, json, relationship) {
     const key = get(relationship, 'key');
     const record = get(snapshot, 'record');
     const isNewRecord = !get(record, 'id');
