@@ -31,7 +31,7 @@ const ObjectPromiseProxy = ObjectProxy.extend(PromiseProxyMixin);
  * Default value for ``responseTimeout`` in service
  * @type {number}
  */
-const RESPONSE_TIMEOUT_MS = 10 * 1000;
+const RESPONSE_TIMEOUT_MS = 30 * 1000;
 
 const AVAIL_MESSAGE_HANDLERS = ['response', 'push'];
 
