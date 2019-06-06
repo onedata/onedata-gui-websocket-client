@@ -92,7 +92,7 @@ export default Mixin.create({
    * @returns {Promise<string>}
    */
   getToken() {
-    return resolve($.post('/gui-preauthorize'))
+    return resolve($.post('./gui-preauthorize'))
       .then(({ token }) => token);
   },
 });
