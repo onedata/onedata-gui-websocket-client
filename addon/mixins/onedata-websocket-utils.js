@@ -12,7 +12,7 @@
 import Mixin from '@ember/object/mixin';
 import { inject as service } from '@ember/service';
 import { resolve } from 'rsvp';
-
+import getGuiAuthToken from 'onedata-gui-websocket-client/utils/get-gui-auth-token';
 const NOBODY_IDENTITY = 'nobody';
 
 export default Mixin.create({
@@ -45,7 +45,7 @@ export default Mixin.create({
       );
     }
     const onedataWebsocket = this.get('onedataWebsocket');
-    return ((['any', 'authenticated'].includes(type)) ? this.getToken() : resolve())
+    return ((['any', 'authenticated'].includes(type)) ? getGuiAuthToken() : resolve())
       .catch(error => {
         if (error && error.status === 401) {
           if (type === 'any') {
@@ -86,21 +86,5 @@ export default Mixin.create({
     } else {
       return data;
     }
-  },
-
-  /**
-   * @returns {Promise<string>}
-   */
-  getToken() {
-    return new Promise((resolve, reject) => $.ajax('/gui-token', {
-        method: 'POST',
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        data: JSON.stringify({
-          clusterId: 'onezone',
-          clusterType: 'onezone',
-        }),
-      }).then(resolve, reject))
-      .then(({ token }) => token);
   },
 });

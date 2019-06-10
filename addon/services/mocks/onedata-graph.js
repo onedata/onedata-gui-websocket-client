@@ -66,6 +66,26 @@ export default Service.extend(Evented, {
     });
   },
 
+  /**
+   * @returns {Promise}
+   */
+  unsubscribe() {
+    return new Promise(resolve => {
+      setTimeout(
+        () => resolve({
+          success: true,
+          error: null,
+          data: {},
+        }),
+        responseDelay
+      );
+    });
+  },
+
+  scheduleUnsubscription() {
+    return true;
+  },
+
   response({
     gri,
     operation,
@@ -139,6 +159,21 @@ export default Service.extend(Evented, {
           };
         } else {
           throw messageNotSupported;
+        }
+      },
+    },
+    harvester: {
+      all_plugins(operation) {
+        if (operation === 'get') {
+          return {
+            success: true,
+            allPlugins: [{
+              id: 'elasticsearch_plugin',
+              name: 'Elasticsearch plugin',
+            }],
+          };
+        } else {
+          return messageNotSupported;
         }
       },
     },

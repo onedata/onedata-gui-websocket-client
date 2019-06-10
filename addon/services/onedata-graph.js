@@ -8,12 +8,29 @@
  */
 
 import Service, { inject as service } from '@ember/service';
-
+import { computed } from '@ember/object';
 import { Promise } from 'rsvp';
 import Evented from '@ember/object/evented';
+import { later, cancel } from '@ember/runloop';
 
 export default Service.extend(Evented, {
   onedataWebsocket: service(),
+
+  /**
+   * Time delay in milliseconds after which scheduled unsubscription
+   * will be executed.
+   * @type {number}
+   */
+  unsubscriptionDelay: 5000,
+
+  /**
+   * Map with scheduled unsubscriptions. It maps gri to timer returned from
+   * `later()` Ember function so the unsubscription could be cancelled.
+   * @type {Ember.ComputedProperty<Map<string,Object>>}
+   */
+  scheduledUnsubscriptions: computed(function scheduledUnsubscriptions() {
+    return new Map();
+  }),
 
   init() {
     this._super(...arguments);
@@ -53,6 +70,7 @@ export default Service.extend(Evented, {
           throw new Error('service:onedata-graph: invalid authHint');
         }
       }
+      this.removeScheduledUnsubscription(gri);
       let requesting = this.get('onedataWebsocket').sendMessage('graph', message);
       requesting.then(({ payload: { success, data: payloadData, error } }) => {
         if (success) {
@@ -76,6 +94,61 @@ export default Service.extend(Evented, {
       });
       requesting.catch(reject);
     });
+  },
+
+  /**
+   * @param {string} gri gri of model, which should be unsubscribed
+   * @returns {boolean} false if unsubscription has been already scheduled
+   * for specified model, true otherwise
+   */
+  scheduleUnsubscription(gri) {
+    const {
+      scheduledUnsubscriptions,
+      unsubscriptionDelay,
+    } = this.getProperties(
+      'scheduledUnsubscriptions',
+      'unsubscriptionDelay'
+    );
+
+    if (scheduledUnsubscriptions.has(gri)) {
+      return false;
+    } else {
+      const timer = later(this, 'unsubscribe', gri, unsubscriptionDelay);
+      scheduledUnsubscriptions.set(gri, timer);
+      return true;
+    }
+  },
+
+  /**
+   * Removes scheduled unsubscription
+   * @param {string} gri
+   * @returns {boolean} true, if there was a scheduled unsubscription for
+   * given gri
+   */
+  removeScheduledUnsubscription(gri) {
+    const scheduledUnsubscriptions = this.get('scheduledUnsubscriptions');
+    const timer = scheduledUnsubscriptions.get(gri);
+
+    if (timer !== undefined) {
+      cancel(timer);
+      scheduledUnsubscriptions.delete(gri);
+      return true;
+    } else {
+      return false;
+    }
+  },
+
+  /**
+   * @param {string} gri gri of model, which should be unsubscribed
+   * @returns {Promise} resolves after successfull unsubscription
+   */
+  unsubscribe(gri) {
+    const onedataWebsocket = this.get('onedataWebsocket');
+
+    this.removeScheduledUnsubscription(gri);
+
+    const message = { gri };
+    return onedataWebsocket.sendMessage('unsub', message);
   },
 
   /**

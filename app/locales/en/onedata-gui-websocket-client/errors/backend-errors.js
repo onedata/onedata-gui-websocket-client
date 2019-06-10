@@ -71,4 +71,5 @@ export default {
   cannotDeleteEntity: 'Unexpected error while deleting the {{entityType}} (Id: ' +
     '"{{entityId}}").',
   cannotAddRelationToSelf: 'Cannot join group to itself.',
+  temporaryFailure: 'The server reported a temporary failure.',
 };
