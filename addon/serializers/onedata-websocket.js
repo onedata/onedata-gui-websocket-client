@@ -86,4 +86,32 @@ export default JSONSerializer.extend({
 
     return this._super(...arguments);
   },
+
+  /**
+   * Omits serializing empty values if they are not changed
+   * @override
+   */
+  serializeAttribute(snapshot, json, key /*, attribute */ ) {
+    const record = get(snapshot, 'record');
+    const value = snapshot.attr(key);
+
+    if (value != null || record.changedAttributes()[key]) {
+      return this._super(...arguments);
+    }
+  },
+
+  /**
+   * Omits serializing empty relations in newly created records
+   * @override
+   */
+  serializeBelongsTo(snapshot, json, relationship) {
+    const key = get(relationship, 'key');
+    const record = get(snapshot, 'record');
+    const isNewRecord = !get(record, 'id');
+    const belongsToId = snapshot.belongsTo(key, { id: true });
+
+    if (!(isNewRecord && belongsToId == null)) {
+      return this._super(...arguments);
+    }
+  },
 });

@@ -50,7 +50,7 @@ describe('Unit | Adapter | onedata websocket', function () {
     });
   });
 
-  it('uses graph service to createRecord with support for metadata and null trimming',
+  it('uses graph service to createRecord with support for metadata',
     function (done) {
       let store = {};
       let modelName = 'something';
@@ -76,7 +76,7 @@ describe('Unit | Adapter | onedata websocket', function () {
         gri: sinon.match(new RegExp(`.*${modelName}.*`)),
         operation: 'create',
         // data for graph is stripped from _meta
-        data: { foo: 'bar' },
+        data: { foo: 'bar', one: null },
         authHint,
       };
       graphRequestStub
