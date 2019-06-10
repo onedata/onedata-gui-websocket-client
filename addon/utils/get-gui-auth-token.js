@@ -8,16 +8,9 @@
  */
 
 import $ from 'jquery';
+import { resolve } from 'rsvp';
 
 export default function getToken() {
-  return new Promise((resolve, reject) => $.ajax('/gui-token', {
-      method: 'POST',
-      contentType: 'application/json; charset=utf-8',
-      dataType: 'json',
-      data: JSON.stringify({
-        clusterId: 'onezone',
-        clusterType: 'onezone',
-      }),
-    }).then(resolve, reject))
+  return resolve($.post('./gui-preauthorize'))
     .then(({ token }) => token);
 }
