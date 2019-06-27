@@ -109,16 +109,6 @@ export default Service.extend(Evented, {
 
   handlers: Object.freeze({
     provider: {
-      provider_registration_token(operation) {
-        if (operation === 'create') {
-          return {
-            success: true,
-            data: randomToken(),
-          };
-        } else {
-          throw messageNotSupported;
-        }
-      },
       eff_users(operation, entityId) {
         if (operation === 'get') {
           return {
