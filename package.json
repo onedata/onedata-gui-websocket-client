@@ -45,7 +45,7 @@
     "ember-get-config": "0.2.4",
     "ember-load-initializers": "1.0.0",
     "ember-local-storage": "1.4.1",
-    "ember-lodash": "4.18.0",
+    "ember-lodash": "4.19.4",
     "ember-one-way-controls": "2.0.1",
     "ember-resolver": "4.5.0",
     "ember-simple-auth": "1.8.2",
