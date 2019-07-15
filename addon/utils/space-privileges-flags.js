@@ -22,9 +22,11 @@ export const groupedFlags = [{
     'space_read_data',
     'space_write_data',
     'space_manage_shares',
-    'space_manage_indexes',
-    'space_query_indexes',
+    'space_view_indices',
+    'space_manage_indices',
+    'space_query_indices',
     'space_view_statistics',
+    'space_view_changes_stream',
   ],
 }, {
   groupName: 'transferManagement',
