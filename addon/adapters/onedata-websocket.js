@@ -2,12 +2,12 @@
  * Uses `service:onedata-graph` for CRUD operations on Onedata model
  *
  * @module adapters/onedata-websocket
- * @author Jakub Liput, Michal Borzecki
- * @copyright (C) 2017-2018 ACK CYFRONET AGH
+ * @author Jakub Liput, Michał Borzęcki
+ * @copyright (C) 2017-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get, set } from '@ember/object';
+import { get, set, getProperties } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
@@ -183,9 +183,15 @@ export default Adapter.extend({
     const modelName = this.getModelName(gri);
     const existingRecord = store.peekRecord(modelName, gri);
 
-    // ignore update if record is deleted
-    if (existingRecord && get(existingRecord, 'isDeleted')) {
-      return;
+    // ignore update if record is deleted or has a newer revision
+    if (existingRecord) {
+      const {
+        isDeleted,
+        revision,
+      } = getProperties(existingRecord, 'isDeleted', 'revision');
+      if (isDeleted || revision >= get(data, 'revision')) {
+        return;
+      }
     }
 
     const record = store.push(store.normalize(modelName, data));

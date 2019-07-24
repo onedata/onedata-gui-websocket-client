@@ -3,18 +3,23 @@
  * from ID of records
  *
  * @module mixins/models/graph-model
- * @author Jakub Liput, Michal Borzecki
- * @copyright (C) 2017-2018 ACK CYFRONET AGH
+ * @author Jakub Liput, Michał Borzęcki
+ * @copyright (C) 2017-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import { oneWay, readOnly } from '@ember/object/computed';
-
+import attr from 'ember-data/attr';
 import Mixin from '@ember/object/mixin';
 import { computed, observer } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default Mixin.create({
+  /**
+   * @type {number}
+   */
+  revision: attr('number'),
+
   /**
    * @type {boolean}
    */
