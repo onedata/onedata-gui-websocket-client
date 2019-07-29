@@ -24,6 +24,7 @@ import { isArray } from '@ember/array';
 import Service, { inject as service } from '@ember/service';
 import _ from 'lodash';
 import safeExec from 'onedata-gui-websocket-client/utils/safe-method-execution';
+import config from 'ember-get-config';
 
 const ObjectPromiseProxy = ObjectProxy.extend(PromiseProxyMixin);
 
@@ -34,6 +35,8 @@ const ObjectPromiseProxy = ObjectProxy.extend(PromiseProxyMixin);
 const RESPONSE_TIMEOUT_MS = 30 * 1000;
 
 const AVAIL_MESSAGE_HANDLERS = ['response', 'push'];
+
+const defaultProtocolVersion = config.onedataWebsocket.defaultProtocolVersion || 3;
 
 export default Service.extend(Evented, {
   onedataWebsocketErrorHandler: service(),
@@ -289,8 +292,6 @@ export default Service.extend(Evented, {
     _initDefer.resolve();
   },
 
-  // TODO: move unpacking into protocol level?
-  // TODO: currently supporting only batch messages
   _onMessage({ data }) {
     data = JSON.parse(data);
 
@@ -314,7 +315,7 @@ export default Service.extend(Evented, {
   _handshake(options) {
     options = options || {};
     const protocolVersion = (options.protocolVersion === undefined) ?
-      3 : options.protocolVersion;
+      defaultProtocolVersion : options.protocolVersion;
     const token = options.token;
 
     const handshakeData = {
