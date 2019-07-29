@@ -62,10 +62,6 @@ export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
     });
   },
 
-  clearLocalStorage() {
-    get(this, '_storage').clear();
-  },
-
   findAll() {
     throw new Error('adapter:local-storage: findAll is not supported');
   },

@@ -1,3 +1,3 @@
-export function generateSpaceId(i) {
+export function generateSpaceEntityId(i) {
   return `space-${i}`;
 }

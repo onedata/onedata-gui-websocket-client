@@ -12,7 +12,6 @@ import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
 import { reject } from 'rsvp';
-
 import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
@@ -20,6 +19,10 @@ export default Adapter.extend({
   onedataGraph: service(),
   onedataGraphContext: service(),
   recordRegistry: service(),
+
+  subscribe: true,
+
+  createScope: 'auto',
 
   defaultSerializer: 'onedata-websocket',
 
@@ -54,7 +57,8 @@ export default Adapter.extend({
     const {
       onedataGraph,
       onedataGraphContext,
-    } = this.getProperties('onedataGraph', 'onedataGraphContext');
+      subscribe,
+    } = this.getProperties('onedataGraph', 'onedataGraphContext', 'subscribe');
 
     const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
       onedataGraphContext.getAuthHint(id);
@@ -64,6 +68,7 @@ export default Adapter.extend({
       gri: id,
       operation: 'get',
       authHint,
+      subscribe,
     }).then(graphData => {
       console.debug(
         `adapter:onedata-websocket: findRecord, gri: ${id}, returned data: `,
@@ -98,9 +103,14 @@ export default Adapter.extend({
    * @return {Promise} promise
    */
   createRecord(store, type, snapshot) {
-    let onedataGraph = this.get('onedataGraph');
-    let data = snapshot.record.toJSON();
-    let modelName = type.modelName;
+    const {
+      onedataGraph,
+      subscribe,
+      createScope,
+    } = this.getProperties('onedataGraph', 'subscribe', 'createScope');
+
+    const data = snapshot.record.toJSON();
+    const modelName = type.modelName;
 
     // support for special metadata for requests in onedata-websocket
     // supported:
@@ -108,7 +118,7 @@ export default Adapter.extend({
     //   note that user_id is _not_ a gri, but stripped raw id
     let authHint;
     if (snapshot.record._meta) {
-      let meta = snapshot.record._meta;
+      const meta = snapshot.record._meta;
       authHint = meta.authHint;
     }
 
@@ -116,11 +126,12 @@ export default Adapter.extend({
       gri: createGri({
         entityType: modelName,
         aspect: 'instance',
-        scope: 'auto',
+        scope: createScope,
       }),
       operation: 'create',
       data,
       authHint,
+      subscribe,
     });
   },
 
@@ -133,9 +144,9 @@ export default Adapter.extend({
    * @return {Promise} promise
    */
   updateRecord(store, type, snapshot) {
-    let onedataGraph = this.get('onedataGraph');
-    let data = snapshot.record.toJSON();
-    let recordId = snapshot.record.id;
+    const onedataGraph = this.get('onedataGraph');
+    const data = snapshot.record.toJSON();
+    const recordId = snapshot.record.id;
     const griData = parseGri(recordId);
     griData.scope = 'private';
     return onedataGraph.request({
