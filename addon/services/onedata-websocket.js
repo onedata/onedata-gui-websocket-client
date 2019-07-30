@@ -314,7 +314,7 @@ export default Service.extend(Evented, {
   _handshake(options) {
     options = options || {};
     const protocolVersion = (options.protocolVersion === undefined) ?
-      2 : options.protocolVersion;
+      3 : options.protocolVersion;
     const token = options.token;
 
     const handshakeData = {
