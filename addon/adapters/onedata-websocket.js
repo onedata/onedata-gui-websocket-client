@@ -14,6 +14,7 @@ import Adapter from 'ember-data/adapter';
 import { reject } from 'rsvp';
 import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
+import _ from 'lodash';
 
 export default Adapter.extend({
   onedataGraph: service(),
@@ -116,10 +117,17 @@ export default Adapter.extend({
     // supported:
     // - authHint: Array.String: 2-element array, eg. ['asUser', <user_id>]
     //   note that user_id is _not_ a gri, but stripped raw id
+    // - createRequestFields: Object|null additional fields, that will be added
+    //   to the `data` in `createRecord` request
     let authHint;
     if (snapshot.record._meta) {
       const meta = snapshot.record._meta;
+      
       authHint = meta.authHint;
+      
+      if (meta.createRequestFields) {
+        _.assign(data, meta.createRequestFields);
+      }
     }
 
     return onedataGraph.request({
