@@ -117,16 +117,16 @@ export default Adapter.extend({
     // supported:
     // - authHint: Array.String: 2-element array, eg. ['asUser', <user_id>]
     //   note that user_id is _not_ a gri, but stripped raw id
-    // - createRequestFields: Object|null additional fields, that will be added
-    //   to the `data` in `createRecord` request
+    // - additionalData: Object|null additional fields, that will be added
+    //   to the `data` in request
     let authHint;
     if (snapshot.record._meta) {
       const meta = snapshot.record._meta;
       
       authHint = meta.authHint;
       
-      if (meta.createRequestFields) {
-        _.assign(data, meta.createRequestFields);
+      if (meta.additionalData) {
+        _.assign(data, meta.additionalData);
       }
     }
 
