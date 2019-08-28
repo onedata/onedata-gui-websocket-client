@@ -10,7 +10,9 @@
 import $ from 'jquery';
 import { resolve } from 'rsvp';
 
+/**
+ * @returns {Promise<{ token: string, ttl: number }>}
+ */
 export default function getToken() {
-  return resolve($.post('./gui-preauthorize'))
-    .then(({ token }) => token);
+  return resolve($.post('./gui-preauthorize'));
 }
