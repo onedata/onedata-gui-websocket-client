@@ -1,13 +1,14 @@
 import EmberObject from '@ember/object';
 import Evented from '@ember/object/evented';
 import { expect } from 'chai';
-import { describe, it, beforeEach } from 'mocha';
+import { describe, it, beforeEach, afterEach } from 'mocha';
 import { setupTest } from 'ember-mocha';
 import wait from 'ember-test-helpers/wait';
 import { registerService, lookupService } from '../../helpers/stub-service';
 import Service from '@ember/service';
 import sinon from 'sinon';
 import { get } from '@ember/object';
+import { getOwner } from '@ember/application';
 
 class WebSocketMock {
   constructor() {
@@ -31,6 +32,16 @@ describe('Unit | Service | onedata websocket', function () {
       'onedataWebsocketErrorHandler',
       OnedataWebsocketErrorHandler
     );
+    const owner = getOwner(this);
+    this.ownerApplicationBak = owner.application;
+    owner.application = {
+      guiContext: {},
+    };
+  });
+
+  afterEach(function () {
+    const owner = getOwner(this);
+    owner.application = this.ownerApplicationBak;
   });
 
   it('resolves initWebsocket promise by opening ws connection', function (done) {
@@ -38,7 +49,6 @@ describe('Unit | Service | onedata websocket', function () {
     let service = this.subject();
 
     service.set('_webSocketClass', WebSocketMock);
-
     let promise = service._initWebsocket();
     promise.then(() => {
       promiseResolved = true;
