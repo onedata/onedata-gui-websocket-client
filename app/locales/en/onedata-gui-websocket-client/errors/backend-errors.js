@@ -78,5 +78,5 @@ export default {
   spaceNotSupportedBy: 'Space is not supported by the Oneprovider (Id: {{providerId}}).',
   transferNotEnded: 'The transfer has not ended yet.',
   transferAlreadyEnded: 'The transfer has already ended.',
-  indexNotExistsOn: 'The index does not exist on the Oneprovider (Id: {{providerId}}).',
+  viewNotExistsOn: 'The database view does not exist on the Oneprovider (Id: {{providerId}}).',
 };
