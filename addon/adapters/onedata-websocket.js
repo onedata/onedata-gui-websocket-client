@@ -11,15 +11,21 @@ import { get, set, getProperties } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
-import { reject } from 'rsvp';
-
+import { reject, allSettled } from 'rsvp';
 import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
+import Request from 'onedata-gui-websocket-client/utils/request';
+import _ from 'lodash';
 
 export default Adapter.extend({
   onedataGraph: service(),
   onedataGraphContext: service(),
   recordRegistry: service(),
+  activeRequests: service(),
+
+  subscribe: true,
+
+  createScope: 'auto',
 
   defaultSerializer: 'onedata-websocket',
 
@@ -54,39 +60,58 @@ export default Adapter.extend({
     const {
       onedataGraph,
       onedataGraphContext,
-    } = this.getProperties('onedataGraph', 'onedataGraphContext');
+      subscribe,
+      activeRequests,
+    } = this.getProperties(
+      'onedataGraph',
+      'onedataGraphContext',
+      'subscribe',
+      'activeRequests'
+    );
 
     const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
       onedataGraphContext.getAuthHint(id);
     const record = get(snapshot, 'record') || {};
+    const promise = this.getRequestPrerequisitePromise('fetch', type, record)
+      .then(() => onedataGraph.request({
+        gri: id,
+        operation: 'get',
+        authHint,
+        subscribe,
+      }))
+      .then(graphData => {
+        console.debug(
+          `adapter:onedata-websocket: findRecord, gri: ${id}, returned data: `,
+          `${JSON.stringify(graphData)}`,
+        );
+        // request is successful so access to the resource is not forbidden
+        if (get(record, 'isForbidden')) {
+          set(record, 'isForbidden', false);
+        }
+        return graphData;
+      })
+      .catch(findError => {
+        if (get(findError, 'id') === 'forbidden') {
+          return this.searchForNextContext(id, !!authHint)
+            .catch(() => {
+              if (!get(record, 'isForbidden')) {
+                set(record, 'isForbidden', true);
+              }
+              throw findError;
+            });
+        } else {
+          throw findError;
+        }
+      });
 
-    return onedataGraph.request({
-      gri: id,
-      operation: 'get',
-      authHint,
-    }).then(graphData => {
-      console.debug(
-        `adapter:onedata-websocket: findRecord, gri: ${id}, returned data: `,
-        `${JSON.stringify(graphData)}`,
-      );
-      // request is successful so access to the resource is not forbidden
-      if (get(record, 'isForbidden')) {
-        set(record, 'isForbidden', false);
-      }
-      return graphData;
-    }).catch(findError => {
-      if (get(findError, 'id') === 'forbidden') {
-        return this.searchForNextContext(id, !!authHint)
-          .catch(() => {
-            if (!get(record, 'isForbidden')) {
-              set(record, 'isForbidden', true);
-            }
-            throw findError;
-          });
-      } else {
-        throw findError;
-      }
-    });
+    activeRequests.addRequest(Request.create({
+      promise,
+      type: 'fetch',
+      modelEntityId: parseGri(id).entityId,
+      modelClassName: get(type, 'modelName'),
+    }));
+    
+    return promise;
   },
 
   /**
@@ -98,30 +123,62 @@ export default Adapter.extend({
    * @return {Promise} promise
    */
   createRecord(store, type, snapshot) {
-    let onedataGraph = this.get('onedataGraph');
-    let data = snapshot.record.toJSON();
-    let modelName = type.modelName;
+    const {
+      onedataGraph,
+      subscribe,
+      createScope,
+      activeRequests,
+    } = this.getProperties(
+      'onedataGraph',
+      'subscribe',
+      'createScope',
+      'activeRequests'
+    );
+    
+    const record = get(snapshot, 'record');
+    const data = record.toJSON();
+    const modelName = type.modelName;
 
     // support for special metadata for requests in onedata-websocket
     // supported:
     // - authHint: Array.String: 2-element array, eg. ['asUser', <user_id>]
     //   note that user_id is _not_ a gri, but stripped raw id
+    // - additionalData: Object|null additional fields, that will be added
+    //   to the `data` in request
     let authHint;
-    if (snapshot.record._meta) {
-      let meta = snapshot.record._meta;
+    if (record._meta) {
+      const meta = record._meta;
+      
       authHint = meta.authHint;
+      
+      if (meta.additionalData) {
+        _.assign(data, meta.additionalData);
+      }
     }
 
-    return onedataGraph.request({
-      gri: createGri({
-        entityType: modelName,
-        aspect: 'instance',
-        scope: 'auto',
-      }),
-      operation: 'create',
+    const promise = this.getRequestPrerequisitePromise('create', type, record)
+      .then(() => onedataGraph.request({
+        gri: createGri({
+          entityType: modelName,
+          aspect: 'instance',
+          scope: createScope,
+        }),
+        operation: 'create',
+        data,
+        authHint,
+        subscribe,
+      }));
+
+    activeRequests.addRequest(Request.create({
+      promise,
+      type: 'create',
+      modelEntityId: get(record, 'entityId'),
+      model: record,
       data,
-      authHint,
-    });
+      modelClassName: get(type, 'modelName'),
+    }));
+
+    return promise;
   },
 
   /**
@@ -133,16 +190,34 @@ export default Adapter.extend({
    * @return {Promise} promise
    */
   updateRecord(store, type, snapshot) {
-    let onedataGraph = this.get('onedataGraph');
-    let data = snapshot.record.toJSON();
-    let recordId = snapshot.record.id;
+    const {
+      onedataGraph,
+      activeRequests,
+    } = this.getProperties('onedataGraph', 'activeRequests');
+
+    const record = get(snapshot, 'record');
+    const data = record.toJSON();
+    const recordId = record.id;
     const griData = parseGri(recordId);
     griData.scope = 'private';
-    return onedataGraph.request({
-      gri: createGri(griData),
-      operation: 'update',
+
+    const promise = this.getRequestPrerequisitePromise('update', type, record)
+      .then(() => onedataGraph.request({
+        gri: createGri(griData),
+        operation: 'update',
+        data,
+      }));
+
+    activeRequests.addRequest(Request.create({
+      promise,
+      type: 'update',
+      modelEntityId: get(record, 'entityId'),
+      model: record,
       data,
-    });
+      modelClassName: get(type, 'modelName'),
+    }));
+
+    return promise;
   },
 
   /**
@@ -157,17 +232,37 @@ export default Adapter.extend({
     const {
       onedataGraph,
       onedataGraphContext,
-    } = this.getProperties('onedataGraph', 'onedataGraphContext');
-    let recordId = snapshot.record.id;
+      activeRequests,
+    } = this.getProperties(
+      'onedataGraph',
+      'onedataGraphContext',
+      'activeRequests'
+    );
+
+    const record = get(snapshot, 'record');
+    const recordId = record.id;
     const griData = parseGri(recordId);
     griData.scope = 'private';
-    return onedataGraph.request({
-      gri: createGri(griData),
-      operation: 'delete',
-    }).then(result => {
-      onedataGraphContext.deregister(recordId);
-      return result;
-    });
+
+    const promise = this.getRequestPrerequisitePromise('delete', type, record)
+      .then(() => onedataGraph.request({
+        gri: createGri(griData),
+        operation: 'delete',
+      }))
+      .then(result => {
+        onedataGraphContext.deregister(recordId);
+        return result;
+      });
+
+    activeRequests.addRequest(Request.create({
+      promise,
+      type: 'delete',
+      modelEntityId: get(record, 'entityId'),
+      model: record,
+      modelClassName: get(type, 'modelName'),
+    }));
+
+    return promise;
   },
 
   findAll() {
@@ -285,5 +380,22 @@ export default Adapter.extend({
    */
   getModelName(gri) {
     return this.get('recordRegistry').getModelName(gri) || parseGri(gri).entityType;
+  },
+
+  /**
+   * Returns promise, that should fulfill before `operation` on `model`
+   * will be started. Returned promise never rejects.
+   * @param {string} operation one of: create, fetch, update, delete
+   * @param {Object} modelClass
+   * @param {GraphModel} model
+   * @returns {Promise}
+   */
+  getRequestPrerequisitePromise(operation, modelClass, model) {
+    const blockingRequests = modelClass.findBlockingRequests(
+      this.get('activeRequests'),
+      operation,
+      model
+    );
+    return allSettled(blockingRequests.mapBy('promise'));
   },
 });

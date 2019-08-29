@@ -72,4 +72,11 @@ export default {
     '"{{entityId}}").',
   cannotAddRelationToSelf: 'Cannot join group to itself.',
   temporaryFailure: 'The server reported a temporary failure.',
+  alreadyExists: 'The resource already exists.',
+  posix: 'Filesystem operation failed: {{errno}}.',
+  badValueAmbiguousId: 'The Id (key: {{key}}) is ambiguous.',
+  spaceNotSupportedBy: 'Space is not supported by the Oneprovider (Id: {{providerId}}).',
+  transferNotEnded: 'The transfer has not ended yet.',
+  transferAlreadyEnded: 'The transfer has already ended.',
+  viewNotExistsOn: 'The database view does not exist on the Oneprovider (Id: {{providerId}}).',
 };

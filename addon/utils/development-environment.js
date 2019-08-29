@@ -7,9 +7,7 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import userGri from 'onedata-gui-websocket-client/utils/user-gri';
-
-const MOCK_USER_ID = 'stub_user_id';
+const mockUserId = 'stub_user_id';
 
 /**
  * Checks if we are in environment that needs to create development model
@@ -28,7 +26,7 @@ export function isDevelopment(config) {
 }
 
 function getSingletonUser(store) {
-  return store.findRecord('user', userGri(MOCK_USER_ID));
+  return store.findRecord('user', store.userGri(mockUserId));
 }
 
 /**
