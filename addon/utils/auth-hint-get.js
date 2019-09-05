@@ -3,8 +3,8 @@
  * Eg. throughSpace, throughGroup
  *
  * @module utils/auth-hint-get
- * @author Jakub Liput
- * @copyright (C) 2017 ACK CYFRONET AGH
+ * @author Jakub Liput, Michał Borzęcki
+ * @copyright (C) 2017-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -17,10 +17,10 @@ import { camelize } from '@ember/string';
  */
 export default function authHintGet(gri) {
   let griMatch = gri.match(
-    /(cluster|harvester|space|group)\..*\.(users|groups|spaces|eff_providers|children|eff_users|eff_groups|eff_children)/
+    /(op_)?(cluster|harvester|space|group)\..*\.(users|groups|spaces|eff_providers|children|eff_users|eff_groups|eff_children)/
   );
   if (griMatch) {
-    let modelName = griMatch[1];
+    let modelName = griMatch[2];
     return camelize(`through-${modelName}`);
   }
 }
