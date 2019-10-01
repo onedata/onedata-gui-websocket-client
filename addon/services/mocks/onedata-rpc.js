@@ -59,10 +59,4 @@ export default Service.extend({
       url: 'http://localhost:4201',
     });
   },
-
-  __handle_getPrivacyPolicy() {
-    return resolve({
-      content: '<h1>Privacy policy of Mocked Onedata</h1><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><p>Yes, but no, but yes.</p><!-- <button class="btn btn-sm btn-default" onclick="javascript:alert(\'hacked\')">Injected dangerous button</button> -->',
-    });
-  },
 });
