@@ -38,6 +38,7 @@ describe('Unit | Adapter | onedata websocket', function () {
         gri: recordId,
         operation: 'get',
         authHint: undefined,
+        subscribe: true,
       })
       .resolves(graphData);
 

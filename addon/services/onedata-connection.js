@@ -42,9 +42,4 @@ export default Service.extend({
    * @type {Ember.Computed<string>}
    */
   brandSubtitle: reads('attributes.brandSubtitle'),
-
-  /**
-   * @type {Ember.Computed<string>}
-   */
-  loginNotification: reads('attributes.loginNotification'),
 });

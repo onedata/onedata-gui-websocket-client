@@ -58,11 +58,13 @@ export default Adapter.extend({
 
     const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
       onedataGraphContext.getAuthHint(id);
+    const subscribe = !(get(snapshot, 'adapterOptions._meta.subscribe') === false);
     const record = get(snapshot, 'record') || {};
 
     return onedataGraph.request({
       gri: id,
       operation: 'get',
+      subscribe,
       authHint,
     }).then(graphData => {
       console.debug(
