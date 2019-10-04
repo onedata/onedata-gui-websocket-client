@@ -29,6 +29,11 @@ export default Adapter.extend({
 
   defaultSerializer: 'onedata-websocket',
 
+  /**
+   * @type {Map<string,string>}
+   */
+  entityTypeToModelNameMap: Object.freeze(new Map()),
+
   init() {
     this._super(...arguments);
     const onedataGraph = this.get('onedataGraph');
@@ -156,10 +161,11 @@ export default Adapter.extend({
       }
     }
 
+    const entityType = this.getEntityType(modelName);
     const promise = this.getRequestPrerequisitePromise('create', type, record)
       .then(() => onedataGraph.request({
         gri: createGri({
-          entityType: modelName,
+          entityType,
           aspect: 'instance',
           scope: createScope,
         }),
@@ -275,7 +281,7 @@ export default Adapter.extend({
 
   pushUpdated(gri, data) {
     const store = this.get('store');
-    const modelName = this.getModelName(gri);
+    const modelName = this.getModelNameFromGri(gri);
     const existingRecord = store.peekRecord(modelName, gri);
 
     // ignore update if record is deleted or has a newer revision
@@ -300,7 +306,7 @@ export default Adapter.extend({
 
   pushDeleted(gri) {
     const store = this.get('store');
-    const modelName = this.getModelName(gri);
+    const modelName = this.getModelNameFromGri(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
       record.deleteRecord();
@@ -313,7 +319,7 @@ export default Adapter.extend({
       onedataGraphContext,
       store,
     } = this.getProperties('onedataGraphContext', 'store');
-    const modelName = this.getModelName(gri);
+    const modelName = this.getModelNameFromGri(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
       // deregister not working context
@@ -373,13 +379,30 @@ export default Adapter.extend({
 
   /**
    * Returns model name for given GRI.
-   * WARNING: It uses entityType from GRI if record was not fetched earlier.
+   * WARNING: It uses entityType from GRI if record was not fetched earlier or
+   * model name cannot be inferred from `entityTypeToModelNameMap`.
    * EntityType does not always map directly to model name.
    * @param {string} gri
    * @returns {string}
    */
-  getModelName(gri) {
-    return this.get('recordRegistry').getModelName(gri) || parseGri(gri).entityType;
+  getModelNameFromGri(gri) {
+    const {
+      entityTypeToModelNameMap,
+      recordRegistry,
+    } = this.getProperties('entityTypeToModelNameMap', 'recordRegistry');
+    const entityType = parseGri(gri).entityType;
+    return recordRegistry.getModelName(gri) || entityTypeToModelNameMap.get(entityType) || parseGri(gri).entityType;
+  },
+
+  getEntityType(modelName) {
+    const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
+    let foundEntityType;
+    entityTypeToModelNameMap.forEach((relatedModelName, entityType) => {
+      if (relatedModelName === modelName) {
+        foundEntityType = entityType;
+      }
+    });
+    return foundEntityType || modelName;
   },
 
   /**
