@@ -161,7 +161,7 @@ export default Adapter.extend({
       }
     }
 
-    const entityType = this.getEntityType(modelName);
+    const entityType = this.getEntityTypeForModelName(modelName);
     const promise = this.getRequestPrerequisitePromise('create', type, record)
       .then(() => onedataGraph.request({
         gri: createGri({
@@ -281,7 +281,7 @@ export default Adapter.extend({
 
   pushUpdated(gri, data) {
     const store = this.get('store');
-    const modelName = this.getModelNameFromGri(gri);
+    const modelName = this.getModelNameForGri(gri);
     const existingRecord = store.peekRecord(modelName, gri);
 
     // ignore update if record is deleted or has a newer revision
@@ -306,7 +306,7 @@ export default Adapter.extend({
 
   pushDeleted(gri) {
     const store = this.get('store');
-    const modelName = this.getModelNameFromGri(gri);
+    const modelName = this.getModelNameForGri(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
       record.deleteRecord();
@@ -319,7 +319,7 @@ export default Adapter.extend({
       onedataGraphContext,
       store,
     } = this.getProperties('onedataGraphContext', 'store');
-    const modelName = this.getModelNameFromGri(gri);
+    const modelName = this.getModelNameForGri(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
       // deregister not working context
@@ -385,7 +385,7 @@ export default Adapter.extend({
    * @param {string} gri
    * @returns {string}
    */
-  getModelNameFromGri(gri) {
+  getModelNameForGri(gri) {
     const {
       entityTypeToModelNameMap,
       recordRegistry,
@@ -394,14 +394,22 @@ export default Adapter.extend({
     return recordRegistry.getModelName(gri) || entityTypeToModelNameMap.get(entityType) || parseGri(gri).entityType;
   },
 
-  getEntityType(modelName) {
+  /**
+   * Returns GRI entity type related to passed model name. If dedicated mapping
+   * does not exist, `modelName` will be returned as an entity type.
+   * @param {string} modelName
+   * @returns {string}
+   */
+  getEntityTypeForModelName(modelName) {
     const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
+
     let foundEntityType;
-    entityTypeToModelNameMap.forEach((relatedModelName, entityType) => {
-      if (relatedModelName === modelName) {
-        foundEntityType = entityType;
+    entityTypeToModelNameMap.forEach((modelNameFromMap, entityTypeFromMap) => {
+      if (modelNameFromMap === modelName) {
+        foundEntityType = entityTypeFromMap;
       }
     });
+
     return foundEntityType || modelName;
   },
 
