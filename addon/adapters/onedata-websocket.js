@@ -7,7 +7,7 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get, set, getProperties } from '@ember/object';
+import { get, set, getProperties, computed } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
@@ -33,6 +33,23 @@ export default Adapter.extend({
    * @type {Map<string,string>}
    */
   entityTypeToModelNameMap: Object.freeze(new Map()),
+
+  /**
+   * @type {Ember.ComputedProperty<Map<string,string>>}
+   */
+  modelNameToEntityType: computed(
+    'entityTypeToModelNameMap',
+    function modelNameToEntityType() {
+      const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
+      const modelNameMap = new Map();
+
+      entityTypeToModelNameMap.forEach((modelName, entityType) =>
+        modelNameMap.set(modelName, entityType)
+      );
+
+      return modelNameMap;
+    }
+  ),
 
   init() {
     this._super(...arguments);
@@ -401,16 +418,7 @@ export default Adapter.extend({
    * @returns {string}
    */
   getEntityTypeForModelName(modelName) {
-    const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
-
-    let foundEntityType;
-    entityTypeToModelNameMap.forEach((modelNameFromMap, entityTypeFromMap) => {
-      if (modelNameFromMap === modelName) {
-        foundEntityType = entityTypeFromMap;
-      }
-    });
-
-    return foundEntityType || modelName;
+    return this.get('modelNameToEntityType').get(modelName) || modelName;
   },
 
   /**
