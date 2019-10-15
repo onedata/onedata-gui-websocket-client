@@ -7,7 +7,7 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get, set, getProperties } from '@ember/object';
+import { get, set, getProperties, computed } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
@@ -28,6 +28,28 @@ export default Adapter.extend({
   createScope: 'auto',
 
   defaultSerializer: 'onedata-websocket',
+
+  /**
+   * @type {Map<string,string>}
+   */
+  entityTypeToModelNameMap: Object.freeze(new Map()),
+
+  /**
+   * @type {Ember.ComputedProperty<Map<string,string>>}
+   */
+  modelNameToEntityType: computed(
+    'entityTypeToModelNameMap',
+    function modelNameToEntityType() {
+      const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
+      const modelNameMap = new Map();
+
+      entityTypeToModelNameMap.forEach((modelName, entityType) =>
+        modelNameMap.set(modelName, entityType)
+      );
+
+      return modelNameMap;
+    }
+  ),
 
   init() {
     this._super(...arguments);
@@ -156,10 +178,11 @@ export default Adapter.extend({
       }
     }
 
+    const entityType = this.getEntityTypeForModelName(modelName);
     const promise = this.getRequestPrerequisitePromise('create', type, record)
       .then(() => onedataGraph.request({
         gri: createGri({
-          entityType: modelName,
+          entityType,
           aspect: 'instance',
           scope: createScope,
         }),
@@ -275,7 +298,7 @@ export default Adapter.extend({
 
   pushUpdated(gri, data) {
     const store = this.get('store');
-    const modelName = this.getModelName(gri);
+    const modelName = this.getModelNameForGri(gri);
     const existingRecord = store.peekRecord(modelName, gri);
 
     // ignore update if record is deleted or has a newer revision
@@ -300,7 +323,7 @@ export default Adapter.extend({
 
   pushDeleted(gri) {
     const store = this.get('store');
-    const modelName = this.getModelName(gri);
+    const modelName = this.getModelNameForGri(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
       record.deleteRecord();
@@ -313,7 +336,7 @@ export default Adapter.extend({
       onedataGraphContext,
       store,
     } = this.getProperties('onedataGraphContext', 'store');
-    const modelName = this.getModelName(gri);
+    const modelName = this.getModelNameForGri(gri);
     const record = store.peekRecord(modelName, gri);
     if (record && !get(record, 'isDeleted')) {
       // deregister not working context
@@ -373,13 +396,29 @@ export default Adapter.extend({
 
   /**
    * Returns model name for given GRI.
-   * WARNING: It uses entityType from GRI if record was not fetched earlier.
+   * WARNING: It uses entityType from GRI if record was not fetched earlier or
+   * model name cannot be inferred from `entityTypeToModelNameMap`.
    * EntityType does not always map directly to model name.
    * @param {string} gri
    * @returns {string}
    */
-  getModelName(gri) {
-    return this.get('recordRegistry').getModelName(gri) || parseGri(gri).entityType;
+  getModelNameForGri(gri) {
+    const {
+      entityTypeToModelNameMap,
+      recordRegistry,
+    } = this.getProperties('entityTypeToModelNameMap', 'recordRegistry');
+    const entityType = parseGri(gri).entityType;
+    return recordRegistry.getModelName(gri) || entityTypeToModelNameMap.get(entityType) || parseGri(gri).entityType;
+  },
+
+  /**
+   * Returns GRI entity type related to passed model name. If dedicated mapping
+   * does not exist, `modelName` will be returned as an entity type.
+   * @param {string} modelName
+   * @returns {string}
+   */
+  getEntityTypeForModelName(modelName) {
+    return this.get('modelNameToEntityType').get(modelName) || modelName;
   },
 
   /**
