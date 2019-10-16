@@ -82,7 +82,7 @@ export default Adapter.extend({
     const {
       onedataGraph,
       onedataGraphContext,
-      subscribe,
+      subscribe: adapterSubscribe,
       activeRequests,
     } = this.getProperties(
       'onedataGraph',
@@ -93,7 +93,9 @@ export default Adapter.extend({
 
     const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
       onedataGraphContext.getAuthHint(id);
-    const subscribe = !(get(snapshot, 'adapterOptions._meta.subscribe') === false);
+    const customSubscribe = get(snapshot, 'adapterOptions._meta.subscribe');
+    const subscribe = customSubscribe !== undefined ?
+      customSubscribe : adapterSubscribe;
     const record = get(snapshot, 'record') || {};
     const promise = this.getRequestPrerequisitePromise('fetch', type, record)
       .then(() => onedataGraph.request({
