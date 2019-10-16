@@ -93,6 +93,7 @@ export default Adapter.extend({
 
     const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
       onedataGraphContext.getAuthHint(id);
+    const subscribe = !(get(snapshot, 'adapterOptions._meta.subscribe') === false);
     const record = get(snapshot, 'record') || {};
     const promise = this.getRequestPrerequisitePromise('fetch', type, record)
       .then(() => onedataGraph.request({
@@ -132,7 +133,7 @@ export default Adapter.extend({
       modelEntityId: parseGri(id).entityId,
       modelClassName: get(type, 'modelName'),
     }));
-    
+
     return promise;
   },
 
@@ -156,7 +157,7 @@ export default Adapter.extend({
       'createScope',
       'activeRequests'
     );
-    
+
     const record = get(snapshot, 'record');
     const data = record.toJSON();
     const modelName = type.modelName;
@@ -170,9 +171,9 @@ export default Adapter.extend({
     let authHint;
     if (record._meta) {
       const meta = record._meta;
-      
+
       authHint = meta.authHint;
-      
+
       if (meta.additionalData) {
         _.assign(data, meta.additionalData);
       }
@@ -408,7 +409,8 @@ export default Adapter.extend({
       recordRegistry,
     } = this.getProperties('entityTypeToModelNameMap', 'recordRegistry');
     const entityType = parseGri(gri).entityType;
-    return recordRegistry.getModelName(gri) || entityTypeToModelNameMap.get(entityType) || parseGri(gri).entityType;
+    return recordRegistry.getModelName(gri) || entityTypeToModelNameMap.get(
+      entityType) || parseGri(gri).entityType;
   },
 
   /**

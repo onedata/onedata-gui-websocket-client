@@ -11,7 +11,7 @@
  */
 
 import Service from '@ember/service';
-import { Promise } from 'rsvp';
+import { Promise, resolve, reject } from 'rsvp';
 
 export default Service.extend({
   /**
@@ -32,7 +32,7 @@ export default Service.extend({
         );
       }
     } else {
-      return Promise.reject({
+      return reject({
         id: 'badMessage',
         details: {
           message: 'service:mocks/onedata-rpc: No handler for RPC method: ' +
@@ -43,19 +43,19 @@ export default Service.extend({
   },
 
   __handle_testRPC(args = {}) {
-    return Promise.resolve(args);
+    return resolve(args);
   },
 
   __handle_getLoginEndpoint( /*idp*/ ) {
     // address of mock OpenID provider
-    return Promise.resolve({
+    return resolve({
       method: 'get',
       url: 'http://localhost:4209',
     });
   },
 
   __handle_getProviderRedirectURL( /*providerId*/ ) {
-    return Promise.resolve({
+    return resolve({
       url: 'http://localhost:4201',
     });
   },
