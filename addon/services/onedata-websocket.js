@@ -51,6 +51,8 @@ export default Service.extend(Evented, {
    */
   responseTimeout: RESPONSE_TIMEOUT_MS,
 
+  defaultProtocolVersion,
+
   /**
    * @type {RSVP.Deferred}
    */
@@ -316,7 +318,7 @@ export default Service.extend(Evented, {
   _handshake(options) {
     options = options || {};
     const protocolVersion = (options.protocolVersion === undefined) ?
-      defaultProtocolVersion : options.protocolVersion;
+      this.get('defaultProtocolVersion') : options.protocolVersion;
     const token = options.token;
 
     const handshakeData = {

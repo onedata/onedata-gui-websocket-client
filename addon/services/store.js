@@ -76,19 +76,18 @@ export default Store.extend({
   },
 
   /**
-   * Constructs a GRI for current user with given entity ID (which we can get
-   * from session data)
-   * @param {string} userId
+   * Constructs a GRI for user with given entity ID
+   * @param {string} userEntityId
    * @returns {string} GRI
    */
-  userGri(userId) {
+  userGri(userEntityId) {
     const {
       userEntityType,
       userScope,
     } = this.getProperties('userEntityType', 'userScope');
     return gri({
       entityType: userEntityType,
-      entityId: userId,
+      entityId: userEntityId,
       aspect: 'instance',
       scope: userScope,
     });
