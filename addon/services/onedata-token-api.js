@@ -15,11 +15,17 @@ export default Service.extend({
   onedataGraph: inject(),
 
   getInviteToken(inviterType, inviterEntityId, receiverType) {
+    let aspect;
+    if (inviterType === 'space' &&  inviterEntityId === 'provider') {
+      aspect = 'space_support_token';
+    } else {
+      aspect = `invite_${receiverType}_token`;
+    }
     return this.get('onedataGraph').request({
       gri: gri({
         entityType: inviterType,
         entityId: inviterEntityId,
-        aspect: `invite_${receiverType}_token`,
+        aspect,
       }),
       operation: 'create',
       subscribe: false,

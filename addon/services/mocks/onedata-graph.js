@@ -141,7 +141,7 @@ export default Service.extend(Evented, {
       },
     },
     space: {
-      invite_provider_token(operation, /* spaceId, data, authHint*/ ) {
+      space_support_token(operation, /* spaceId, data, authHint*/ ) {
         if (operation === 'create') {
           return {
             success: true,
