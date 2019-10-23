@@ -16,7 +16,7 @@ export default Service.extend({
 
   getInviteToken(inviterType, inviterEntityId, receiverType) {
     let aspect;
-    if (inviterType === 'space' &&  inviterEntityId === 'provider') {
+    if (inviterType === 'space' &&  receiverType === 'provider') {
       aspect = 'space_support_token';
     } else {
       aspect = `invite_${receiverType}_token`;
