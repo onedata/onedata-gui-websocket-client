@@ -16,6 +16,12 @@ import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default Mixin.create({
   /**
+   * If true, use subscribe option when getting or creating the record
+   * @type {boolean}
+   */
+  isSubscribable: true,
+
+  /**
    * @type {number}
    */
   revision: attr('number'),

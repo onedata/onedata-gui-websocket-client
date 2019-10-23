@@ -27,6 +27,14 @@ export default function getErrorDescription(error, i18n) {
   let errorJson;
 
   if (typeof error === 'object' && error.id) {
+    if (error.id === 'posix') {
+      const errnoTranslation = i18n.t(`${i18nPrefix}posixErrno.${error.details.errno}`);
+      if (errnoTranslation.toString().startsWith('<missing-')) {
+        error.details.errnoTranslation = error.details.errno;
+      } else {
+        error.details.errnoTranslation = errnoTranslation;
+      }
+    }
     message = i18n.t(i18nPrefix + errorId, error.details);
     if (message.toString().startsWith('<missing-')) {
       message = undefined;

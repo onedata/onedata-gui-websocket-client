@@ -39,7 +39,6 @@ export default Service.extend(Evented, {
     operation,
     data,
     authHint,
-    // TODO: change to true if backend will be done
     subscribe = false,
   }) {
     console.debug(

@@ -11,6 +11,16 @@ import { registerService, lookupService } from '../../helpers/stub-service';
 import OnedataGraphStub from '../../helpers/stubs/services/onedata-graph';
 import OnedataGraphContextStub from '../../helpers/stubs/services/onedata-graph-context';
 import RecordRegistryStub from '../../helpers/stubs/services/onedata-graph-context';
+import ActiveRequestsStub from '../../helpers/stubs/services/active-requests';
+
+function getModelType(modelName) {
+  return {
+    modelName,
+    findBlockingRequests() {
+      return [];
+    },
+  };
+}
 
 describe('Unit | Adapter | onedata websocket', function () {
   setupTest('adapter:onedata-websocket', {
@@ -21,12 +31,13 @@ describe('Unit | Adapter | onedata websocket', function () {
     registerService(this, 'onedata-graph', OnedataGraphStub);
     registerService(this, 'onedata-graph-context', OnedataGraphContextStub);
     registerService(this, 'record-registry', RecordRegistryStub);
+    registerService(this, 'active-requests', ActiveRequestsStub);
   });
 
-  it('uses graph service to findRecord', function (done) {
+  it('uses graph service to findRecord', function () {
     let store = {};
-    let type = {};
-    let recordId = 'record_id';
+    let type = getModelType();
+    let recordId = 'record.record_id.instance:private';
     let graphData = {};
     let adapter = this.subject();
 
@@ -45,17 +56,16 @@ describe('Unit | Adapter | onedata websocket', function () {
     let graphContext = lookupService(this, 'onedata-graph-context');
     stub(graphContext, 'getAuthHint').returns(undefined);
 
-    adapter.findRecord(store, type, recordId, {}).then(adapterRecord => {
+    return adapter.findRecord(store, type, recordId, {}).then(adapterRecord => {
       expect(adapterRecord).to.equal(graphData);
-      done();
     });
   });
 
   it('uses graph service to createRecord with support for metadata',
-    function (done) {
+    function () {
       let store = {};
       let modelName = 'something';
-      let type = { modelName };
+      let type = getModelType(modelName);
       let authHint = ['asUser', 'u1'];
       let recordData = {
         foo: 'bar',
@@ -74,30 +84,27 @@ describe('Unit | Adapter | onedata websocket', function () {
       let graph = lookupService(this, 'onedata-graph');
       let graphRequestStub = stub(graph, 'request');
       let graphValidArgs = {
-        gri: sinon.match(new RegExp(`.*${modelName}.*`)),
+        gri: 'something.null.instance:auto',
         operation: 'create',
         // data for graph is stripped from _meta
         data: { foo: 'bar', one: null },
         authHint,
+        subscribe: true,
       };
       graphRequestStub
         .withArgs(graphValidArgs)
         .resolves(retGraphData);
 
-      let promise = adapter.createRecord(store, type, snapshot);
-      expect(graphRequestStub).to.be.calledWith(graphValidArgs);
-      promise.then(createResult => {
+      return adapter.createRecord(store, type, snapshot).then(createResult => {
+        expect(graphRequestStub).to.be.calledWith(graphValidArgs);
         expect(createResult).to.equal(retGraphData);
-        done();
       });
     });
 
-  it('uses graph service to updateRecord', function (done) {
+  it('uses graph service to updateRecord', function () {
     let store = {};
     let modelName = 'something';
-    let type = {
-      modelName,
-    };
+    let type = getModelType(modelName);
     let recordId = 'a.b.c:private';
     let recordData = {
       foo: 'bar',
@@ -124,21 +131,16 @@ describe('Unit | Adapter | onedata websocket', function () {
       .withArgs(graphValidArgs)
       .resolves(graphData);
 
-    let promise = adapter.updateRecord(store, type, snapshot);
-    expect(graphRequestStub).to.be.calledWith(graphValidArgs);
-
-    promise.then(createResult => {
+    return adapter.updateRecord(store, type, snapshot).then(createResult => {
+      expect(graphRequestStub).to.be.calledWith(graphValidArgs);
       expect(createResult).to.equal(graphData);
-      done();
     });
   });
 
-  it('uses graph service to deleteRecord', function (done) {
+  it('uses graph service to deleteRecord', function () {
     let store = {};
     let modelName = 'something';
-    let type = {
-      modelName,
-    };
+    let type = getModelType(modelName);
     let recordId = 'a.b.c:private';
     let recordData = {
       foo: 'bar',
@@ -164,12 +166,9 @@ describe('Unit | Adapter | onedata websocket', function () {
       .withArgs(graphValidArgs)
       .resolves(graphData);
 
-    let promise = adapter.deleteRecord(store, type, snapshot);
-    expect(graphRequestStub).to.be.calledWith(graphValidArgs);
-
-    promise.then(createResult => {
+    return adapter.deleteRecord(store, type, snapshot).then(createResult => {
+      expect(graphRequestStub).to.be.calledWith(graphValidArgs);
       expect(createResult).to.equal(graphData);
-      done();
     });
   });
 });
