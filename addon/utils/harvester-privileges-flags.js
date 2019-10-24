@@ -10,32 +10,32 @@
 export const groupedFlags = [{
   groupName: 'harvesterManagement',
   privileges: [
-    'harvester_view',
-    'harvester_update',
-    'harvester_delete',
-    'harvester_view_privileges',
-    'harvester_set_privileges',
+    { name: 'harvester_view' },
+    { name: 'harvester_update' },
+    { name: 'harvester_delete' },
+    { name: 'harvester_view_privileges' },
+    { name: 'harvester_set_privileges' },
   ],
 }, {
   groupName: 'userManagement',
   privileges: [
-    'harvester_add_user',
-    'harvester_remove_user',
+    { name: 'harvester_add_user' },
+    { name: 'harvester_remove_user' },
   ],
 }, {
   groupName: 'groupManagement',
   privileges: [
-    'harvester_add_group',
-    'harvester_remove_group',
+    { name: 'harvester_add_group' },
+    { name: 'harvester_remove_group' },
   ],
 }, {
   groupName: 'spaceManagement',
   privileges: [
-    'harvester_add_space',
-    'harvester_remove_space',
+    { name: 'harvester_add_space' },
+    { name: 'harvester_remove_space' },
   ],
 }];
 
 export default groupedFlags
   .map(group => group.privileges)
-  .reduce((all, groupPerms) => all.concat(groupPerms), []);
+  .reduce((all, groupPerms) => all.concat(groupPerms.mapBy('name')), []);

@@ -33,6 +33,10 @@ describe('Unit | Service | current user', function () {
     findRecord
       .withArgs('user', sinon.match(new RegExp(`.*${userEntityId}.*`)))
       .resolves(userRecord);
+    const userGri = stub(store, 'userGri');
+    userGri
+      .withArgs('user1')
+      .returns('user.user1.instance:private');
 
     let service = this.subject();
 
