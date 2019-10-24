@@ -3,8 +3,10 @@ import { describe, it, beforeEach } from 'mocha';
 import { setupTest } from 'ember-mocha';
 import wait from 'ember-test-helpers/wait';
 import sinon from 'sinon';
+import { registerService, lookupService } from '../../helpers/stub-service';
 
 import OnedataWebsocketService from '../../helpers/stubs/services/onedata-websocket';
+import ActiveRequestsService from '../../helpers/stubs/services/active-requests';
 
 describe('Unit | Service | onedata rpc', function () {
   setupTest('service:onedata-rpc', {
@@ -12,13 +14,13 @@ describe('Unit | Service | onedata rpc', function () {
   });
 
   beforeEach(function () {
-    this.register('service:onedata-websocket', OnedataWebsocketService);
-    this.inject.service('onedata-websocket', { as: 'onedataWebsocket' });
+    registerService(this, 'onedata-websocket', OnedataWebsocketService);
+    registerService(this, 'active-requests', ActiveRequestsService);
   });
 
   it('can use onedata-websocket mock handleSendRpc', function (done) {
     let service = this.subject();
-    let ws = this.container.lookup('service:onedata-websocket');
+    let ws = lookupService(this, 'onedata-websocket');
     let handleSendRpc = sinon.spy({
       handleSendRpc() {
         return Promise.resolve({

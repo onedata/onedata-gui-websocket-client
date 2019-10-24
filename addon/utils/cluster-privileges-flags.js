@@ -10,26 +10,26 @@
 export const groupedFlags = [{
   groupName: 'clusterManagement',
   privileges: [
-    'cluster_view',
-    'cluster_update',
-    'cluster_delete',
-    'cluster_view_privileges',
-    'cluster_set_privileges',
+    { name: 'cluster_view' },
+    { name: 'cluster_update' },
+    { name: 'cluster_delete' },
+    { name: 'cluster_view_privileges' },
+    { name: 'cluster_set_privileges' },
   ],
 }, {
   groupName: 'userManagement',
   privileges: [
-    'cluster_add_user',
-    'cluster_remove_user',
+    { name: 'cluster_add_user' },
+    { name: 'cluster_remove_user' },
   ],
 }, {
   groupName: 'groupManagement',
   privileges: [
-    'cluster_add_group',
-    'cluster_remove_group',
+    { name: 'cluster_add_group' },
+    { name: 'cluster_remove_group' },
   ],
 }];
 
 export default groupedFlags
   .map(group => group.privileges)
-  .reduce((all, groupPerms) => all.concat(groupPerms), []);
+  .reduce((all, groupPerms) => all.concat(groupPerms.mapBy('name')), []);

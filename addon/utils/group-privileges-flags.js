@@ -2,7 +2,7 @@
  * Names of flags for group privileges.
  * 
  * @module utils/group-privileges-flags
- * @author Michal Borzecki
+ * @author Michał Borzęcki
  * @copyright (C) 2018-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
@@ -10,42 +10,42 @@
 export const groupedFlags = [{
   groupName: 'groupManagement',
   privileges: [
-    'group_view',
-    'group_update',
-    'group_view_privileges',
-    'group_set_privileges',
-    'group_delete',
+    { name: 'group_view' },
+    { name: 'group_update' },
+    { name: 'group_view_privileges' },
+    { name: 'group_set_privileges' },
+    { name: 'group_delete' },
   ],
 }, {
   groupName: 'groupHierarchyManagement',
   privileges: [
-    'group_add_child',
-    'group_remove_child',
-    'group_add_parent',
-    'group_leave_parent',
+    { name: 'group_add_child' },
+    { name: 'group_remove_child' },
+    { name: 'group_add_parent' },
+    { name: 'group_leave_parent' },
   ],
 }, {
   groupName: 'userManagement',
   privileges: [
-    'group_add_user',
-    'group_remove_user',
+    { name: 'group_add_user' },
+    { name: 'group_remove_user' },
   ],
 }, {
   groupName: 'spaceManagement',
   privileges: [
-    'group_add_space',
-    'group_leave_space',
+    { name: 'group_add_space' },
+    { name: 'group_leave_space' },
   ],
 }, {
   groupName: 'handleManagement',
   privileges: [
-    'group_create_handle',
-    'group_leave_handle',
-    'group_create_handle_service',
-    'group_leave_handle_service',
+    { name: 'group_create_handle' },
+    { name: 'group_leave_handle' },
+    { name: 'group_create_handle_service' },
+    { name: 'group_leave_handle_service' },
   ],
 }];
 
 export default groupedFlags
   .map(group => group.privileges)
-  .reduce((all, groupPerms) => all.concat(groupPerms), []);
+  .reduce((all, groupPerms) => all.concat(groupPerms.mapBy('name')), []);
