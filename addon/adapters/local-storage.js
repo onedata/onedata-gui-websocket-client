@@ -45,7 +45,7 @@ export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
    * @param {any} inputProperties 
    * @returns {string}
    */
-  generateIdForRecord(store, type) {
+  generateIdForRecord(store, type, inputProperties) {
     let aspect;
     let entityType;
     if (type.match(/.*-list/)) {
@@ -59,6 +59,7 @@ export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
       entityType,
       entityId: this._super(...arguments),
       aspect,
+      scope: inputProperties.scope ? 'auto' : undefined,
     });
   },
 
