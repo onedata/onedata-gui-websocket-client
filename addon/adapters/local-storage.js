@@ -69,6 +69,15 @@ export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
   query() {
     throw new Error('adapter:local-storage: query is not supported');
   },
+
+  /**
+   * Returns GRI entity type related to passed model name.
+   * @param {string} modelName
+   * @returns {string}
+   */
+  getEntityTypeForModelName(modelName) {
+    return modelName;
+  },
 });
 
 function delayResponse(response) {
