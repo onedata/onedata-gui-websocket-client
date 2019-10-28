@@ -21,9 +21,134 @@ const messageNotSupported = Object.freeze({
 
 const responseDelay = 100;
 
+const spaceHandlers = {
+  invite_provider_token(operation, /* spaceId, data, authHint*/ ) {
+    if (operation === 'create') {
+      return {
+        success: true,
+        data: randomToken(),
+      };
+    } else {
+      throw messageNotSupported;
+    }
+  },
+  transfers(operation, entityId, data) {
+    if (operation !== 'get') {
+      return messageNotSupported;
+    }
+    const allTransfers = this.get('mockBackend.entityRecords.transfer');
+    const {
+      state,
+      offset,
+      limit,
+      page_token: index,
+    } = data;
+    let griList = allTransfers.filterBy('state', state).mapBy('id');
+    let startPosition =
+      Math.max(griList.findIndex(t => get(t, 'index') === index), 0);
+    startPosition = Math.max(startPosition + offset, 0);
+    griList = griList.slice(startPosition, startPosition + limit);
+    return {
+      list: griList,
+    };
+  },
+  // FIXME: transfers_throughput_charts
+  // transfers_throughput_charts(operation, entityId, data) {
+  //   if (operation !== 'get') {
+  //     return messageNotSupported;
+  //   }
+  // },
+};
+
+const harvesterHandlers = {
+  all_plugins(operation) {
+    if (operation === 'get') {
+      return {
+        success: true,
+        allPlugins: [{
+          id: 'elasticsearch_plugin',
+          name: 'Elasticsearch plugin',
+        }],
+      };
+    } else {
+      return messageNotSupported;
+    }
+  },
+};
+
+const userHandlers = {
+  client_tokens(operation) {
+    if (operation === 'create') {
+      const token = randomToken();
+      return this.get('store')
+        .createRecord('clientToken', {
+          token,
+        })
+        .save()
+        .then(clientToken => {
+          const clientTokenId = get(clientToken, 'id');
+          // real operation of adding token to list is server-side
+          return this.get('currentUser')
+            .getCurrentUserRecord()
+            .then(user => get(user, 'clientTokenList'))
+            .then(clientTokens => get(clientTokens, 'list'))
+            .then(list => {
+              list.pushObject(clientToken);
+              return list.save();
+            })
+            .then(() => ({
+              success: true,
+              id: clientTokenId,
+              gri: clientTokenId,
+              token,
+            }));
+        });
+    } else {
+      return messageNotSupported;
+    }
+  },
+  provider_registration_token(operation) {
+    if (operation === 'create') {
+      return randomToken();
+    } else {
+      return messageNotSupported;
+    }
+  },
+};
+
+const transferHandlers = {
+  throughput_charts(operation /*, entityId, data*/ ) {
+    if (operation !== 'get') {
+      return messageNotSupported;
+    }
+    const allProviders = this.get('mockBackend.entityRecords.provider');
+    return {
+      timestamp: 1572261964,
+      charts: {
+        [get(allProviders[0], 'entityId')]: [
+          1365758,
+          1365758,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+      },
+    };
+  },
+};
+
 export default Service.extend(Evented, {
   store: service(),
   currentUser: service(),
+  mockBackend: service(),
 
   /**
    * @param {string} gri
@@ -107,104 +232,11 @@ export default Service.extend(Evented, {
   },
 
   handlers: Object.freeze({
-    provider: {
-      eff_users(operation, entityId) {
-        if (operation === 'get') {
-          return {
-            gri: `provider.${entityId}.eff_users`,
-            list: ['user1', 'user2'],
-          };
-        } else {
-          throw messageNotSupported;
-        }
-      },
-      eff_groups(operation, entityId) {
-        if (operation === 'get') {
-          return {
-            gri: `provider.${entityId}.groups`,
-            list: ['group1', 'group2', 'group3'],
-          };
-        } else {
-          throw messageNotSupported;
-        }
-      },
-      spaces(operation, entityId) {
-        if (operation === 'get') {
-          return {
-            gri: `provider.${entityId}.spaces`,
-            list: ['space1', 'space2', 'space3', 'space4'],
-          };
-        } else {
-          throw messageNotSupported;
-        }
-      },
-    },
-    space: {
-      invite_provider_token(operation, /* spaceId, data, authHint*/ ) {
-        if (operation === 'create') {
-          return {
-            success: true,
-            data: randomToken(),
-          };
-        } else {
-          throw messageNotSupported;
-        }
-      },
-    },
-    harvester: {
-      all_plugins(operation) {
-        if (operation === 'get') {
-          return {
-            success: true,
-            allPlugins: [{
-              id: 'elasticsearch_plugin',
-              name: 'Elasticsearch plugin',
-            }],
-          };
-        } else {
-          return messageNotSupported;
-        }
-      },
-    },
-    user: {
-      client_tokens(operation) {
-        if (operation === 'create') {
-          const token = randomToken();
-          return this.get('store')
-            .createRecord('clientToken', {
-              token,
-            })
-            .save()
-            .then(clientToken => {
-              const clientTokenId = get(clientToken, 'id');
-              // real operation of adding token to list is server-side
-              return this.get('currentUser')
-                .getCurrentUserRecord()
-                .then(user => get(user, 'clientTokenList'))
-                .then(clientTokens => get(clientTokens, 'list'))
-                .then(list => {
-                  list.pushObject(clientToken);
-                  return list.save();
-                })
-                .then(() => ({
-                  success: true,
-                  id: clientTokenId,
-                  gri: clientTokenId,
-                  token,
-                }));
-            });
-        } else {
-          return messageNotSupported;
-        }
-      },
-      provider_registration_token(operation) {
-        if (operation === 'create') {
-          return randomToken();
-        } else {
-          return messageNotSupported;
-        }
-      },
-    },
+    op_provider: providerHandlers,
+    op_space: spaceHandlers,
+    harvester: harvesterHandlers,
+    op_user: userHandlers,
+    op_transfer: transferHandlers,
   }),
 });
 
@@ -218,3 +250,36 @@ function randomToken() {
   const randInt = Math.floor(Math.random() * 10000);
   return exampleToken + randInt;
 }
+
+const providerHandlers = {
+  eff_users(operation, entityId) {
+    if (operation === 'get') {
+      return {
+        gri: `provider.${entityId}.eff_users`,
+        list: ['user1', 'user2'],
+      };
+    } else {
+      throw messageNotSupported;
+    }
+  },
+  eff_groups(operation, entityId) {
+    if (operation === 'get') {
+      return {
+        gri: `provider.${entityId}.groups`,
+        list: ['group1', 'group2', 'group3'],
+      };
+    } else {
+      throw messageNotSupported;
+    }
+  },
+  spaces(operation, entityId) {
+    if (operation === 'get') {
+      return {
+        gri: `provider.${entityId}.spaces`,
+        list: ['space1', 'space2', 'space3', 'space4'],
+      };
+    } else {
+      throw messageNotSupported;
+    }
+  },
+};
