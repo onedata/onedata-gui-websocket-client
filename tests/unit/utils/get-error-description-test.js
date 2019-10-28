@@ -11,11 +11,14 @@ describe('Unit | Utility | get error description', function () {
   });
 
   it('handles errors in form { id, details }', function () {
+    const errorDetails = { a: 1 };
     const testTranslation = 'translation';
-    sinon.stub(this.i18n, 't').returns(testTranslation);
+    sinon.stub(this.i18n, 't')
+      .withArgs('errors.backendErrors.someError', errorDetails)
+      .returns(testTranslation);
     const error = {
       id: 'someError',
-      details: { a: 1 },
+      details: errorDetails,
     };
 
     const result = getErrorDescription(error, this.i18n);
@@ -27,10 +30,13 @@ describe('Unit | Utility | get error description', function () {
   });
 
   it('handles errors in form { id, details } when id is not recognized', function () {
-    sinon.stub(this.i18n, 't').returns('<missing-...');
+    const errorDetails = { a: 1 };
+    sinon.stub(this.i18n, 't')
+      .withArgs('errors.backendErrors.someError', errorDetails)
+      .returns('<missing-...');
     const error = {
       id: 'someError',
-      details: { a: 1 },
+      details: errorDetails,
     };
 
     const result = getErrorDescription(error, this.i18n);
@@ -43,13 +49,15 @@ describe('Unit | Utility | get error description', function () {
 
   it('handles errors in form { id, details } when JSON cannot be stringified', function () {
     const testTranslation = 'translation';
-    sinon.stub(this.i18n, 't').returns(testTranslation);
     const error = {
       id: 'someError',
       details: {},
     };
     // Circular structure which cannot be stringified
     error.details = error;
+    sinon.stub(this.i18n, 't')
+      .withArgs('errors.backendErrors.someError', error.details)
+      .returns(testTranslation);
 
     const result = getErrorDescription(error, this.i18n);
 
@@ -124,19 +132,22 @@ describe('Unit | Utility | get error description', function () {
     });
   });
 
-  it('handles errors in form { id, details } with id == "posix" and unknown errno', function () {
-    const error = {
-      id: 'posix',
-      details: { errno: 'something' },
-    };
+  it(
+    'handles errors in form { id, details } with id == "posix" and unknown errno',
+    function () {
+      const error = {
+        id: 'posix',
+        details: { errno: 'something' },
+      };
 
-    const result = getErrorDescription(error, this.i18n);
+      const result = getErrorDescription(error, this.i18n);
 
-    expect(result).to.deep.equal({
-      message: undefined,
-      errorJsonString: escapedJsonHtmlSafe(error),
-    });
-  });
+      expect(result).to.deep.equal({
+        message: undefined,
+        errorJsonString: escapedJsonHtmlSafe(error),
+      });
+    }
+  );
 
   [
     'badAudienceToken',
@@ -165,9 +176,9 @@ describe('Unit | Utility | get error description', function () {
           tokenError: nestedError,
         },
       };
-  
+
       const result = getErrorDescription(error, this.i18n);
-  
+
       expect(result).to.deep.equal({
         message: escapedHtmlSafe('complete error'),
         errorJsonString: escapedJsonHtmlSafe(error),
@@ -175,7 +186,8 @@ describe('Unit | Utility | get error description', function () {
     });
   });
 
-  it('handles errors in form { id, details } with id == "notAnAccessToken" and received with "accessToken"',
+  it(
+    'handles errors in form { id, details } with id == "notAnAccessToken" and received with "accessToken"',
     function () {
       const tStub = sinon.stub(this.i18n, 't')
         .withArgs(
@@ -191,9 +203,9 @@ describe('Unit | Utility | get error description', function () {
           },
         },
       };
-  
+
       const result = getErrorDescription(error, this.i18n);
-  
+
       expect(result).to.deep.equal({
         message: escapedHtmlSafe('complete error'),
         errorJsonString: escapedJsonHtmlSafe(error),
@@ -201,7 +213,8 @@ describe('Unit | Utility | get error description', function () {
     }
   );
 
-  it('handles errors in form { id, details } with id == "notAnAccessToken" and received with "inviteToken"',
+  it(
+    'handles errors in form { id, details } with id == "notAnAccessToken" and received with "inviteToken"',
     function () {
       const tStub = sinon.stub(this.i18n, 't')
         .withArgs(
@@ -219,9 +232,9 @@ describe('Unit | Utility | get error description', function () {
           },
         },
       };
-  
+
       const result = getErrorDescription(error, this.i18n);
-  
+
       expect(result).to.deep.equal({
         message: escapedHtmlSafe('complete error'),
         errorJsonString: escapedJsonHtmlSafe(error),
@@ -229,7 +242,8 @@ describe('Unit | Utility | get error description', function () {
     }
   );
 
-  it('handles errors in form { id, details } with id == "notAnInviteToken", expected with "accessToken" and received with "inviteToken"',
+  it(
+    'handles errors in form { id, details } with id == "notAnInviteToken", expected with "accessToken" and received with "inviteToken"',
     function () {
       const tStub = sinon.stub(this.i18n, 't')
         .withArgs(
@@ -254,9 +268,9 @@ describe('Unit | Utility | get error description', function () {
           },
         },
       };
-  
+
       const result = getErrorDescription(error, this.i18n);
-  
+
       expect(result).to.deep.equal({
         message: escapedHtmlSafe('complete error'),
         errorJsonString: escapedJsonHtmlSafe(error),
@@ -264,7 +278,8 @@ describe('Unit | Utility | get error description', function () {
     }
   );
 
-  it('handles errors in form { id, details } with id == "notAnInviteToken", expected with "inviteToken" and received with "accessToken"',
+  it(
+    'handles errors in form { id, details } with id == "notAnInviteToken", expected with "inviteToken" and received with "accessToken"',
     function () {
       const tStub = sinon.stub(this.i18n, 't')
         .withArgs(
@@ -289,9 +304,9 @@ describe('Unit | Utility | get error description', function () {
           },
         },
       };
-  
+
       const result = getErrorDescription(error, this.i18n);
-  
+
       expect(result).to.deep.equal({
         message: escapedHtmlSafe('complete error'),
         errorJsonString: escapedJsonHtmlSafe(error),
@@ -299,28 +314,31 @@ describe('Unit | Utility | get error description', function () {
     }
   );
 
-  it('handles errors in form { id, details } with id == "tokenAudienceForbidden"', function () {
-    sinon.stub(this.i18n, 't')
-      .withArgs('errors.backendErrors.tokenAudienceForbidden', {
-        audience: 'user:123',
-      }).returns('complete error');
-    const error = {
-      id: 'tokenAudienceForbidden',
-      details: {
-        audience: {
-          type: 'user',
-          id: '123',
+  it(
+    'handles errors in form { id, details } with id == "tokenAudienceForbidden"',
+    function () {
+      sinon.stub(this.i18n, 't')
+        .withArgs('errors.backendErrors.tokenAudienceForbidden', {
+          audience: 'user:123',
+        }).returns('complete error');
+      const error = {
+        id: 'tokenAudienceForbidden',
+        details: {
+          audience: {
+            type: 'user',
+            id: '123',
+          },
         },
-      },
-    };
+      };
 
-    const result = getErrorDescription(error, this.i18n);
+      const result = getErrorDescription(error, this.i18n);
 
-    expect(result).to.deep.equal({
-      message: escapedHtmlSafe('complete error'),
-      errorJsonString: escapedJsonHtmlSafe(error),
-    });
-  });
+      expect(result).to.deep.equal({
+        message: escapedHtmlSafe('complete error'),
+        errorJsonString: escapedJsonHtmlSafe(error),
+      });
+    }
+  );
 });
 
 function stubInviteTokenTypeTranslation(tStub) {
@@ -341,7 +359,9 @@ function escapedHtmlSafe(content) {
 
 function escapedJsonHtmlSafe(content) {
   const stringifiedJson = JSON.stringify(content, null, 2);
-  return htmlSafe(`<code>${Ember.Handlebars.Utils.escapeExpression(stringifiedJson)}</code>`);
+  return htmlSafe(
+    `<code>${Ember.Handlebars.Utils.escapeExpression(stringifiedJson)}</code>`
+  );
 }
 
 class I18nStub {

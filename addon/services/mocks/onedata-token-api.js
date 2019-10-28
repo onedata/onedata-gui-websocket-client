@@ -12,6 +12,8 @@ import Service from '@ember/service';
 export default Service.extend({
   getInviteToken(inviterType, inviterEntityId, receiverType) {
     const randInt = Math.floor(Math.random() * 10000);
-    return Promise.resolve(`token-${inviterType}-${inviterEntityId}-${receiverType}-${randInt}`);
+    return Promise.resolve(
+      `token-${inviterType}-${inviterEntityId}-${receiverType}-${randInt}`
+    );
   },
 });

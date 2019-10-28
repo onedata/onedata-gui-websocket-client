@@ -8,17 +8,16 @@
  */
 
 import { get } from '@ember/object';
-import { oneWay } from '@ember/object/computed';
+import { reads } from '@ember/object/computed';
 
 import Service, { inject } from '@ember/service';
-import userGri from 'onedata-gui-websocket-client/utils/user-gri';
 import { Promise, resolve } from 'rsvp';
 
 export default Service.extend({
   store: inject(),
   session: inject(),
 
-  userId: oneWay('session.data.authenticated.identity.user'),
+  userId: reads('session.data.authenticated.identity.user'),
 
   /**
    * Loads currently logged in user record
@@ -37,7 +36,7 @@ export default Service.extend({
     }
     return store.findRecord(
       'user',
-      userGri(userId), { backgroundReload }
+      store.userGri(userId), { backgroundReload }
     );
   },
 

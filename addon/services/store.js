@@ -13,9 +13,14 @@ import Store from 'ember-data/store';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { resolve } from 'rsvp';
 import { inject as service } from '@ember/service';
+import gri from 'onedata-gui-websocket-client/utils/gri';
 
 export default Store.extend({
   onedataGraph: service(),
+
+  userEntityType: 'user',
+
+  userScope: 'auto',
 
   /**
    * Iterates over all list records to reload/recalculate length. Basically it
@@ -68,5 +73,23 @@ export default Store.extend({
     const gri = get(record, 'gri');
 
     return onedataGraph.scheduleUnsubscription(gri);
+  },
+
+  /**
+   * Constructs a GRI for user with given entity ID
+   * @param {string} userEntityId
+   * @returns {string} GRI
+   */
+  userGri(userEntityId) {
+    const {
+      userEntityType,
+      userScope,
+    } = this.getProperties('userEntityType', 'userScope');
+    return gri({
+      entityType: userEntityType,
+      entityId: userEntityId,
+      aspect: 'instance',
+      scope: userScope,
+    });
   },
 });

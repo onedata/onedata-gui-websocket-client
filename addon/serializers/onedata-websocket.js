@@ -88,14 +88,13 @@ export default JSONSerializer.extend({
   },
 
   /**
-   * Omits serializing empty values if they are not changed
+   * Omits serializing values if they are not changed
    * @override
    */
   serializeAttribute(snapshot, json, key /*, attribute */ ) {
     const record = get(snapshot, 'record');
-    const value = snapshot.attr(key);
 
-    if (value != null || record.changedAttributes()[key]) {
+    if (record.changedAttributes()[key]) {
       return this._super(...arguments);
     }
   },

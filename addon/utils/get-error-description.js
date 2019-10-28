@@ -14,6 +14,15 @@ import _ from 'lodash';
 
 const i18nPrefix = 'errors.backendErrors.';
 
+const detailsTranslateFunctions = {
+  posix: posixDetailsTranslator,
+  badAudienceToken: nestedTokenErrorDetailsTranslator,
+  badValueToken: nestedTokenErrorDetailsTranslator,
+  notAnAccessToken: notAnAccessTokenDetailsTranslator,
+  notAnInviteToken: notAnInviteTokenDetailsTranslator,
+  tokenAudienceForbidden: tokenAudienceForbiddenDetailsError,
+};
+
 /**
  * Gets error details from error object that is returned on websocket backend
  * reject.
@@ -40,7 +49,7 @@ export default function getErrorDescription(error, i18n) {
 
   return {
     message: toPrintableString(message),
-    errorJsonString: stringifyError ? toPrintableJson(error) : undefined,
+    errorJsonString: stringifyError ? toFormattedJson(error) : undefined,
   };
 }
 
@@ -50,63 +59,72 @@ function findTranslationForError(i18n, error) {
     details: errorDetails,
   } = getProperties(error, 'id', 'details');
 
-  let errorIdToTranslate = errorId;
-  let errorDetailsToTranslate = errorDetails;
-
-  // Errors with non-standard translation method
-  switch(errorId) {
-    case 'posix': {
-      const errnoTranslation =
-        findTranslation(i18n, `${i18nPrefix}translationParts.posixErrno.${errorDetails.errno}`);
-      errorDetailsToTranslate = _.assign({}, errorDetails, {
-        errno: errnoTranslation,
-      });
-      break;
-    }
-    case 'badAudienceToken':
-    case 'badValueToken': {
-      const tokenError = errorDetails.tokenError || {};
-      const tokenErrorTranslation =
-        findTranslation(i18n, i18nPrefix + tokenError.id, tokenError.details);
-      errorDetailsToTranslate = _.assign({}, errorDetails, {
-        tokenError: tokenErrorTranslation,
-      });
-      break;
-    }
-    case 'notAnAccessToken': {
-      const receivedTranslation =
-        findTokenTypeTranslation(i18n, errorDetails.received);
-      errorDetailsToTranslate = _.assign({}, errorDetails, {
-        received: receivedTranslation,
-      });
-      break;
-    }
-    case 'notAnInviteToken': {
-      const expectedTranslation =
-        findTokenTypeTranslation(i18n, errorDetails.expected);
-      const receivedTranslation =
-        findTokenTypeTranslation(i18n, errorDetails.received);
-      errorDetailsToTranslate = _.assign({}, errorDetails, {
-        expected: expectedTranslation,
-        received: receivedTranslation,
-      });
-      break;
-    }
-    case 'tokenAudienceForbidden': {
-      const audience = errorDetails.audience || {};
-      const audienceTranslation = `${audience.type}:${audience.id}`;
-      errorDetailsToTranslate = _.assign({}, errorDetails, {
-        audience: audienceTranslation,
-      });
-      break;
-    }
-  }
+  const detailsToTranslateFun = detailsTranslateFunctions[errorId];
+  let errorDetailsToTranslate = detailsToTranslateFun ?
+    detailsToTranslateFun(i18n, errorDetails) : errorDetails;
 
   return findTranslation(
     i18n,
-    i18nPrefix + errorIdToTranslate,
+    i18nPrefix + errorId,
     errorDetailsToTranslate
   );
+}
+
+function findTranslation(i18n, key, placeholders) {
+  const translation = i18n.t(key, placeholders);
+  const translationAsString = translation ? translation.toString() : '';
+  return (!translationAsString || translationAsString.startsWith('<missing-')) ?
+    undefined : translation;
+}
+
+function toPrintableString(string) {
+  return string && string.toString() ?
+    htmlSafe(Ember.Handlebars.Utils.escapeExpression(string)) : undefined;
+}
+
+function toFormattedJson(data) {
+  if (!data) {
+    return undefined;
+  } else {
+    try {
+      const stringifiedJson = JSON.stringify(data, null, 2);
+      return htmlSafe(
+        `<code>${Ember.Handlebars.Utils.escapeExpression(stringifiedJson)}</code>`
+      );
+    } catch (e) {
+      return undefined;
+    }
+  }
+}
+
+function posixDetailsTranslator(i18n, errorDetails) {
+  const errnoTranslation =
+    findTranslation(i18n, `${i18nPrefix}translationParts.posixErrno.${errorDetails.errno}`);
+  return _.assign({}, errorDetails, { errno: errnoTranslation });
+}
+
+function nestedTokenErrorDetailsTranslator(i18n, errorDetails) {
+  const tokenError = errorDetails.tokenError || {};
+  const tokenErrorTranslation =
+    findTranslation(i18n, i18nPrefix + tokenError.id, tokenError.details);
+  return _.assign({}, errorDetails, { tokenError: tokenErrorTranslation });
+}
+
+function notAnAccessTokenDetailsTranslator(i18n, errorDetails) {
+  const receivedTranslation =
+    findTokenTypeTranslation(i18n, errorDetails.received);
+  return _.assign({}, errorDetails, { received: receivedTranslation });
+}
+
+function notAnInviteTokenDetailsTranslator(i18n, errorDetails) {
+  const expectedTranslation =
+    findTokenTypeTranslation(i18n, errorDetails.expected);
+  const receivedTranslation =
+    findTokenTypeTranslation(i18n, errorDetails.received);
+  return _.assign({}, errorDetails, {
+    expected: expectedTranslation,
+    received: receivedTranslation,
+  });
 }
 
 function findTokenTypeTranslation(i18n, tokenType) {
@@ -122,29 +140,8 @@ function findTokenTypeTranslation(i18n, tokenType) {
   return translation;
 }
 
-function findTranslation(i18n, key, placeholders) {
-  const translation = i18n.t(key, placeholders);
-  const translationAsString = translation ? translation.toString() : '';
-  return (!translationAsString || translationAsString.startsWith('<missing-')) ?
-    undefined : translation;
-}
-
-function toPrintableString(string) {
-  return string && string.toString() ?
-    htmlSafe(Ember.Handlebars.Utils.escapeExpression(string)) : undefined;
-}
-
-function toPrintableJson(data) {
-  if (data === null || data === undefined || data === '') {
-    return undefined;
-  } else {
-    try {
-      const stringifiedJson = JSON.stringify(data, null, 2);
-      return htmlSafe(
-        `<code>${Ember.Handlebars.Utils.escapeExpression(stringifiedJson)}</code>`
-      );
-    } catch (e) {
-      return undefined;
-    }
-  }
+function tokenAudienceForbiddenDetailsError(i18n, errorDetails) {
+  const audience = errorDetails.audience || {};
+  const audienceTranslation = `${audience.type}:${audience.id}`;
+  return _.assign({}, errorDetails, { audience: audienceTranslation });
 }
