@@ -58,7 +58,7 @@ export default Service.extend({
    * @param {Object} [args={}] RPC method arguments
    * @returns {Promise}
    */
-  getRequestPrerequisitePromise(/*methodName, args = {}*/) {
+  getRequestPrerequisitePromise( /*methodName, args = {}*/ ) {
     return resolve();
   },
 });

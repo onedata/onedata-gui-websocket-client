@@ -20,7 +20,7 @@ export default Mixin.create({
    * @param {GraphModel} model
    * @returns {Array<Utils.Request>}
    */
-  findBlockingRequests(activeRequests, operation/*, model*/) {
+  findBlockingRequests(activeRequests, operation /*, model*/ ) {
     const modelClassName = this.modelName;
 
     const {
@@ -35,23 +35,25 @@ export default Mixin.create({
     );
 
     switch (operation) {
-      case 'create': {
-        if (!_.endsWith(modelClassName, '-list')) {
-          const modelListClassName = `${modelClassName}-list`;
-          return fetchRequests.filterBy('modelClassName', modelListClassName);
-        } else {
-          return [];
+      case 'create':
+        {
+          if (!_.endsWith(modelClassName, '-list')) {
+            const modelListClassName = `${modelClassName}-list`;
+            return fetchRequests.filterBy('modelClassName', modelListClassName);
+          } else {
+            return [];
+          }
         }
-      }
-      case 'fetch': {
-        if (_.endsWith(modelClassName, '-list')) {
-          const modelEntryClassName = modelClassName.slice(0, -5);
-          return createRequests.concat(deleteRequests)
-            .filterBy('modelClassName', modelEntryClassName);
-        } else {
-          return [];
+      case 'fetch':
+        {
+          if (_.endsWith(modelClassName, '-list')) {
+            const modelEntryClassName = modelClassName.slice(0, -5);
+            return createRequests.concat(deleteRequests)
+              .filterBy('modelClassName', modelEntryClassName);
+          } else {
+            return [];
+          }
         }
-      }
       case 'update':
       case 'delete':
         return [];

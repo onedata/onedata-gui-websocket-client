@@ -46,7 +46,7 @@ export default {
   badValueFloat: 'Value of "{{key}}" provided in request must be a float.',
   badValueJSON: 'Value of "{{key}}" provided in request must be a JSON.',
   badValueToken: 'Value of "{{key}}" provided in request is not valid token - {{tokenError}}',
-  badValueTokenType: 'Value of "{{key}}" provided in request must be a valid token type.', 
+  badValueTokenType: 'Value of "{{key}}" provided in request must be a valid token type.',
   badValueIPv4Address: 'Value of "{{key}}" provided in request must be a valid IPv4 address.',
   badValueListOfIPv4Addresses: 'Value of "{{key}}" provided in request must be a list of valid IPv4 adresses.',
   badValueTooLow: 'Value of "{{key}}" provided in request must be greater or equal to {{limit}}.',
