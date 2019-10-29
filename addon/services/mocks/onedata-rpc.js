@@ -22,7 +22,7 @@ export default Service.extend({
   request(methodName, args = {}) {
     const handler = this.get('__handle_' + methodName);
     if (handler) {
-      const handlerResponse = handler(args);
+      const handlerResponse = handler.bind(this)(args);
       if (handlerResponse instanceof Promise) {
         return handlerResponse;
       } else {

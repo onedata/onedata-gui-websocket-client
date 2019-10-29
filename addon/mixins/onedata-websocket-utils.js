@@ -45,7 +45,9 @@ export default Mixin.create({
       );
     }
     const onedataWebsocket = this.get('onedataWebsocket');
-    return ((['any', 'authenticated'].includes(type)) ? getGuiAuthToken() : resolve())
+    const tokenPromise = (['any', 'authenticated'].includes(type)) ?
+      getGuiAuthToken().then(({ token }) => token) : resolve();
+    return tokenPromise
       .catch(error => {
         if (error && error.status === 401) {
           if (type === 'any') {

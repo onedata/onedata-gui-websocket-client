@@ -19,15 +19,24 @@
 import Mixin from '@ember/object/mixin';
 import _ from 'lodash';
 import config from 'ember-get-config';
-import { isDevelopment, isModelMocked } from 'onedata-gui-websocket-client/utils/development-environment';
-import { Promise } from 'rsvp';
+import {
+  isDevelopment,
+  isModelMocked,
+} from 'onedata-gui-websocket-client/utils/development-environment';
+import { resolve } from 'rsvp';
 
 // Default developmentModelConfig
-const DEFAULT_CONFIG = {
+const defaultConfig = {
   clearOnReload: true,
 };
 
 export default Mixin.create({
+  /**
+   * @virtual
+   * @type {string}
+   */
+  clearLocalStoragePrefix: '',
+
   /**
    * @type {object} Ember Config (eg. ember-get-config)
    */
@@ -65,9 +74,17 @@ export default Mixin.create({
    * @returns {Promise<undefined, any>}
    */
   clearDevelopmentModel() {
-    return Promise.reject({
-      message: 'route:<development-model-mixin>: clearDevelopmentModel not implemented',
-    });
+    const clearLocalStoragePrefix = this.get('clearLocalStoragePrefix');
+    const localStorageLength = localStorage.length;
+    const keysToRemove = [];
+    for (let i = 0; i < localStorageLength; ++i) {
+      const key = localStorage.key(i);
+      if (key.startsWith(clearLocalStoragePrefix)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    return resolve();
   },
 
   beforeModel() {
@@ -80,21 +97,21 @@ export default Mixin.create({
     if (this.isDevelopment(envConfig)) {
       const config = this._getDevelopmentModelConfig();
       const clearPromise = config.clearOnReload ?
-        this.clearDevelopmentModel(store) : Promise.resolve();
+        this.clearDevelopmentModel(store) : resolve();
       return clearPromise.then(() =>
         this.isModelMocked(store).then(isMocked => {
           if (isMocked) {
             console.debug(
               'route:application: development environment, model already mocked'
             );
-            return Promise.resolve();
+            return resolve();
           } else {
             return this.generateDevelopmentModel(store, developmentModelConfig);
           }
         })
       );
     } else {
-      return Promise.resolve();
+      return resolve();
     }
   },
 
@@ -105,9 +122,9 @@ export default Mixin.create({
    */
   _getDevelopmentModelConfig() {
     const config = _.assign({}, this.get('developmentModelConfig') || {});
-    Object.keys(DEFAULT_CONFIG).forEach((key) => {
+    Object.keys(defaultConfig).forEach((key) => {
       if (config[key] === undefined) {
-        config[key] = DEFAULT_CONFIG[key];
+        config[key] = defaultConfig[key];
       }
     });
     return config;

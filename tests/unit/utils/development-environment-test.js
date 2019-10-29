@@ -12,6 +12,9 @@ describe('Unit | Utility | development environment', function () {
   beforeEach(function () {
     this.storeStub = EmberObject.create({
       findRecord() {},
+      userGri(userId) {
+        return `user.${userId}.instance:private`;
+      },
     });
   });
 
