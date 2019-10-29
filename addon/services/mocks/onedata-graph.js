@@ -7,6 +7,8 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
+// FIXME: move specific methods to oneprovider-gui and onezone-gui
+
 import Evented from '@ember/object/evented';
 import { Promise } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
@@ -52,12 +54,56 @@ const spaceHandlers = {
       list: griList,
     };
   },
-  // FIXME: transfers_throughput_charts
-  // transfers_throughput_charts(operation, entityId, data) {
-  //   if (operation !== 'get') {
-  //     return messageNotSupported;
-  //   }
-  // },
+  transfers_throughput_charts(operation /*, entityId, data*/ ) {
+    if (operation !== 'get') {
+      return messageNotSupported;
+    }
+    const allProviders = this.get('mockBackend.entityRecords.provider');
+    const firstProviderId = get(allProviders[0], 'entityId');
+    return {
+      timestamp: 1572261964,
+      inputCharts: {
+        [firstProviderId]: [
+          1365758,
+          1365758,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+      },
+      outputCharts: {
+        [firstProviderId]: [
+          1365758,
+          1365758,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+      },
+    };
+  },
+};
+
+const transferStatusToProgressState = {
+  waiting: 'scheduled',
+  ongoing: 'replicating',
+  ended: 'completed',
 };
 
 const harvesterHandlers = {
@@ -122,10 +168,11 @@ const transferHandlers = {
       return messageNotSupported;
     }
     const allProviders = this.get('mockBackend.entityRecords.provider');
+    const firstProviderId = get(allProviders[0], 'entityId');
     return {
       timestamp: 1572261964,
       charts: {
-        [get(allProviders[0], 'entityId')]: [
+        [firstProviderId]: [
           1365758,
           1365758,
           null,
@@ -142,6 +189,48 @@ const transferHandlers = {
         ],
       },
     };
+  },
+  progress(operation, entityId) {
+    if (operation !== 'get') {
+      return messageNotSupported;
+    }
+    const allTransfers = this.get('mockBackend.entityRecords.transfer');
+    const transfer = allTransfers.findBy('entityId', entityId);
+    const status = transferStatusToProgressState[get(transfer, 'state')] || 'failed';
+    return {
+      status,
+      timestamp: Math.floor(Date.now() / 1000),
+      replicatedBytes: Math.pow(1024, 3),
+      replicatedFiles: 14,
+      evictedFiles: 0,
+    };
+  },
+};
+
+const fileHandlers = {
+  transfers(operation, entityId, data) {
+    if (operation !== 'get') {
+      return messageNotSupported;
+    }
+    const {
+      include_ended_list: includeEndedList,
+    } = data;
+    const fileTransfers = this.get('mockBackend.entityRecords.transfer')
+      .filterBy('dataSourceId', entityId);
+    const ongoingList = fileTransfers
+      .filter(t => get(t, 'state') !== 'ended')
+      .mapBy('id');
+    const endedList = fileTransfers
+      .filter(t => get(t, 'state') === 'ended')
+      .mapBy('id');
+    const response = {
+      ongoingList,
+      endedCount: get(endedList, 'length'),
+    };
+    if (includeEndedList) {
+      response.endedList = endedList;
+    }
+    return response;
   },
 };
 
@@ -237,6 +326,7 @@ export default Service.extend(Evented, {
     harvester: harvesterHandlers,
     op_user: userHandlers,
     op_transfer: transferHandlers,
+    file: fileHandlers,
   }),
 });
 
