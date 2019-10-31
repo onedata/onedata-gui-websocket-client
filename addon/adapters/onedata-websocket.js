@@ -168,6 +168,7 @@ export default Adapter.extend({
     // supported:
     // - authHint: Array.String: 2-element array, eg. ['asUser', <user_id>]
     //   note that user_id is _not_ a gri, but stripped raw id
+    // - aspect, aspectId: string - custom GRI aspect to use while record creation
     // - additionalData: Object|null additional fields, that will be added
     //   to the `data` in request
     let authHint;
