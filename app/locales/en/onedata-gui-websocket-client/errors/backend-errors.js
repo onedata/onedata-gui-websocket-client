@@ -1,4 +1,5 @@
 export default {
+  // General errors
   badMessage: 'Internal error: client message could not be understood by the server.',
   noConnectionToOnezone: 'No connection to Onezone service.',
   noConnectionToPeerOneprovider: 'Proxy error: no connection to peer Oneprovider.',
@@ -12,7 +13,11 @@ export default {
   forbidden: 'You are not authorized to perform this operation (insufficient privileges?).',
   notFound: 'The resource could not be found.',
   alreadyExists: 'The resource already exists.',
+
+  // POSIX errors
   posix: '{{errno}}',
+
+  // Auth errors
   badBasicCredentials: 'Invalid username or password.',
   badIdpAccessToken: 'Provided access token for {{idp}} is not valid.',
   badToken: 'Provided token could not be understood by the server.',
@@ -21,19 +26,26 @@ export default {
   tokenRevoked: 'Provided token has been revoked.',
   tokenTooLarge: 'Provided token exceeds the allowed size of {{limit}} bytes.',
   notAnAccessToken: 'Expected an access token, but received a(n) {{received}}.',
-  notAnInviteToken: 'Expected a(n) {{expected}}, but received a(n) {{received}}.',
+  notAnInviteToken: 'Expected a(n) {{expectedInviteTokenType}} invitation token, but received a(n) {{received}}.',
+  tokenCaveatUnknown: 'Unknown caveat - {{caveat}}.',
+  tokenCaveatUnverified: 'Provided token is not valid - unverified {{caveat.type}} caveat. More details below.',
+  tokenTimeCaveatRequired: 'You must specify a time caveat with maximum TTL of {{maxTtl}} seconds.',
+  tokenSubjectInvalid: 'The token subject is invalid (does not exist or is different than expected).',
+  tokenAudienceForbidden: 'The audience ({{audience}}) is forbidden for this subject.',
   inviteTokenCreatorNotAuthorized: 'The creator of this token is not (or not longer) authorized to issue such invitations.',
   inviteTokenUsageLimitReached: 'The usage limit of this invite token has been reached.',
-  tokenCaveatUnverified: 'Provided token is not valid - unverified {{caveat.type}} caveat. More details below.',
-  tokenAudienceForbidden: 'The audience ({{audience}}) is forbidden for this subject.',
+  inviteTokenConsumerInvalid: 'The consumer ({{consumer}}) is invalid for this type of invite token.',
   tokenSessionInvalid: 'This token was issued for a session that no longer exists.',
-  tokenTimeCaveatRequired: 'You must specify a time caveat with maximum TTL of {{maxTtl}} seconds.',
+  
+  // Graph Sync errors
   expectedHandshakeMessage: 'Connection to the server was lost or not fully established (expected handshake message).',
   handshakeAlreadyDone: 'Tried to initialize connection to the server, but it was already established (handshake already done).',
   badVersion: 'Could not negotiate protocol version. Versions supported by the server: {{supportedVersions}}.',
   badGRI: 'Provided GRI (Graph Resource Identifier) is invalid.',
   rpcUndefined: 'Requested RPC operation is not defined.',
   notSubscribable: 'Malformed request (not subscribable).',
+
+  // Data validation errors
   malformedData: 'Malformed request (malformed data).',
   missingRequiredValue: 'Required value of "{{key}}" is missing.',
   missingAtLeastOneValue: 'Missing data, you must provide at least one of: {{keys}}.',
@@ -47,6 +59,7 @@ export default {
   badValueJSON: 'Value of "{{key}}" provided in request must be a JSON.',
   badValueToken: 'Value of "{{key}}" provided in request is not valid token - {{tokenError}}',
   badValueTokenType: 'Value of "{{key}}" provided in request must be a valid token type.',
+  badValueInviteTokenType: 'Value of "{{key}}" provided in request must be a valid invite token type.',
   badValueIPv4Address: 'Value of "{{key}}" provided in request must be a valid IPv4 address.',
   badValueListOfIPv4Addresses: 'Value of "{{key}}" provided in request must be a list of valid IPv4 adresses.',
   badValueTooLow: 'Value of "{{key}}" provided in request must be greater or equal to {{limit}}.',
@@ -69,6 +82,8 @@ export default {
   badGuiPackage: 'Provider GUI package could not be understood by the server.',
   guiPackageTooLarge: 'Provider GUI package is too large.',
   guiPackageUnverified: 'Provider GUI package could not be verified.',
+
+  // State errors
   basicAuthNotSupported: 'Username & password sign-in is not supported by this Onezone.',
   basicAuthDisabled: 'Username & password sign-in is disabled for this user.',
   subdomainDelegationNotSupported: 'Subdomain delegation is not supported by this Onezone.',
@@ -82,6 +97,9 @@ export default {
   viewNotExistsOn: 'The database view does not exist on the Oneprovider (Id: {{providerId}}).',
   transferAlreadyEnded: 'The transfer has already ended.',
   transferNotEnded: 'The transfer has not ended yet.',
+
+  // Unexpected error
+  unexpectedError: 'Unexpected error, reference: {{reference}}.',
 
   translationParts: {
     inviteToken: 'invite token',
