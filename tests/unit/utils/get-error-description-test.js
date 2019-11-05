@@ -47,25 +47,26 @@ describe('Unit | Utility | get error description', function () {
     });
   });
 
-  it('handles errors in form { id, details } when JSON cannot be stringified', function () {
-    const testTranslation = 'translation';
-    const error = {
-      id: 'someError',
-      details: {},
-    };
-    // Circular structure which cannot be stringified
-    error.details = error;
-    sinon.stub(this.i18n, 't')
-      .withArgs('errors.backendErrors.someError', error.details)
-      .returns(testTranslation);
+  it('handles errors in form { id, details } when JSON cannot be stringified',
+    function () {
+      const testTranslation = 'translation';
+      const error = {
+        id: 'someError',
+        details: {},
+      };
+      // Circular structure which cannot be stringified
+      error.details = error;
+      sinon.stub(this.i18n, 't')
+        .withArgs('errors.backendErrors.someError', error.details)
+        .returns(testTranslation);
 
-    const result = getErrorDescription(error, this.i18n);
+      const result = getErrorDescription(error, this.i18n);
 
-    expect(result).to.deep.equal({
-      message: escapedHtmlSafe(testTranslation),
-      errorJsonString: undefined,
+      expect(result).to.deep.equal({
+        message: escapedHtmlSafe(testTranslation),
+        errorJsonString: undefined,
+      });
     });
-  });
 
   it('handles errors in form { message }', function () {
     const error = { message: 'someError' };
@@ -153,37 +154,38 @@ describe('Unit | Utility | get error description', function () {
     'badAudienceToken',
     'badValueToken',
   ].forEach(errorId => {
-    it(`handles errors in form { id, details } with id == "${errorId}"`, function () {
-      const nestedErrorDetails = {
-        limit: 120,
-      };
-      const nestedError = {
-        id: 'tokenTooLarge',
-        details: nestedErrorDetails,
-      };
-      sinon.stub(this.i18n, 't')
-        .withArgs(
-          `errors.backendErrors.${errorId}`,
-          sinon.match({ tokenError: 'token too large' })
-        ).returns('complete error')
-        .withArgs(
-          'errors.backendErrors.tokenTooLarge',
-          nestedErrorDetails
-        ).returns('token too large');
-      const error = {
-        id: errorId,
-        details: {
-          tokenError: nestedError,
-        },
-      };
+    it(`handles errors in form { id, details } with id == "${errorId}"`,
+      function () {
+        const nestedErrorDetails = {
+          limit: 120,
+        };
+        const nestedError = {
+          id: 'tokenTooLarge',
+          details: nestedErrorDetails,
+        };
+        sinon.stub(this.i18n, 't')
+          .withArgs(
+            `errors.backendErrors.${errorId}`,
+            sinon.match({ tokenError: 'token too large' })
+          ).returns('complete error')
+          .withArgs(
+            'errors.backendErrors.tokenTooLarge',
+            nestedErrorDetails
+          ).returns('token too large');
+        const error = {
+          id: errorId,
+          details: {
+            tokenError: nestedError,
+          },
+        };
 
-      const result = getErrorDescription(error, this.i18n);
+        const result = getErrorDescription(error, this.i18n);
 
-      expect(result).to.deep.equal({
-        message: escapedHtmlSafe('complete error'),
-        errorJsonString: escapedJsonHtmlSafe(error),
+        expect(result).to.deep.equal({
+          message: escapedHtmlSafe('complete error'),
+          errorJsonString: escapedJsonHtmlSafe(error),
+        });
       });
-    });
   });
 
   it(
@@ -308,15 +310,13 @@ describe('Unit | Utility | get error description', function () {
     }
   );
 
-  [
-    {
-      id: 'tokenAudienceForbidden',
-      resourceFieldName: 'audience',
-    }, {
-      id: 'inviteTokenConsumerInvalid',
-      resourceFieldName: 'consumer',
-    },
-  ].forEach(({ id, resourceFieldName }) => {
+  [{
+    id: 'tokenAudienceForbidden',
+    resourceFieldName: 'audience',
+  }, {
+    id: 'inviteTokenConsumerInvalid',
+    resourceFieldName: 'consumer',
+  }].forEach(({ id, resourceFieldName }) => {
     it(
       `handles errors in form { id, details } with id == "${id}"`,
       function () {
@@ -333,9 +333,9 @@ describe('Unit | Utility | get error description', function () {
             },
           },
         };
-  
+
         const result = getErrorDescription(error, this.i18n);
-  
+
         expect(result).to.deep.equal({
           message: escapedHtmlSafe('complete error'),
           errorJsonString: escapedJsonHtmlSafe(error),

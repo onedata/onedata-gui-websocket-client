@@ -36,7 +36,7 @@ export default {
   inviteTokenUsageLimitReached: 'The usage limit of this invite token has been reached.',
   inviteTokenConsumerInvalid: 'The consumer ({{consumer}}) is invalid for this type of invite token.',
   tokenSessionInvalid: 'This token was issued for a session that no longer exists.',
-  
+
   // Graph Sync errors
   expectedHandshakeMessage: 'Connection to the server was lost or not fully established (expected handshake message).',
   handshakeAlreadyDone: 'Tried to initialize connection to the server, but it was already established (handshake already done).',
