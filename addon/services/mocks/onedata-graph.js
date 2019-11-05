@@ -98,12 +98,27 @@ const spaceHandlers = {
       },
     };
   },
+  transfers_active_channels(operation) {
+    if (operation !== 'get') {
+      return messageNotSupported;
+    }
+    const allProviders = this.get('mockBackend.entityRecords.provider');
+    const firstProviderId = get(allProviders[0], 'entityId');
+    const secondProviderId = get(allProviders[1], 'entityId');
+    const thirdProviderId = get(allProviders[2], 'entityId');
+    return {
+      channelDestiantions: {
+        [firstProviderId]: [secondProviderId],
+        [thirdProviderId]: [secondProviderId],
+      },
+    };
+  },
 };
 
 const transferStatusToProgressState = {
-  waiting: 'scheduled',
-  ongoing: 'replicating',
-  ended: 'completed',
+  scheduled: 'scheduled',
+  current: 'replicating',
+  completed: 'completed',
 };
 
 const harvesterHandlers = {
