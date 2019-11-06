@@ -107,7 +107,7 @@ const spaceHandlers = {
     const secondProviderId = get(allProviders[1], 'entityId');
     const thirdProviderId = get(allProviders[2], 'entityId');
     return {
-      channelDestiantions: {
+      channelDestinations: {
         [firstProviderId]: [secondProviderId],
         [thirdProviderId]: [secondProviderId],
       },
