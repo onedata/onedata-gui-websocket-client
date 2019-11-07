@@ -31,7 +31,7 @@ const spaceHandlers = {
         data: randomToken(),
       };
     } else {
-      throw messageNotSupported;
+      return messageNotSupported;
     }
   },
   transfers(operation, entityId, data) {
@@ -220,6 +220,20 @@ const transferHandlers = {
       evictedFiles: 0,
     };
   },
+  rerun(operation /*, entityId, data*/ ) {
+    if (operation !== 'create') {
+      return messageNotSupported;
+    }
+    // TODO: complete the mock: change status of transfer to reruned
+    return null;
+  },
+  instance(operation /*, entityId, data*/ ) {
+    if (operation !== 'delete') {
+      return messageNotSupported;
+    }
+    // TODO: complete the mock: change status of transfer to cancelled
+    return null;
+  },
 };
 
 const fileHandlers = {
@@ -364,7 +378,7 @@ const providerHandlers = {
         list: ['user1', 'user2'],
       };
     } else {
-      throw messageNotSupported;
+      return messageNotSupported;
     }
   },
   eff_groups(operation, entityId) {
@@ -374,7 +388,7 @@ const providerHandlers = {
         list: ['group1', 'group2', 'group3'],
       };
     } else {
-      throw messageNotSupported;
+      return messageNotSupported;
     }
   },
   spaces(operation, entityId) {
@@ -384,7 +398,7 @@ const providerHandlers = {
         list: ['space1', 'space2', 'space3', 'space4'],
       };
     } else {
-      throw messageNotSupported;
+      return messageNotSupported;
     }
   },
 };
