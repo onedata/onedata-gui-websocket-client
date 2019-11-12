@@ -82,6 +82,7 @@ export default {
   badGuiPackage: 'Provider GUI package could not be understood by the server.',
   guiPackageTooLarge: 'Provider GUI package is too large.',
   guiPackageUnverified: 'Provider GUI package could not be verified.',
+  invalidQosExpression: 'Invalid QoS expression.',
 
   // State errors
   basicAuthNotSupported: 'Username & password sign-in is not supported by this Onezone.',
