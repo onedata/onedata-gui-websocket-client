@@ -35,6 +35,7 @@ export default {
   inviteTokenCreatorNotAuthorized: 'The creator of this token is not (or not longer) authorized to issue such invitations.',
   inviteTokenUsageLimitReached: 'The usage limit of this invite token has been reached.',
   inviteTokenConsumerInvalid: 'The consumer ({{consumer}}) is invalid for this type of invite token.',
+  inviteTokenTargetIdInvalid: 'The target id ({{id}}) is invalid for this type of invite token.',
   tokenSessionInvalid: 'This token was issued for a session that no longer exists.',
 
   // Graph Sync errors
