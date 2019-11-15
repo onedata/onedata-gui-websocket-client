@@ -116,9 +116,9 @@ const spaceHandlers = {
 };
 
 const transferStatusToProgressState = {
-  scheduled: 'scheduled',
-  current: 'replicating',
-  completed: 'completed',
+  waiting: 'scheduled',
+  ongoing: 'replicating',
+  ended: 'ended',
 };
 
 const harvesterHandlers = {
