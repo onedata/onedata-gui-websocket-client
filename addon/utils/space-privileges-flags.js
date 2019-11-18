@@ -50,10 +50,10 @@ export const groupedFlags = [{
     { name: 'space_remove_group' },
   ],
 }, {
-  groupName: 'providerManagement',
+  groupName: 'supportManagement',
   privileges: [
-    { name: 'space_add_provider' },
-    { name: 'space_remove_provider' },
+    { name: 'space_add_support' },
+    { name: 'space_remove_support' },
   ],
 }];
 
