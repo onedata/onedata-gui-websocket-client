@@ -11,7 +11,6 @@ import Evented from '@ember/object/evented';
 import { Promise } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
-import { get } from '@ember/object';
 
 const messageNotSupported = Object.freeze({
   success: false,
@@ -167,36 +166,6 @@ export default Service.extend(Evented, {
       },
     },
     user: {
-      client_tokens(operation) {
-        if (operation === 'create') {
-          const token = randomToken();
-          return this.get('store')
-            .createRecord('clientToken', {
-              token,
-            })
-            .save()
-            .then(clientToken => {
-              const clientTokenId = get(clientToken, 'id');
-              // real operation of adding token to list is server-side
-              return this.get('currentUser')
-                .getCurrentUserRecord()
-                .then(user => get(user, 'clientTokenList'))
-                .then(clientTokens => get(clientTokens, 'list'))
-                .then(list => {
-                  list.pushObject(clientToken);
-                  return list.save();
-                })
-                .then(() => ({
-                  success: true,
-                  id: clientTokenId,
-                  gri: clientTokenId,
-                  token,
-                }));
-            });
-        } else {
-          return messageNotSupported;
-        }
-      },
       provider_registration_token(operation) {
         if (operation === 'create') {
           return randomToken();

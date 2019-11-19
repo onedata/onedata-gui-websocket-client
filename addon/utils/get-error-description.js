@@ -18,9 +18,10 @@ const detailsTranslateFunctions = {
   posix: posixDetailsTranslator,
   badAudienceToken: nestedTokenErrorDetailsTranslator,
   badValueToken: nestedTokenErrorDetailsTranslator,
-  notAnAccessToken: notAnAccessTokenDetailsTranslator,
-  notAnInviteToken: notAnInviteTokenDetailsTranslator,
+  notAnAccessToken: notAnAccessOrInviteTokenDetailsTranslator,
+  notAnInviteToken: notAnAccessOrInviteTokenDetailsTranslator,
   tokenAudienceForbidden: tokenAudienceForbiddenDetailsError,
+  inviteTokenConsumerInvalid: inviteTokenConsumerInvalidDetailsError,
 };
 
 /**
@@ -110,21 +111,10 @@ function nestedTokenErrorDetailsTranslator(i18n, errorDetails) {
   return _.assign({}, errorDetails, { tokenError: tokenErrorTranslation });
 }
 
-function notAnAccessTokenDetailsTranslator(i18n, errorDetails) {
+function notAnAccessOrInviteTokenDetailsTranslator(i18n, errorDetails) {
   const receivedTranslation =
     findTokenTypeTranslation(i18n, errorDetails.received);
   return _.assign({}, errorDetails, { received: receivedTranslation });
-}
-
-function notAnInviteTokenDetailsTranslator(i18n, errorDetails) {
-  const expectedTranslation =
-    findTokenTypeTranslation(i18n, errorDetails.expected);
-  const receivedTranslation =
-    findTokenTypeTranslation(i18n, errorDetails.received);
-  return _.assign({}, errorDetails, {
-    expected: expectedTranslation,
-    received: receivedTranslation,
-  });
 }
 
 function findTokenTypeTranslation(i18n, tokenType) {
@@ -142,6 +132,16 @@ function findTokenTypeTranslation(i18n, tokenType) {
 
 function tokenAudienceForbiddenDetailsError(i18n, errorDetails) {
   const audience = errorDetails.audience || {};
-  const audienceTranslation = `${audience.type}:${audience.id}`;
+  const audienceTranslation = resourceTypeAndIdToString(audience);
   return _.assign({}, errorDetails, { audience: audienceTranslation });
+}
+
+function inviteTokenConsumerInvalidDetailsError(i18n, errorDetails) {
+  const consumer = errorDetails.consumer || {};
+  const consumerTranslation = resourceTypeAndIdToString(consumer);
+  return _.assign({}, errorDetails, { consumer: consumerTranslation });
+}
+
+function resourceTypeAndIdToString(resource) {
+  return `${resource.type}:${resource.id}`;
 }

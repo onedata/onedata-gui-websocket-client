@@ -168,13 +168,20 @@ export default Adapter.extend({
     // supported:
     // - authHint: Array.String: 2-element array, eg. ['asUser', <user_id>]
     //   note that user_id is _not_ a gri, but stripped raw id
+    // - aspect, aspectId: string - custom GRI aspect to use while record creation
     // - additionalData: Object|null additional fields, that will be added
     //   to the `data` in request
     let authHint;
+    let aspect = 'instance';
+    let aspectId;
     if (record._meta) {
       const meta = record._meta;
 
       authHint = meta.authHint;
+      if (meta.aspect) {
+        aspect = meta.aspect;
+      }
+      aspectId = meta.aspectId;
 
       if (meta.additionalData) {
         _.assign(data, meta.additionalData);
@@ -186,7 +193,8 @@ export default Adapter.extend({
       .then(() => onedataGraph.request({
         gri: createGri({
           entityType,
-          aspect: 'instance',
+          aspect,
+          aspectId,
           scope: createScope,
         }),
         operation: 'create',

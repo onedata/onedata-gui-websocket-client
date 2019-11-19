@@ -44,7 +44,7 @@ export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
    * @param {any} inputProperties 
    * @returns {string}
    */
-  generateIdForRecord(store, type) {
+  generateIdForRecord(store, type, inputProperties) {
     let aspect;
     let entityType;
     if (type.match(/.*-list/)) {
@@ -58,6 +58,7 @@ export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
       entityType,
       entityId: this._super(...arguments),
       aspect,
+      scope: inputProperties.scope ? 'auto' : undefined,
     });
   },
 
@@ -67,6 +68,15 @@ export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
 
   query() {
     throw new Error('adapter:local-storage: query is not supported');
+  },
+
+  /**
+   * Returns GRI entity type related to passed model name.
+   * @param {string} modelName
+   * @returns {string}
+   */
+  getEntityTypeForModelName(modelName) {
+    return modelName;
   },
 });
 
