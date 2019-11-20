@@ -45,9 +45,9 @@ const spaceHandlers = {
       limit,
       page_token: index,
     } = data;
-    let griList = allTransfers.filterBy('state', state).mapBy('id');
     let startPosition =
-      Math.max(griList.findIndex(t => get(t, 'index') === index), 0);
+      Math.max(allTransfers.findIndex(t => get(t, 'index') === index), 0);
+    let griList = allTransfers.filterBy('state', state).mapBy('id');
     startPosition = Math.max(startPosition + offset, 0);
     griList = griList.slice(startPosition, startPosition + limit);
     return {
