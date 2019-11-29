@@ -14,6 +14,7 @@ import { Promise } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { get } from '@ember/object';
+import { v4 as uuid } from 'ember-uuid';
 
 const messageNotSupported = Object.freeze({
   success: false,
@@ -250,7 +251,7 @@ const fileHandlers = {
       .filter(t => get(t, 'state') !== 'ended')
       .mapBy('id');
     const endedList = fileTransfers
-      .filter(t => get(t, 'state') === 'ended')
+      .filterBy('state', 'ended')
       .mapBy('id');
     const response = {
       ongoingList,
@@ -284,8 +285,10 @@ export default Service.extend(Evented, {
     authHint,
     subscribe = false,
   }) {
+    const id = uuid();
     console.debug(
       `Mock Graph request:
+    - uuid: ${id}
     - gri: ${gri},
     - operation: ${operation},
     - authHint: ${JSON.stringify(authHint || null)},
@@ -295,14 +298,17 @@ export default Service.extend(Evented, {
 
     return new Promise(resolve => {
       setTimeout(
-        () => resolve(
-          this.response({
+        () => {
+          const response = this.response({
             gri,
             operation,
             data,
             authHint,
             subscribe,
-          })),
+          });
+          console.debug(`Mock Graph response ${id}: ${JSON.stringify(response)}`);
+          return resolve(response);
+        },
         responseDelay
       );
     });
