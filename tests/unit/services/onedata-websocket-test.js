@@ -150,7 +150,7 @@ describe('Unit | Service | onedata websocket', function () {
       });
       return wait().then(() => {
         expect(closeResolved).to.be.true;
-        expect(abnormalClose).to.be.notCalled;
+        expect(abnormalClose).to.be.not.called;
       });
     });
   });

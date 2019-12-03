@@ -36,7 +36,7 @@ describe('Unit | Service | onedata rpc', function () {
     ws.initConnection().then(() => {
       service.request('testRpc', { hello: 'world' });
       wait().then(() => {
-        expect(handleSendRpc).to.be.called.once;
+        expect(handleSendRpc).to.be.calledOnce;
         expect(handleSendRpc).to.be.calledWith({
           function: 'testRpc',
           args: { hello: 'world' },
