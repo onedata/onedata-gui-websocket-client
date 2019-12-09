@@ -12,7 +12,7 @@ import { Promise } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
-const messageNotSupported = Object.freeze({
+export const messageNotSupported = Object.freeze({
   success: false,
   error: { id: 'notSupported' },
   data: {},
