@@ -114,6 +114,16 @@ const spaceHandlers = {
       },
     };
   },
+  space_support_token(operation, /* spaceId, data, authHint*/ ) {
+    if (operation === 'create') {
+      return {
+        success: true,
+        data: randomToken(),
+      };
+    } else {
+      throw messageNotSupported;
+    }
+  },
 };
 
 const transferStatusToProgressState = {
