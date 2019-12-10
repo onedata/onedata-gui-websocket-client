@@ -257,18 +257,18 @@ const fileHandlers = {
     } = data;
     const fileTransfers = this.get('mockBackend.entityRecords.transfer')
       .filterBy('dataSourceId', entityId);
-    const ongoingList = fileTransfers
+    const ongoingIds = fileTransfers
       .filter(t => get(t, 'state') !== 'ended')
       .mapBy('id');
-    const endedList = fileTransfers
+    const endedIds = fileTransfers
       .filterBy('state', 'ended')
       .mapBy('id');
     const response = {
-      ongoingList,
-      endedCount: get(endedList, 'length'),
+      ongoingIds,
+      endedCount: get(endedIds, 'length'),
     };
     if (includeEndedList) {
-      response.endedList = endedList;
+      response.endedIds = endedIds;
     }
     return response;
   },
