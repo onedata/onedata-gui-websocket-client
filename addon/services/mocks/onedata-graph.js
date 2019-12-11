@@ -259,10 +259,10 @@ const fileHandlers = {
       .filterBy('dataSourceId', entityId);
     const ongoingIds = fileTransfers
       .filter(t => get(t, 'state') !== 'ended')
-      .mapBy('id');
+      .mapBy('entityId');
     const endedIds = fileTransfers
       .filterBy('state', 'ended')
-      .mapBy('id');
+      .mapBy('entityId');
     const response = {
       ongoingIds,
       endedCount: get(endedIds, 'length'),
