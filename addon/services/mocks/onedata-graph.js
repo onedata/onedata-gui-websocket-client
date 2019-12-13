@@ -114,15 +114,38 @@ const spaceHandlers = {
       },
     };
   },
-  space_support_token(operation, /* spaceId, data, authHint*/ ) {
+  space_support_token(operation, /* entityId, data, authHint*/ ) {
     if (operation === 'create') {
       return {
         success: true,
         data: randomToken(),
       };
     } else {
-      throw messageNotSupported;
+      return messageNotSupported;
     }
+  },
+  view(operation, /* entityId, data, authHint */ ) {
+    if (operation !== 'get') {
+      return messageNotSupported;
+    }
+    return {
+      viewOptions: {
+        hello: 'world',
+        foo: 'bar',
+      },
+      spatial: false,
+      revision: 1,
+      reduceFunction: null,
+      providers: [
+        'oneprovider-1',
+        'oneprovider-2',
+      ],
+      mapFunction: 'function (id, type, meta, ctx) {    if (type === \\"custom_metadata\\"){        if (meta[\\"license\\"]) {            return [meta[\\"license\\"], id];        }    }}',
+      indexOptions: {
+        lorem: 'ipsum',
+      },
+      gri: 'op_space.efd6e203d35061d5bef37a7e1636e8bbip2d5571458.view,test6:private',
+    };
   },
 };
 
