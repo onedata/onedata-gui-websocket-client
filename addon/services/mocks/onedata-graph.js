@@ -16,7 +16,7 @@ import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { get } from '@ember/object';
 import { v4 as uuid } from 'ember-uuid';
 
-const messageNotSupported = Object.freeze({
+export const messageNotSupported = Object.freeze({
   success: false,
   error: { id: 'notSupported' },
   data: {},
