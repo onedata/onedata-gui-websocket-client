@@ -7,8 +7,6 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-// FIXME: move specific methods to oneprovider-gui and onezone-gui
-
 import Evented from '@ember/object/evented';
 import { Promise } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
@@ -34,85 +32,6 @@ const spaceHandlers = {
     } else {
       return messageNotSupported;
     }
-  },
-  transfers(operation, entityId, data) {
-    if (operation !== 'get') {
-      return messageNotSupported;
-    }
-    const allTransfers = this.get('mockBackend.entityRecords.transfer');
-    const {
-      state,
-      offset,
-      limit,
-      page_token: index,
-    } = data;
-    let startPosition =
-      Math.max(allTransfers.findIndex(t => get(t, 'index') === index), 0);
-    let griList = allTransfers.filterBy('state', state).mapBy('id');
-    startPosition = Math.max(startPosition + offset, 0);
-    griList = griList.slice(startPosition, startPosition + limit);
-    return {
-      list: griList,
-    };
-  },
-  transfers_throughput_charts(operation /*, entityId, data*/ ) {
-    if (operation !== 'get') {
-      return messageNotSupported;
-    }
-    const allProviders = this.get('mockBackend.entityRecords.provider');
-    const firstProviderId = get(allProviders[0], 'entityId');
-    return {
-      timestamp: 1572261964,
-      inputCharts: {
-        [firstProviderId]: [
-          1365758,
-          1365758,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-        ],
-      },
-      outputCharts: {
-        [firstProviderId]: [
-          1365758,
-          1365758,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-        ],
-      },
-    };
-  },
-  transfers_active_channels(operation) {
-    if (operation !== 'get') {
-      return messageNotSupported;
-    }
-    const allProviders = this.get('mockBackend.entityRecords.provider');
-    const firstProviderId = get(allProviders[0], 'entityId');
-    const secondProviderId = get(allProviders[1], 'entityId');
-    const thirdProviderId = get(allProviders[2], 'entityId');
-    return {
-      channelDestinations: {
-        [firstProviderId]: [secondProviderId],
-        [thirdProviderId]: [secondProviderId],
-      },
-    };
   },
   space_support_token(operation, /* entityId, data, authHint*/ ) {
     if (operation === 'create') {
@@ -147,12 +66,6 @@ const spaceHandlers = {
       gri: 'op_space.efd6e203d35061d5bef37a7e1636e8bbip2d5571458.view,test6:private',
     };
   },
-};
-
-const transferStatusToProgressState = {
-  waiting: 'scheduled',
-  ongoing: 'replicating',
-  ended: 'completed',
 };
 
 const harvesterHandlers = {
@@ -211,91 +124,7 @@ const userHandlers = {
   },
 };
 
-const transferHandlers = {
-  throughput_charts(operation /*, entityId, data*/ ) {
-    if (operation !== 'get') {
-      return messageNotSupported;
-    }
-    const allProviders = this.get('mockBackend.entityRecords.provider');
-    const firstProviderId = get(allProviders[0], 'entityId');
-    return {
-      timestamp: 1572261964,
-      charts: {
-        [firstProviderId]: [
-          1365758,
-          1365758,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-        ],
-      },
-    };
-  },
-  progress(operation, entityId) {
-    if (operation !== 'get') {
-      return messageNotSupported;
-    }
-    const allTransfers = this.get('mockBackend.entityRecords.transfer');
-    const transfer = allTransfers.findBy('entityId', entityId);
-    const status = transferStatusToProgressState[get(transfer, 'state')] || 'failed';
-    return {
-      status,
-      timestamp: Math.floor(Date.now() / 1000),
-      replicatedBytes: Math.pow(1024, 3),
-      replicatedFiles: 14,
-      evictedFiles: 0,
-    };
-  },
-  rerun(operation /*, entityId, data*/ ) {
-    if (operation !== 'create') {
-      return messageNotSupported;
-    }
-    // TODO: complete the mock: change status of transfer to reruned
-    return null;
-  },
-  instance(operation /*, entityId, data*/ ) {
-    if (operation !== 'delete') {
-      return messageNotSupported;
-    }
-    // TODO: complete the mock: change status of transfer to cancelled
-    return null;
-  },
-};
-
-const fileHandlers = {
-  transfers(operation, entityId, data) {
-    if (operation !== 'get') {
-      return messageNotSupported;
-    }
-    const {
-      include_ended_list: includeEndedList,
-    } = data;
-    const fileTransfers = this.get('mockBackend.entityRecords.transfer')
-      .filterBy('dataSourceId', entityId);
-    const ongoingIds = fileTransfers
-      .filter(t => get(t, 'state') !== 'ended')
-      .mapBy('entityId');
-    const endedIds = fileTransfers
-      .filterBy('state', 'ended')
-      .mapBy('entityId');
-    const response = {
-      ongoingIds,
-      endedCount: get(endedIds, 'length'),
-    };
-    if (includeEndedList) {
-      response.endedIds = endedIds;
-    }
-    return response;
-  },
-};
+// TODO: move Onezone-only methods to Onezone onedata-graph mock
 
 export default Service.extend(Evented, {
   store: service(),
@@ -389,12 +218,10 @@ export default Service.extend(Evented, {
   },
 
   handlers: Object.freeze({
-    op_provider: providerHandlers,
-    op_space: spaceHandlers,
+    provider: providerHandlers,
+    space: spaceHandlers,
     harvester: harvesterHandlers,
-    op_user: userHandlers,
-    op_transfer: transferHandlers,
-    file: fileHandlers,
+    user: userHandlers,
   }),
 });
 
