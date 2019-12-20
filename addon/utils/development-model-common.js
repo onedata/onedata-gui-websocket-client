@@ -15,9 +15,9 @@ export function getCoordinates(index, numberOfProviders) {
   const sign = index % 2 ? -1 : 1;
   if (index <= 2) {
     return [
-      [50.065, 19.945],
-      [48.865, 2.349],
-      [38.737, -9.143],
+      [50.065, 19.945], // Cracow
+      [48.865, 2.349], // Paris
+      [38.737, -9.143], // Lisbon
     ][index];
   } else {
     return [
