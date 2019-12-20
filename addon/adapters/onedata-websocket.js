@@ -105,10 +105,6 @@ export default Adapter.extend({
         subscribe,
       }))
       .then(graphData => {
-        console.debug(
-          `adapter:onedata-websocket: findRecord, gri: ${id}, returned data: `,
-          `${JSON.stringify(graphData)}`,
-        );
         // request is successful so access to the resource is not forbidden
         if (get(record, 'isForbidden')) {
           set(record, 'isForbidden', false);
