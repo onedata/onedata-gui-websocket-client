@@ -123,20 +123,5 @@ export default Service.extend(Evented, {
     }
   },
 
-  handlers: Object.freeze({
-    provider: providerHandlers,
-  }),
+  handlers: Object.freeze({}),
 });
-
-const providerHandlers = {
-  spaces(operation, entityId) {
-    if (operation === 'get') {
-      return {
-        gri: `provider.${entityId}.spaces`,
-        list: ['space1', 'space2', 'space3', 'space4'],
-      };
-    } else {
-      return messageNotSupported;
-    }
-  },
-};
