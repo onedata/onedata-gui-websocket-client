@@ -38,6 +38,12 @@ export const groupedFlags = [{
     { name: 'space_cancel_eviction' },
   ],
 }, {
+  groupName: 'qosManagement',
+  privileges: [
+    { name: 'space_view_qos' },
+    { name: 'space_manage_qos' },
+  ],
+}, {
   groupName: 'userManagement',
   privileges: [
     { name: 'space_add_user' },
