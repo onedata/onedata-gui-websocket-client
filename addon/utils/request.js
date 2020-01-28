@@ -17,7 +17,7 @@ export default EmberObject.extend({
   promise: undefined,
 
   /**
-   * One of: create, fetch, update, delete, rpc
+   * One of: create, fetch, update, delete, rpc, graph
    * @virtual
    * @type {string}
    */
@@ -50,7 +50,7 @@ export default EmberObject.extend({
   /**
    * @type {DS.Model|Object}
    * Data passed with request (e.g. model body in create request, RPC args in
-   * RPC requests).
+   * RPC requests, whole graph request data in graph requests).
    */
   data: undefined,
 });

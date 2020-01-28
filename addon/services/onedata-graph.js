@@ -2,19 +2,21 @@
  * Onedata Websocket Sync API - Graph level service
  *
  * @module services/onedata-graph
- * @author Jakub Liput, Michal Borzecki
- * @copyright (C) 2017-2018 ACK CYFRONET AGH
+ * @author Jakub Liput, Michał Borzęcki
+ * @copyright (C) 2017-2020 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import Service, { inject as service } from '@ember/service';
 import { computed } from '@ember/object';
-import { Promise } from 'rsvp';
+import { Promise, resolve } from 'rsvp';
 import Evented from '@ember/object/evented';
 import { later, cancel } from '@ember/runloop';
+import Request from 'onedata-gui-websocket-client/utils/request';
 
 export default Service.extend(Evented, {
   onedataWebsocket: service(),
+  activeRequests: service(),
 
   /**
    * Time delay in milliseconds after which scheduled unsubscription
@@ -40,12 +42,13 @@ export default Service.extend(Evented, {
   },
 
   /**
-   * @param {string} gri
-   * @param {string} operation one of: get, create, update, delete
-   * @param {object} data
+   * @param {String} gri
+   * @param {String} operation one of: get, create, update, delete
+   * @param {Object} data
    * @param {[String,String]} authHint [HintType, Id of subject]
    * @param {boolean} subscribe
-   * @returns {Promise<object, object>} resolves with Onedata Graph resource
+   * @param {String} [requestName]
+   * @returns {Promise<Object, Object>} resolves with Onedata Graph resource
    *   (typically record data)
    */
   request({
@@ -55,45 +58,62 @@ export default Service.extend(Evented, {
     authHint,
     subscribe = true,
   }) {
-    subscribe = operation === 'get' || operation === 'create' ? subscribe : false;
-    return new Promise((resolve, reject) => {
-      let message = {
-        gri,
-        operation,
-        data,
-        subscribe,
-      };
-      if (authHint) {
-        if (Array.isArray(authHint) && authHint.length === 2) {
-          message.authHint = authHint.join(':');
-        } else {
-          throw new Error('service:onedata-graph: invalid authHint');
-        }
-      }
-      this.removeScheduledUnsubscription(gri);
-      let requesting = this.get('onedataWebsocket').sendMessage('graph', message);
-      requesting.then(({ payload: { success, data: payloadData, error } }) => {
-        if (success) {
-          if (!payloadData) {
-            resolve();
+    const {
+      onedataWebsocket,
+      activeRequests,
+    } = this.getProperties('onedataWebsocket', 'activeRequests');
+    const requestData = arguments[0];
+
+    const promise = this.getRequestPrerequisitePromise(requestData).then(() =>
+      new Promise((resolve, reject) => {
+        subscribe = operation === 'get' ||
+          operation === 'create' ? subscribe : false;
+        let message = {
+          gri,
+          operation,
+          data,
+          subscribe,
+        };
+        if (authHint) {
+          if (Array.isArray(authHint) && authHint.length === 2) {
+            message.authHint = authHint.join(':');
           } else {
-            switch (payloadData.format) {
-              case 'resource':
-                resolve(payloadData.resource);
-                break;
-              case 'value':
-                resolve(payloadData.value);
-                break;
-              default:
-                resolve();
-            }
+            throw new Error('service:onedata-graph: invalid authHint');
           }
-        } else {
-          reject(error);
         }
-      });
-      requesting.catch(reject);
-    });
+        this.removeScheduledUnsubscription(gri);
+        let requesting = onedataWebsocket.sendMessage('graph', message);
+        requesting.then(({ payload: { success, data: payloadData, error } }) => {
+          if (success) {
+            if (!payloadData) {
+              resolve();
+            } else {
+              switch (payloadData.format) {
+                case 'resource':
+                  resolve(payloadData.resource);
+                  break;
+                case 'value':
+                  resolve(payloadData.value);
+                  break;
+                default:
+                  resolve();
+              }
+            }
+          } else {
+            reject(error);
+          }
+        });
+        requesting.catch(reject);
+      })
+    );
+
+    activeRequests.addRequest(Request.create({
+      promise,
+      type: 'graph',
+      data: requestData,
+    }));
+
+    return promise;
   },
 
   /**
@@ -192,5 +212,14 @@ export default Service.extend(Evented, {
           `service:onedata-graph: not supported push nosub reason: ${reason}`
         );
     }
+  },
+
+  /**
+   * Returns promise, that should fulfill before GraphSync request will occur.
+   * @param {Object} requestData GraphSync request data
+   * @returns {Promise}
+   */
+  getRequestPrerequisitePromise( /*requestData*/ ) {
+    return resolve();
   },
 });
