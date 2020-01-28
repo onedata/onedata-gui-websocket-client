@@ -35,7 +35,6 @@ const responseDelay = 100;
 export default Service.extend(Evented, {
   store: service(),
   currentUser: service(),
-  mockBackend: service(),
 
   /**
    * @param {string} gri
