@@ -55,6 +55,12 @@ export const groupedFlags = [{
     'space_add_provider',
     'space_remove_provider',
   ],
+}, {
+  groupName: 'harvesterManagement',
+  privileges: [
+    'space_add_harvester',
+    'space_remove_harvester',
+  ],
 }];
 
 export default groupedFlags
