@@ -149,6 +149,26 @@ export default Service.extend(Evented, {
           throw messageNotSupported;
         }
       },
+      privileges(operation) {
+        if (operation === 'get') {
+          return {
+            member: ['space_view'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+    },
+    group: {
+      privileges(operation) {
+        if (operation === 'get') {
+          return {
+            member: ['group_view'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
     },
     harvester: {
       all_plugins(operation) {
@@ -162,6 +182,26 @@ export default Service.extend(Evented, {
           };
         } else {
           return messageNotSupported;
+        }
+      },
+      privileges(operation) {
+        if (operation === 'get') {
+          return {
+            member: ['harvester_view'],
+          };
+        } else {
+          throw messageNotSupported;
+        }
+      },
+    },
+    cluster: {
+      privileges(operation) {
+        if (operation === 'get') {
+          return {
+            member: ['cluster_view'],
+          };
+        } else {
+          throw messageNotSupported;
         }
       },
     },
