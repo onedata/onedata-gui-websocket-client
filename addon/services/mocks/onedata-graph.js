@@ -8,7 +8,7 @@
  */
 
 import Evented from '@ember/object/evented';
-import { Promise } from 'rsvp';
+import { resolve, reject } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { v4 as uuid } from 'ember-uuid';
@@ -35,7 +35,6 @@ const responseDelay = 100;
 export default Service.extend(Evented, {
   store: service(),
   currentUser: service(),
-  mockBackend: service(),
 
   /**
    * @param {string} gri
@@ -115,11 +114,14 @@ export default Service.extend(Evented, {
     } = parseGri(gri);
     const handler = this.get(`handlers.${entityType}.${aspect}`);
     if (handler) {
-      return Promise.resolve(
-        handler.bind(this)(operation, entityId, data, authHint)
-      );
+      const response = handler.bind(this)(operation, entityId, data, authHint);
+      if (response.error) {
+        return reject(response);
+      } else {
+        return resolve(response);
+      }
     } else {
-      return Promise.reject(messageNotSupported);
+      return reject(messageNotSupported);
     }
   },
 

@@ -5,7 +5,7 @@
  *
  * @module services/active-requests
  * @author Michał Borzęcki
- * @copyright (C) 2019 ACK CYFRONET AGH
+ * @copyright (C) 2019-2020 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -43,15 +43,22 @@ export default Service.extend({
   /**
    * @type {Ember.ComputedProperty<Ember.A<Utils.Request>>}
    */
+  graphRequests: computed(() => A()),
+
+  /**
+   * @type {Ember.ComputedProperty<Ember.A<Utils.Request>>}
+   */
   allRequests: union(
     'createRequests',
     'fetchRequests',
     'updateRequests',
     'deleteRequests',
-    'rpcRequests'
+    'rpcRequests',
+    'graphRequests'
   ),
 
   /**
+   * @public
    * @param {Utils.Request} request 
    * @returns {undefined}
    */
