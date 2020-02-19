@@ -38,6 +38,12 @@ export const groupedFlags = [{
     { name: 'space_cancel_eviction' },
   ],
 }, {
+  groupName: 'qosManagement',
+  privileges: [
+    { name: 'space_view_qos' },
+    { name: 'space_manage_qos' },
+  ],
+}, {
   groupName: 'userManagement',
   privileges: [
     { name: 'space_add_user' },
@@ -50,10 +56,16 @@ export const groupedFlags = [{
     { name: 'space_remove_group' },
   ],
 }, {
-  groupName: 'providerManagement',
+  groupName: 'supportManagement',
   privileges: [
-    { name: 'space_add_provider' },
-    { name: 'space_remove_provider' },
+    { name: 'space_add_support' },
+    { name: 'space_remove_support' },
+  ],
+}, {
+  groupName: 'harvesterManagement',
+  privileges: [
+    { name: 'space_add_harvester' },
+    { name: 'space_remove_harvester' },
   ],
 }];
 
