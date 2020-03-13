@@ -12,6 +12,7 @@ import { resolve, reject } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { v4 as uuid } from 'ember-uuid';
+import config from 'ember-get-config';
 
 export const messageNotSupported = Object.freeze({
   success: false,
@@ -30,7 +31,7 @@ export function randomToken() {
   return exampleToken + randInt;
 }
 
-const responseDelay = 100;
+const responseDelay = config.environment === 'test' ? 1 : 100;
 
 export default Service.extend(Evented, {
   store: service(),
