@@ -73,11 +73,11 @@ describe('Unit | Adapter | onedata websocket', function () {
       };
       let snapshot = {
         record: {
-          toJSON: () => recordData,
           _meta: {
             authHint,
           },
         },
+        serialize: () => recordData,
       };
       let retGraphData = {};
       let adapter = this.subject();
@@ -111,10 +111,10 @@ describe('Unit | Adapter | onedata websocket', function () {
     };
     let snapshot = {
       record: {
-        toJSON() {
-          return recordData;
-        },
         id: recordId,
+      },
+      serialize() {
+        return recordData;
       },
     };
     let graphData = {};
@@ -147,10 +147,10 @@ describe('Unit | Adapter | onedata websocket', function () {
     };
     let snapshot = {
       record: {
-        toJSON() {
-          return recordData;
-        },
         id: recordId,
+      },
+      serialize() {
+        return recordData;
       },
     };
     let graphData = {};

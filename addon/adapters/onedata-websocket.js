@@ -157,7 +157,7 @@ export default Adapter.extend({
     );
 
     const record = get(snapshot, 'record');
-    const data = record.toJSON();
+    const data = this.serialize(snapshot);
     const modelName = type.modelName;
 
     // support for special metadata for requests in onedata-websocket
@@ -226,7 +226,7 @@ export default Adapter.extend({
     } = this.getProperties('onedataGraph', 'activeRequests');
 
     const record = get(snapshot, 'record');
-    const data = record.toJSON();
+    const data = this.serialize(snapshot);
     const recordId = record.id;
     const griData = parseGri(recordId);
     griData.scope = 'private';
