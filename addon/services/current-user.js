@@ -2,16 +2,17 @@
  * Provides global access to signed in user record (backend data) 
  *
  * @module services/current-user
- * @author Jakub Liput, Michal Borzecki
- * @copyright (C) 2017-2018 ACK CYFRONET AGH
+ * @author Jakub Liput, Michał Borzęcki
+ * @copyright (C) 2017-2020 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get } from '@ember/object';
+import { get, computed } from '@ember/object';
 import { reads } from '@ember/object/computed';
 
 import Service, { inject } from '@ember/service';
 import { Promise, resolve } from 'rsvp';
+import { promise } from 'ember-awesome-macros';
 
 export default Service.extend({
   store: inject(),
@@ -20,11 +21,9 @@ export default Service.extend({
   userId: reads('session.data.authenticated.identity.user'),
 
   /**
-   * Loads currently logged in user record
-   * @param {boolean} [backgroundReload=false]
-   * @returns {Promise<models.User>}
+   * @type {ComputedProperty<PromiseObject<Models.User>>}
    */
-  getCurrentUserRecord(backgroundReload = false) {
+  userProxy: promise.object(computed('userId', function userProxy() {
     const {
       store,
       userId,
@@ -36,8 +35,16 @@ export default Service.extend({
     }
     return store.findRecord(
       'user',
-      store.userGri(userId), { backgroundReload }
+      store.userGri(userId), { backgroundReload: false }
     );
+  })),
+
+  /**
+   * Loads currently logged in user record
+   * @returns {Promise<models.User>}
+   */
+  getCurrentUserRecord() {
+    return this.get('userProxy.promise');
   },
 
   /**

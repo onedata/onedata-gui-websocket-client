@@ -2,8 +2,8 @@
  * Adds properties and methods specific to single (non-list) records
  *
  * @module mixins/models/graph-single-model
- * @author Michal Borzecki
- * @copyright (C) 2018 ACK CYFRONET AGH
+ * @author Michał Borzęcki
+ * @copyright (C) 2018-2020 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -36,5 +36,14 @@ export default Mixin.create(GraphModel, {
     } else {
       return resolve();
     }
+  },
+
+  /**
+   * Should be called just after loading record and be a part of record loading promise.
+   * @virtual
+   * @returns {Promise}
+   */
+  loadRequiredRelations() {
+    return resolve();
   },
 });
