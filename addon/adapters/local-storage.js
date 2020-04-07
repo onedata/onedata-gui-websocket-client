@@ -10,13 +10,12 @@
 
 import LocalstorageAdapter from 'ember-local-storage/adapters/local';
 import gri from 'onedata-gui-websocket-client/utils/gri';
-import LocalStorageMethodsMock from 'onedata-gui-websocket-client/mixins/local-storage-methods-mock';
 import { Promise } from 'rsvp';
 import { later } from '@ember/runloop';
 
 const responseDelay = 0;
 
-export default LocalstorageAdapter.extend(LocalStorageMethodsMock, {
+export default LocalstorageAdapter.extend({
   _storageKey() {
     return decodeURIComponent(this._super(...arguments));
   },
