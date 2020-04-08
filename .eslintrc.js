@@ -51,5 +51,6 @@ module.exports = {
         requireReturnDescription: false,
       },
     ],
+    'promise/param-names': 'off', // default: error
   },
 };
