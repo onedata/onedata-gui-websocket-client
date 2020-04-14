@@ -117,7 +117,7 @@ export default Service.extend(Evented, {
     if (handler) {
       const response = handler.bind(this)(operation, entityId, data, authHint);
       if (response.error) {
-        return reject(response);
+        return reject(response.error);
       } else {
         return resolve(response);
       }
