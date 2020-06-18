@@ -62,7 +62,17 @@ export default Mixin.create(GraphModel, {
     const relationGri = relationship.id();
     const griPromise = relationGri ?
       resolve(relationGri) :
-      this.reload().then(() => relationship.id());
+      this.reload().then(() => {
+        const gri = relationship.id();
+        if (gri) {
+          return gri;
+        } else {
+          console.error(
+            `mixin:models/graph-single-model: relation ${relationName} of ${this.constructor.modelName} ${this.get('id')} is null`
+          );
+          throw { id: 'forbidden' };
+        }
+      });
     const relationModelType = relationship.belongsToRelationship.relationshipMeta.type;
     return griPromise.then(gri => store.findRecord(relationModelType, gri)
       .catch(error => this.reload().then(() => {
