@@ -53,10 +53,11 @@ export default Mixin.create(GraphModel, {
    * relationship. Note that this method will reload the record if the relationship
    * is null or an error occurs when loading relationship.
    * @param {String} relationName 
-   * @param {String} relationType one of: belongsTo, hasMany
+   * @param {String} [relationType] one of: belongsTo, hasMany
+   * @param {Boolean} [reload] reload flag passed to `findRecord`
    * @returns {Promise<Model>}
    */
-  getRelation(relationName, relationType = 'belongsTo') {
+  getRelation(relationName, { relationType = 'belongsTo', reload = false } = {}) {
     const store = this.get('store');
     const relationship = this[relationType](relationName);
     const relationGri = relationship.id();
@@ -74,7 +75,7 @@ export default Mixin.create(GraphModel, {
         }
       });
     const relationModelType = relationship.belongsToRelationship.relationshipMeta.type;
-    return griPromise.then(gri => store.findRecord(relationModelType, gri)
+    return griPromise.then(gri => store.findRecord(relationModelType, gri, { reload })
       .catch(error => this.reload().then(() => {
         throw error;
       }))
