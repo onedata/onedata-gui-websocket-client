@@ -74,7 +74,8 @@ export default Mixin.create(GraphModel, {
           throw { id: 'forbidden' };
         }
       });
-    const relationModelType = relationship.belongsToRelationship.relationshipMeta.type;
+    const relationModelType =
+      relationship[`${relationType}Relationship`].relationshipMeta.type;
     return griPromise.then(gri => store.findRecord(relationModelType, gri, { reload })
       .catch(error => this.reload().then(() => {
         throw error;
