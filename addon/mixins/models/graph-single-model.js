@@ -46,4 +46,40 @@ export default Mixin.create(GraphModel, {
   loadRequiredRelations() {
     return resolve();
   },
+
+  /**
+   * Query relationship record and throw error when it fails - in contrary to using
+   * get on relationship, which fails silently, returns null and leaves null in
+   * relationship. Note that this method will reload the record if the relationship
+   * is null or an error occurs when loading relationship.
+   * @param {String} relationName 
+   * @param {String} [relationType] one of: belongsTo, hasMany
+   * @param {Boolean} [reload] reload flag passed to `findRecord`
+   * @returns {Promise<Model>}
+   */
+  getRelation(relationName, { relationType = 'belongsTo', reload = false } = {}) {
+    const store = this.get('store');
+    const relationship = this[relationType](relationName);
+    const relationGri = relationship.id();
+    const griPromise = relationGri ?
+      resolve(relationGri) :
+      this.reload().then(() => {
+        const gri = relationship.id();
+        if (gri) {
+          return gri;
+        } else {
+          console.error(
+            `mixin:models/graph-single-model: relation ${relationName} of ${this.constructor.modelName} ${this.get('id')} is null`
+          );
+          throw { id: 'forbidden' };
+        }
+      });
+    const relationModelType =
+      relationship[`${relationType}Relationship`].relationshipMeta.type;
+    return griPromise.then(gri => store.findRecord(relationModelType, gri, { reload })
+      .catch(error => this.reload().then(() => {
+        throw error;
+      }))
+    );
+  },
 });
