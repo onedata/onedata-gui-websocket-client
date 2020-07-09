@@ -55,9 +55,10 @@ export default Mixin.create(GraphModel, {
    * @param {String} relationName 
    * @param {String} [relationType] one of: belongsTo, hasMany
    * @param {Boolean} [reload] reload flag passed to `findRecord`
+   * @param {Boolean} [allowNull] if true, lack of relationship id does not cause error
    * @returns {Promise<Model>}
    */
-  getRelation(relationName, { relationType = 'belongsTo', reload = false } = {}) {
+  getRelation(relationName, { relationType = 'belongsTo', allowNull = false, reload = false } = {}) {
     const store = this.get('store');
     const relationship = this[relationType](relationName);
     const relationGri = relationship.id();
@@ -67,6 +68,8 @@ export default Mixin.create(GraphModel, {
         const gri = relationship.id();
         if (gri) {
           return gri;
+        } else if (allowNull) {
+          return null;
         } else {
           console.error(
             `mixin:models/graph-single-model: relation ${relationName} of ${this.constructor.modelName} ${this.get('id')} is null`
@@ -76,10 +79,16 @@ export default Mixin.create(GraphModel, {
       });
     const relationModelType =
       relationship[`${relationType}Relationship`].relationshipMeta.type;
-    return griPromise.then(gri => store.findRecord(relationModelType, gri, { reload })
-      .catch(error => this.reload().then(() => {
-        throw error;
-      }))
-    );
+    return griPromise.then(gri => {
+      if (gri == null) {
+        return null;
+      } else {
+        return store.findRecord(relationModelType, gri, { reload })
+          .catch(error => this.reload().then(() => {
+            throw error;
+          }));
+      }
+
+    });
   },
 });
