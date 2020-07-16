@@ -21,6 +21,7 @@ export const groupedFlags = [{
   privileges: [
     { name: 'space_read_data' },
     { name: 'space_write_data' },
+    { name: 'space_register_files' },
     { name: 'space_manage_shares' },
     { name: 'space_view_views' },
     { name: 'space_manage_views' },
