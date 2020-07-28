@@ -61,16 +61,16 @@ export default Service.extend({
 
   /**
    * Adds a new owner to the specified record
-   * @param {String} ownedEntityType entity type of a record, which will have a new owner
-   * @param {String} ownedEntityId entity id of a record, which will have a new owner
+   * @param {String} beingOwnedEntityType entity type of a record, which will have a new owner
+   * @param {String} beingOwnedEntityId entity id of a record, which will have a new owner
    * @param {String} ownerEntityId new owner (user) entity id
    * @returns {Promise}
    */
-  addOwner(ownedEntityType, ownedEntityId, ownerEntityId) {
+  addOwner(beingOwnedEntityType, beingOwnedEntityId, ownerEntityId) {
     return this.get('onedataGraph').request({
       gri: gri({
-        entityType: ownedEntityType,
-        entityId: ownedEntityId,
+        entityType: beingOwnedEntityType,
+        entityId: beingOwnedEntityId,
         aspect: 'owner',
         aspectId: ownerEntityId,
         scope: 'private',
@@ -82,12 +82,17 @@ export default Service.extend({
 
   /**
    * Removes an owner from the specified record
-   * @param {String} ownedEntityType entity type of a record, from which the owner will be removed
-   * @param {String} ownedEntityId entity id of a record, from which the owner will be removed
+   * @param {String} beingOwnedEntityType entity type of a record, from which the owner will be removed
+   * @param {String} beingOwnedEntityId entity id of a record, from which the owner will be removed
    * @param {String} ownerEntityId new owner (user) entity id
    * @returns {Promise}
    */
-  removeOwner(ownedEntityType, ownedEntityId, ownerEntityId) {
-    return this.leaveRelation(ownedEntityType, ownedEntityId, 'owner', ownerEntityId);
+  removeOwner(beingOwnedEntityType, beingOwnedEntityId, ownerEntityId) {
+    return this.leaveRelation(
+      beingOwnedEntityType,
+      beingOwnedEntityId,
+      'owner',
+      ownerEntityId
+    );
   },
 });
