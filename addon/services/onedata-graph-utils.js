@@ -58,4 +58,41 @@ export default Service.extend({
       subscribe: false,
     });
   },
+
+  /**
+   * Adds a new owner to the specified record
+   * @param {String} beingOwnedEntityType entity type of a record, which will have a new owner
+   * @param {String} beingOwnedEntityId entity id of a record, which will have a new owner
+   * @param {String} ownerEntityId new owner (user) entity id
+   * @returns {Promise}
+   */
+  addOwner(beingOwnedEntityType, beingOwnedEntityId, ownerEntityId) {
+    return this.get('onedataGraph').request({
+      gri: gri({
+        entityType: beingOwnedEntityType,
+        entityId: beingOwnedEntityId,
+        aspect: 'owner',
+        aspectId: ownerEntityId,
+        scope: 'private',
+      }),
+      operation: 'create',
+      subscribe: false,
+    });
+  },
+
+  /**
+   * Removes an owner from the specified record
+   * @param {String} beingOwnedEntityType entity type of a record, from which the owner will be removed
+   * @param {String} beingOwnedEntityId entity id of a record, from which the owner will be removed
+   * @param {String} ownerEntityId new owner (user) entity id
+   * @returns {Promise}
+   */
+  removeOwner(beingOwnedEntityType, beingOwnedEntityId, ownerEntityId) {
+    return this.leaveRelation(
+      beingOwnedEntityType,
+      beingOwnedEntityId,
+      'owner',
+      ownerEntityId
+    );
+  },
 });
