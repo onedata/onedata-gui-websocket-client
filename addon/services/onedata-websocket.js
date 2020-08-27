@@ -29,27 +29,12 @@ import config from 'ember-get-config';
 
 const ObjectPromiseProxy = ObjectProxy.extend(PromiseProxyMixin);
 
-/**
- * Default value for ``responseTimeout`` in service
- * @type {number}
- */
-const RESPONSE_TIMEOUT_MS = 30 * 1000;
-
 const AVAIL_MESSAGE_HANDLERS = ['response', 'push'];
 
 const defaultProtocolVersion = config.onedataWebsocket.defaultProtocolVersion || 3;
 
 export default Service.extend(Evented, {
   onedataWebsocketErrorHandler: service(),
-
-  /**
-   * Max time in milliseconds for receiving a response for message
-   *
-   * If we don't receive response for sent message in this time, the message's
-   * promise will be rejected.
-   * @type {number}
-   */
-  responseTimeout: RESPONSE_TIMEOUT_MS,
 
   defaultProtocolVersion,
 
@@ -64,7 +49,7 @@ export default Service.extend(Evented, {
   _closeDefer: null,
 
   /**
-   * Maps message id -> { sendDeferred: RSVP.Deferred, timeoutId: Number }
+   * Maps message id -> { sendDeferred: RSVP.Deferred  }
    * @type {Map}
    */
   _deferredMessages: undefined,
@@ -155,11 +140,9 @@ export default Service.extend(Evented, {
     let {
       _webSocket,
       _deferredMessages,
-      responseTimeout,
     } = this.getProperties(
       '_webSocket',
       '_deferredMessages',
-      'responseTimeout'
     );
     let id = this._generateUuid();
     let rawMessage = {
@@ -190,12 +173,8 @@ export default Service.extend(Evented, {
         },
       });
     }
-    let timeoutId = window.setTimeout(
-      () => this._responseTimeout(id),
-      responseTimeout
-    );
 
-    _deferredMessages.set(id, { sendDeferred, timeoutId });
+    _deferredMessages.set(id, { sendDeferred });
     let sendPromise = sendDeferred.promise;
     sendPromise.catch(error =>
       console.warn(
@@ -203,23 +182,6 @@ export default Service.extend(Evented, {
       )
     );
     return sendDeferred.promise;
-  },
-
-  /**
-   * @private
-   * @param {string} messageId
-   * @returns {undefined}
-   */
-  _responseTimeout(messageId) {
-    let _deferredMessages = this.get('_deferredMessages');
-    if (_deferredMessages.has(messageId)) {
-      let { sendDeferred } = _deferredMessages.get(messageId);
-      _deferredMessages.delete(messageId);
-      sendDeferred.reject({
-        error: 'timeout',
-        message: 'Server response timeout',
-      });
-    }
   },
 
   /**
@@ -435,10 +397,9 @@ export default Service.extend(Evented, {
       id,
     } = message;
     if (_deferredMessages.has(id)) {
-      let { sendDeferred, timeoutId } = _deferredMessages.get(id);
+      let { sendDeferred } = _deferredMessages.get(id);
       // NOTE Map.delete will not work on IE 10 or lower
       _deferredMessages.delete(id);
-      clearTimeout(timeoutId);
       sendDeferred.resolve(message);
     } else {
       console.warn(
