@@ -72,10 +72,6 @@ export const groupedFlags = [{
   ],
 }];
 
-export const flags = _.flatten(
+export default _.flatten(
   groupedFlags.map(group => group.privileges.map(privilege => privilege.name))
 );
-
-export default groupedFlags
-  .map(group => group.privileges)
-  .reduce((all, groupPerms) => all.concat(groupPerms.mapBy('name')), []);
