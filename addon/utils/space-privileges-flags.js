@@ -7,6 +7,8 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
+import _ from 'lodash';
+
 export const groupedFlags = [{
   groupName: 'spaceManagement',
   privileges: [
@@ -70,6 +72,6 @@ export const groupedFlags = [{
   ],
 }];
 
-export default groupedFlags
-  .map(group => group.privileges)
-  .reduce((all, groupPerms) => all.concat(groupPerms.mapBy('name')), []);
+export default _.flatten(
+  groupedFlags.map(group => group.privileges.map(privilege => privilege.name))
+);
