@@ -11,8 +11,8 @@ export function generateSpaceEntityId(spaceNumber) {
   return `space-${spaceNumber}`;
 }
 
-export function generateShareEntityId(sourceEntityId) {
-  return `share-${sourceEntityId}`;
+export function generateShareEntityId(sourceEntityId, number = 0) {
+  return `share-${sourceEntityId}-${number}`;
 }
 
 export function getCoordinates(index, numberOfProviders) {
