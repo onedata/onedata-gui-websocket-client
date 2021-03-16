@@ -62,8 +62,8 @@ export default Component.extend({
     // an example of get first group from list
     // .then(groupList => groupList.get('list'))
     // .then(list => list.objectAt(0))
-    // .then(groupZero => groupZero.get('sharedUserList'))
-    // .then(sharedUserList => sharedUserList.get('list'))
+    // .then(groupZero => groupZero.get('userList'))
+    // .then(userList => userList.get('list'))
     // .then(list => list.objectAt(0));
 
     // an example of get a first space from spaces lit of group
