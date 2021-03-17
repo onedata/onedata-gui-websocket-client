@@ -12,10 +12,34 @@ import LocalstorageAdapter from 'ember-local-storage/adapters/local';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import { Promise } from 'rsvp';
 import { later } from '@ember/runloop';
+import { computed } from '@ember/object';
+import { dasherize } from '@ember/string';
 
 const responseDelay = 0;
 
 export default LocalstorageAdapter.extend({
+  /**
+   * @type {Map<string,string>}
+   */
+  entityTypeToModelNameMap: Object.freeze(new Map()),
+
+  /**
+   * @type {Ember.ComputedProperty<Map<string,string>>}
+   */
+  modelNameToEntityType: computed(
+    'entityTypeToModelNameMap',
+    function modelNameToEntityType() {
+      const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
+      const modelNameMap = new Map();
+
+      entityTypeToModelNameMap.forEach((modelName, entityType) =>
+        modelNameMap.set(modelName, entityType)
+      );
+
+      return modelNameMap;
+    }
+  ),
+
   _storageKey() {
     return decodeURIComponent(this._super(...arguments));
   },
@@ -38,9 +62,9 @@ export default LocalstorageAdapter.extend({
 
   /**
    * @override
-   * @param {any} store 
-   * @param {string} type 
-   * @param {any} inputProperties 
+   * @param {any} store
+   * @param {string} type
+   * @param {any} inputProperties
    * @returns {string}
    */
   generateIdForRecord(store, type, inputProperties) {
@@ -50,7 +74,7 @@ export default LocalstorageAdapter.extend({
       entityType = 'unknown';
       aspect = type.match(/(.*)-list/)[1] + 's';
     } else {
-      entityType = type;
+      entityType = this.getEntityTypeForModelName(type);
       aspect = 'instance';
     }
     return gri({
@@ -75,7 +99,7 @@ export default LocalstorageAdapter.extend({
    * @returns {string}
    */
   getEntityTypeForModelName(modelName) {
-    return modelName;
+    return this.get('modelNameToEntityType').get(dasherize(modelName)) || modelName;
   },
 });
 

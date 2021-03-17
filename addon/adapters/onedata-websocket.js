@@ -16,6 +16,7 @@ import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import Request from 'onedata-gui-websocket-client/utils/request';
 import _ from 'lodash';
+import { dasherize } from '@ember/string';
 
 export default Adapter.extend({
   onedataGraph: service(),
@@ -426,7 +427,7 @@ export default Adapter.extend({
    * @returns {string}
    */
   getEntityTypeForModelName(modelName) {
-    return this.get('modelNameToEntityType').get(modelName) || modelName;
+    return this.get('modelNameToEntityType').get(dasherize(modelName)) || modelName;
   },
 
   /**
