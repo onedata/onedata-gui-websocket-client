@@ -11,9 +11,7 @@ import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 import { resolve } from 'rsvp';
 import { get, computed } from '@ember/object';
-import ObjectProxy from '@ember/object/proxy';
-import PromiseProxyMixin from '@ember/object/promise-proxy-mixin';
-const PromiseObject = ObjectProxy.extend(PromiseProxyMixin);
+import { promise } from 'ember-awesome-macros';
 
 export default Mixin.create(GraphModel, {
   didDelete() {
@@ -96,11 +94,23 @@ export default Mixin.create(GraphModel, {
 });
 
 export function computedRelationProxy(recordPath, relationName, options) {
-  return computed(`${recordPath}.${relationName}`, function getRelation() {
-    const record = this.get(recordPath);
-    return PromiseObject.create({
-      promise: record ?
-        record.getRelation(relationName, options) : resolve(null),
-    });
-  });
+  return promise.object(computed(`${recordPath}.${relationName}`,
+    function relationProxy() {
+      const record = this.get(recordPath);
+      let promise;
+      if (record) {
+        if (typeof record.getRelation === 'function') {
+          promise = record.getRelation(relationName, options);
+        } else {
+          console.warn(
+            `mixin:graph-single-model#computedRelationProxy: no getRelation for ${recordPath}, ${relationName} - falling back to get property by path`
+          );
+          promise = get(record, relationName);
+        }
+      } else {
+        promise = resolve(null);
+      }
+      return promise;
+    }
+  ));
 }
