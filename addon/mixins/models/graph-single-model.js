@@ -12,6 +12,7 @@ import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 import { resolve } from 'rsvp';
 import { get, computed } from '@ember/object';
 import { promise } from 'ember-awesome-macros';
+import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default Mixin.create(GraphModel, {
   didDelete() {
@@ -90,6 +91,18 @@ export default Mixin.create(GraphModel, {
           }));
       }
     });
+  },
+
+  /**
+   * Strips belongsTo relation ID to entityId
+   * @param {String} relationName
+   * @returns {String}
+   */
+  relationEntityId(relationName) {
+    const relationGri = this.belongsTo(relationName).id();
+    if (relationGri) {
+      return parseGri(relationGri).entityId;
+    }
   },
 });
 
