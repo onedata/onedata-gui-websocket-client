@@ -10,6 +10,9 @@
 import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 import { resolve } from 'rsvp';
+import { get, computed } from '@ember/object';
+import { promise } from 'ember-awesome-macros';
+import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 export default Mixin.create(GraphModel, {
   didDelete() {
@@ -53,14 +56,13 @@ export default Mixin.create(GraphModel, {
    * relationship. Note that this method will reload the record if the relationship
    * is null or an error occurs when loading relationship.
    * @param {String} relationName 
-   * @param {String} [relationType] one of: belongsTo, hasMany
    * @param {Boolean} [reload] reload flag passed to `findRecord`
    * @param {Boolean} [allowNull] if true, lack of relationship id does not cause error
    * @returns {Promise<Model>}
    */
-  getRelation(relationName, { relationType = 'belongsTo', allowNull = false, reload = false } = {}) {
+  getRelation(relationName, { allowNull = false, reload = false } = {}) {
     const store = this.get('store');
-    const relationship = this[relationType](relationName);
+    const relationship = this.belongsTo(relationName);
     const relationGri = relationship.id();
     const griPromise = relationGri ?
       resolve(relationGri) :
@@ -78,7 +80,7 @@ export default Mixin.create(GraphModel, {
         }
       });
     const relationModelType =
-      relationship[`${relationType}Relationship`].relationshipMeta.type;
+      get(relationship, 'belongsToRelationship.relationshipMeta.type');
     return griPromise.then(gri => {
       if (gri == null) {
         return null;
@@ -88,7 +90,40 @@ export default Mixin.create(GraphModel, {
             throw error;
           }));
       }
-
     });
   },
+
+  /**
+   * Strips belongsTo relation ID to entityId
+   * @param {String} relationName
+   * @returns {String}
+   */
+  relationEntityId(relationName) {
+    const relationGri = this.belongsTo(relationName).id();
+    if (relationGri) {
+      return parseGri(relationGri).entityId;
+    }
+  },
 });
+
+export function computedRelationProxy(recordPath, relationName, options) {
+  return promise.object(computed(`${recordPath}.${relationName}`,
+    function relationProxy() {
+      const record = this.get(recordPath);
+      let promise;
+      if (record) {
+        if (typeof record.getRelation === 'function') {
+          promise = record.getRelation(relationName, options);
+        } else {
+          console.warn(
+            `mixin:graph-single-model#computedRelationProxy: no getRelation for ${recordPath}, ${relationName} - falling back to get property by path`
+          );
+          promise = get(record, relationName);
+        }
+      } else {
+        promise = resolve(null);
+      }
+      return promise;
+    }
+  ));
+}
