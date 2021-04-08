@@ -25,6 +25,7 @@ export const groupedFlags = [{
     { name: 'space_write_data' },
     { name: 'space_register_files' },
     { name: 'space_manage_shares' },
+    { name: 'space_manage_datasets' },
     { name: 'space_view_views' },
     { name: 'space_manage_views' },
     { name: 'space_query_views' },
