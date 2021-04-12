@@ -9,7 +9,7 @@
 
 import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
-import { resolve } from 'rsvp';
+import { resolve, reject } from 'rsvp';
 import { get, computed } from '@ember/object';
 import { promise } from 'ember-awesome-macros';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
@@ -26,7 +26,7 @@ export default Mixin.create(GraphModel, {
   /**
    * Deeply reloads list relation. If list has not been fetched, nothing is
    * reloaded.
-   * @param {string} listName 
+   * @param {string} listName
    * @returns {Promise}
    */
   reloadList(listName) {
@@ -55,7 +55,7 @@ export default Mixin.create(GraphModel, {
    * get on relationship, which fails silently, returns null and leaves null in
    * relationship. Note that this method will reload the record if the relationship
    * is null or an error occurs when loading relationship.
-   * @param {String} relationName 
+   * @param {String} relationName
    * @param {Boolean} [reload] reload flag passed to `findRecord`
    * @param {Boolean} [allowNull] if true, lack of relationship id does not cause error
    * @returns {Promise<Model>}
@@ -87,6 +87,7 @@ export default Mixin.create(GraphModel, {
       } else {
         return store.findRecord(relationModelType, gri, { reload })
           .catch(error => this.reload().then(() => {
+            console.log('hold your horses');
             throw error;
           }));
       }
@@ -107,8 +108,14 @@ export default Mixin.create(GraphModel, {
 });
 
 export function computedRelationProxy(recordPath, relationName, options) {
+  let relationError = null;
   return promise.object(computed(`${recordPath}.${relationName}`,
     function relationProxy() {
+      // do not try to resolve relation after previous error, because this leads to
+      // infinite value computation loop
+      if (relationError) {
+        return reject(relationError);
+      }
       const record = this.get(recordPath);
       let promise;
       if (record) {
@@ -123,6 +130,10 @@ export function computedRelationProxy(recordPath, relationName, options) {
       } else {
         promise = resolve(null);
       }
+      promise.catch(error => {
+        relationError = error;
+        throw error;
+      });
       return promise;
     }
   ));
