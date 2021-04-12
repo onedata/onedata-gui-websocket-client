@@ -9,7 +9,7 @@
 
 import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
-import { resolve, reject } from 'rsvp';
+import { resolve } from 'rsvp';
 import { get, computed } from '@ember/object';
 import { promise } from 'ember-awesome-macros';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
@@ -87,7 +87,6 @@ export default Mixin.create(GraphModel, {
       } else {
         return store.findRecord(relationModelType, gri, { reload })
           .catch(error => this.reload().then(() => {
-            console.log('hold your horses');
             throw error;
           }));
       }
@@ -107,16 +106,44 @@ export default Mixin.create(GraphModel, {
   },
 });
 
+/**
+ * Creates computed property for EmberObject that uses `getRelation` to fetch record
+ * relation record.
+ * @param {String} recordPath property path to record in this
+ * @param {*} relationName
+ * @param {Object} options the same as in `getRelation` plus:
+ *  - computedRelationErrorProperty: String - property path for saving fetch error
+ * @returns {Promise<Ember.Model>}
+ */
 export function computedRelationProxy(recordPath, relationName, options) {
-  let relationError = null;
+  // used only if `options.computedRelationErrorProperty` is not provided
+  let privateLoadError;
+  let currentPromise;
+  const loadErrorProperty = options && options.computedRelationErrorProperty;
   return promise.object(computed(`${recordPath}.${relationName}`,
-    function relationProxy() {
+    async function relationProxy() {
+      const record = this.get(recordPath);
+      const loadError = loadErrorProperty ?
+        this.get(loadErrorProperty) : privateLoadError;
+
+      if (currentPromise) {
+        if (get(record, 'isReloading')) {
+          if (loadError) {
+            throw loadError;
+          } else {
+            return currentPromise;
+          }
+        } else {
+          return currentPromise;
+        }
+      }
+
       // do not try to resolve relation after previous error, because this leads to
       // infinite value computation loop
-      if (relationError) {
-        return reject(relationError);
+      if (loadError) {
+        throw loadError;
       }
-      const record = this.get(recordPath);
+
       let promise;
       if (record) {
         if (typeof record.getRelation === 'function') {
@@ -130,9 +157,17 @@ export function computedRelationProxy(recordPath, relationName, options) {
       } else {
         promise = resolve(null);
       }
+      currentPromise = promise;
       promise.catch(error => {
-        relationError = error;
+        if (loadErrorProperty) {
+          this.set(loadErrorProperty, error);
+        } else {
+          privateLoadError = error;
+        }
         throw error;
+      });
+      promise.finally(() => {
+        currentPromise = null;
       });
       return promise;
     }
