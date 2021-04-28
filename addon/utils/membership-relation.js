@@ -8,8 +8,8 @@
  */
 
 import EmberObject, { computed, observer, get } from '@ember/object';
-import { reads } from '@ember/object/computed';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
+import { string } from 'ember-awesome-macros';
 
 export default EmberObject.extend({
   /**
@@ -37,14 +37,15 @@ export default EmberObject.extend({
   exists: undefined,
 
   /**
+   * TODO: VFS-7620 fix naming
    * @type {string}
    */
-  parentType: reads('parent.entityType'),
+  parentType: string.camelize('parent.constructor.modelName'),
 
   /**
    * @type {string}
    */
-  childType: reads('child.entityType'),
+  childType: string.camelize('child.constructor.modelName'),
 
   /**
    * @type {Ember.ComputedProperty<string>}
@@ -59,11 +60,7 @@ export default EmberObject.extend({
       } = this.getProperties('parentType', 'childType');
       switch (parentType) {
         case 'group':
-          if (childType === 'group') {
-            return 'parentList';
-          } else {
-            return 'groupList';
-          }
+          return childType === 'group' ? 'parentList' : 'groupList';
         default:
           return `${parentType}List`;
       }
@@ -188,7 +185,7 @@ export default EmberObject.extend({
 
   /**
    * Returns array of entityIds, that are located in `listName` list inside record.
-   * @param {GraphSingleModel} record 
+   * @param {GraphSingleModel} record
    * @param {string} listName
    * @returns {Array<string>} entity ids
    */
