@@ -9,37 +9,14 @@
  */
 
 import LocalstorageAdapter from 'ember-local-storage/adapters/local';
+import AdapterBase from 'onedata-gui-websocket-client/mixins/adapters/adapter-base';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import { Promise } from 'rsvp';
 import { later } from '@ember/runloop';
-import { computed } from '@ember/object';
-import { dasherize } from '@ember/string';
 
 const responseDelay = 0;
 
-export default LocalstorageAdapter.extend({
-  /**
-   * @type {Map<string,string>}
-   */
-  entityTypeToModelNameMap: Object.freeze(new Map()),
-
-  /**
-   * @type {Ember.ComputedProperty<Map<string,string>>}
-   */
-  modelNameToEntityType: computed(
-    'entityTypeToModelNameMap',
-    function modelNameToEntityType() {
-      const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
-      const modelNameMap = new Map();
-
-      entityTypeToModelNameMap.forEach((modelName, entityType) =>
-        modelNameMap.set(modelName, entityType)
-      );
-
-      return modelNameMap;
-    }
-  ),
-
+export default LocalstorageAdapter.extend(AdapterBase, {
   _storageKey() {
     return decodeURIComponent(this._super(...arguments));
   },
@@ -91,15 +68,6 @@ export default LocalstorageAdapter.extend({
 
   query() {
     throw new Error('adapter:local-storage: query is not supported');
-  },
-
-  /**
-   * Returns GRI entity type related to passed model name.
-   * @param {string} modelName
-   * @returns {string}
-   */
-  getEntityTypeForModelName(modelName) {
-    return this.get('modelNameToEntityType').get(dasherize(modelName)) || modelName;
   },
 });
 
