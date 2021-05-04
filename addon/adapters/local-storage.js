@@ -81,7 +81,7 @@ export default LocalstorageAdapter.extend({
       entityType,
       entityId: this._super(...arguments),
       aspect,
-      scope: inputProperties.scope ? 'auto' : undefined,
+      scope: inputProperties.scope || 'auto',
     });
   },
 
