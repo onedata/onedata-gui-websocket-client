@@ -26,7 +26,7 @@ export default Mixin.create(GraphModel, {
   /**
    * Deeply reloads list relation. If list has not been fetched, nothing is
    * reloaded.
-   * @param {string} listName 
+   * @param {string} listName
    * @returns {Promise}
    */
   reloadList(listName) {
@@ -55,7 +55,7 @@ export default Mixin.create(GraphModel, {
    * get on relationship, which fails silently, returns null and leaves null in
    * relationship. Note that this method will reload the record if the relationship
    * is null or an error occurs when loading relationship.
-   * @param {String} relationName 
+   * @param {String} relationName
    * @param {Boolean} [reload] reload flag passed to `findRecord`
    * @param {Boolean} [allowNull] if true, lack of relationship id does not cause error
    * @returns {Promise<Model>}
@@ -106,10 +106,44 @@ export default Mixin.create(GraphModel, {
   },
 });
 
+/**
+ * Creates computed property for EmberObject that uses `getRelation` to fetch record
+ * relation record.
+ * @param {String} recordPath property path to record in this
+ * @param {*} relationName
+ * @param {Object} options the same as in `getRelation` plus:
+ *  - computedRelationErrorProperty: String - property path for saving fetch error
+ * @returns {Promise<Ember.Model>}
+ */
 export function computedRelationProxy(recordPath, relationName, options) {
+  // used only if `options.computedRelationErrorProperty` is not provided
+  let privateLoadError;
+  let currentPromise;
+  const loadErrorProperty = options && options.computedRelationErrorProperty;
   return promise.object(computed(`${recordPath}.${relationName}`,
-    function relationProxy() {
+    async function relationProxy() {
       const record = this.get(recordPath);
+      const loadError = loadErrorProperty ?
+        this.get(loadErrorProperty) : privateLoadError;
+
+      if (currentPromise) {
+        if (get(record, 'isReloading')) {
+          if (loadError) {
+            throw loadError;
+          } else {
+            return currentPromise;
+          }
+        } else {
+          return currentPromise;
+        }
+      }
+
+      // do not try to resolve relation after previous error, because this leads to
+      // infinite value computation loop
+      if (loadError) {
+        throw loadError;
+      }
+
       let promise;
       if (record) {
         if (typeof record.getRelation === 'function') {
@@ -123,6 +157,18 @@ export function computedRelationProxy(recordPath, relationName, options) {
       } else {
         promise = resolve(null);
       }
+      currentPromise = promise;
+      promise.catch(error => {
+        if (loadErrorProperty) {
+          this.set(loadErrorProperty, error);
+        } else {
+          privateLoadError = error;
+        }
+        throw error;
+      });
+      promise.finally(() => {
+        currentPromise = null;
+      });
       return promise;
     }
   ));
