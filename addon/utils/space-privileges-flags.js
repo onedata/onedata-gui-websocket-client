@@ -71,6 +71,14 @@ export const groupedFlags = [{
     { name: 'space_add_harvester' },
     { name: 'space_remove_harvester' },
   ],
+}, {
+  groupName: 'archiveManagement',
+  privileges: [
+    { name: 'space_view_archives' },
+    { name: 'space_create_archives' },
+    { name: 'space_remove_archives' },
+    { name: 'space_recall_archives' },
+  ],
 }];
 
 export default _.flatten(
