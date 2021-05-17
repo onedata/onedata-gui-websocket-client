@@ -7,18 +7,18 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get, set, getProperties, computed } from '@ember/object';
+import { get, set, getProperties } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from 'ember-data/adapter';
+import AdapterBase from 'onedata-gui-websocket-client/mixins/adapters/adapter-base';
 import { reject, allSettled } from 'rsvp';
 import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import Request from 'onedata-gui-websocket-client/utils/request';
 import _ from 'lodash';
-import { dasherize } from '@ember/string';
 
-export default Adapter.extend({
+export default Adapter.extend(AdapterBase, {
   onedataGraph: service(),
   onedataGraphContext: service(),
   recordRegistry: service(),
@@ -29,28 +29,6 @@ export default Adapter.extend({
   createScope: 'auto',
 
   defaultSerializer: 'onedata-websocket',
-
-  /**
-   * @type {Map<string,string>}
-   */
-  entityTypeToModelNameMap: Object.freeze(new Map()),
-
-  /**
-   * @type {Ember.ComputedProperty<Map<string,string>>}
-   */
-  modelNameToEntityType: computed(
-    'entityTypeToModelNameMap',
-    function modelNameToEntityType() {
-      const entityTypeToModelNameMap = this.get('entityTypeToModelNameMap');
-      const modelNameMap = new Map();
-
-      entityTypeToModelNameMap.forEach((modelName, entityType) =>
-        modelNameMap.set(modelName, entityType)
-      );
-
-      return modelNameMap;
-    }
-  ),
 
   init() {
     this._super(...arguments);
@@ -405,29 +383,20 @@ export default Adapter.extend({
   /**
    * Returns model name for given GRI.
    * WARNING: It uses entityType from GRI if record was not fetched earlier or
-   * model name cannot be inferred from `entityTypeToModelNameMap`.
+   * model name cannot be inferred from `entityTypeToEmberModelNameMap`.
    * EntityType does not always map directly to model name.
    * @param {string} gri
    * @returns {string}
    */
   getModelNameForGri(gri) {
     const {
-      entityTypeToModelNameMap,
+      entityTypeToEmberModelNameMap,
       recordRegistry,
-    } = this.getProperties('entityTypeToModelNameMap', 'recordRegistry');
+    } = this.getProperties('entityTypeToEmberModelNameMap', 'recordRegistry');
     const entityType = parseGri(gri).entityType;
-    return recordRegistry.getModelName(gri) || entityTypeToModelNameMap.get(
-      entityType) || parseGri(gri).entityType;
-  },
-
-  /**
-   * Returns GRI entity type related to passed model name. If dedicated mapping
-   * does not exist, `modelName` will be returned as an entity type.
-   * @param {string} modelName
-   * @returns {string}
-   */
-  getEntityTypeForModelName(modelName) {
-    return this.get('modelNameToEntityType').get(dasherize(modelName)) || modelName;
+    return recordRegistry.getModelName(gri) ||
+      entityTypeToEmberModelNameMap.get(entityType) ||
+      parseGri(gri).entityType;
   },
 
   /**
