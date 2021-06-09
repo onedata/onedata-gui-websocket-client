@@ -25,7 +25,6 @@ export const groupedFlags = [{
     { name: 'space_write_data' },
     { name: 'space_register_files' },
     { name: 'space_manage_shares' },
-    { name: 'space_manage_datasets' },
     { name: 'space_view_views' },
     { name: 'space_manage_views' },
     { name: 'space_query_views' },
@@ -70,6 +69,15 @@ export const groupedFlags = [{
   privileges: [
     { name: 'space_add_harvester' },
     { name: 'space_remove_harvester' },
+  ],
+}, {
+  groupName: 'datasetArchiveManagement',
+  privileges: [
+    { name: 'space_manage_datasets' },
+    { name: 'space_view_archives' },
+    { name: 'space_create_archives' },
+    { name: 'space_remove_archives' },
+    { name: 'space_recall_archives' },
   ],
 }, {
   groupName: 'automationManagement',
