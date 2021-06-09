@@ -1,6 +1,6 @@
 /**
  * Names of flags for space privileges.
- * 
+ *
  * @module utils/space-privileges-flags
  * @author Michał Borzęcki
  * @copyright (C) 2018-2019 ACK CYFRONET AGH
@@ -70,6 +70,12 @@ export const groupedFlags = [{
   privileges: [
     { name: 'space_add_harvester' },
     { name: 'space_remove_harvester' },
+  ],
+}, {
+  groupName: 'automationManagement',
+  privileges: [
+    { name: 'space_view_atm_workflow_executions' },
+    { name: 'space_schedule_atm_workflow_executions' },
   ],
 }];
 
