@@ -12,10 +12,15 @@ export const groupedFlags = [{
   privileges: [
     { name: 'atm_inventory_view' },
     { name: 'atm_inventory_update' },
-    { name: 'atm_inventory_manage_lambdas' },
     { name: 'atm_inventory_delete' },
     { name: 'atm_inventory_view_privileges' },
     { name: 'atm_inventory_set_privileges' },
+  ],
+}, {
+  groupName: 'schemaManagement',
+  privileges: [
+    { name: 'atm_inventory_manage_lambdas' },
+    { name: 'atm_inventory_manage_workflow_schemas' },
   ],
 }, {
   groupName: 'userManagement',
