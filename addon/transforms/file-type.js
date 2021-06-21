@@ -11,7 +11,7 @@
 import DS from 'ember-data';
 import _ from 'lodash';
 
-const normalizedFileTypes = {
+export const normalizedFileTypes = {
   REG: 'file',
   DIR: 'dir',
   LNK: 'hardlink',
@@ -19,7 +19,7 @@ const normalizedFileTypes = {
 };
 const defaultNormalizedFileType = 'file';
 
-const serializedFileTypes = _.invert(normalizedFileTypes);
+export const serializedFileTypes = _.invert(normalizedFileTypes);
 const defaultSerializedFileType = serializedFileTypes[defaultNormalizedFileType];
 
 export default DS.Transform.extend({
