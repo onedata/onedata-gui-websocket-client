@@ -9,13 +9,14 @@
  */
 
 import LocalstorageAdapter from 'ember-local-storage/adapters/local';
+import AdapterBase from 'onedata-gui-websocket-client/mixins/adapters/adapter-base';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import { Promise } from 'rsvp';
 import { later } from '@ember/runloop';
 
 const responseDelay = 0;
 
-export default LocalstorageAdapter.extend({
+export default LocalstorageAdapter.extend(AdapterBase, {
   _storageKey() {
     return decodeURIComponent(this._super(...arguments));
   },
@@ -38,9 +39,9 @@ export default LocalstorageAdapter.extend({
 
   /**
    * @override
-   * @param {any} store 
-   * @param {string} type 
-   * @param {any} inputProperties 
+   * @param {any} store
+   * @param {string} type
+   * @param {any} inputProperties
    * @returns {string}
    */
   generateIdForRecord(store, type, inputProperties) {
@@ -50,14 +51,14 @@ export default LocalstorageAdapter.extend({
       entityType = 'unknown';
       aspect = type.match(/(.*)-list/)[1] + 's';
     } else {
-      entityType = type;
+      entityType = this.getEntityTypeForModelName(type);
       aspect = 'instance';
     }
     return gri({
       entityType,
       entityId: this._super(...arguments),
       aspect,
-      scope: inputProperties.scope ? 'auto' : undefined,
+      scope: inputProperties.scope || 'auto',
     });
   },
 
@@ -67,15 +68,6 @@ export default LocalstorageAdapter.extend({
 
   query() {
     throw new Error('adapter:local-storage: query is not supported');
-  },
-
-  /**
-   * Returns GRI entity type related to passed model name.
-   * @param {string} modelName
-   * @returns {string}
-   */
-  getEntityTypeForModelName(modelName) {
-    return modelName;
   },
 });
 

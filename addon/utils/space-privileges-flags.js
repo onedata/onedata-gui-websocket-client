@@ -1,6 +1,6 @@
 /**
  * Names of flags for space privileges.
- * 
+ *
  * @module utils/space-privileges-flags
  * @author Michał Borzęcki
  * @copyright (C) 2018-2019 ACK CYFRONET AGH
@@ -78,6 +78,12 @@ export const groupedFlags = [{
     { name: 'space_create_archives' },
     { name: 'space_remove_archives' },
     { name: 'space_recall_archives' },
+  ],
+}, {
+  groupName: 'automationManagement',
+  privileges: [
+    { name: 'space_view_atm_workflow_executions' },
+    { name: 'space_schedule_atm_workflow_executions' },
   ],
 }];
 
