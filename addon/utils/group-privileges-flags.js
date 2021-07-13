@@ -1,6 +1,6 @@
 /**
  * Names of flags for group privileges.
- * 
+ *
  * @module utils/group-privileges-flags
  * @author Michał Borzęcki
  * @copyright (C) 2018-2019 ACK CYFRONET AGH
@@ -43,6 +43,24 @@ export const groupedFlags = [{
     { name: 'group_leave_handle' },
     { name: 'group_create_handle_service' },
     { name: 'group_leave_handle_service' },
+  ],
+}, {
+  groupName: 'clusterManagement',
+  privileges: [
+    { name: 'group_add_cluster' },
+    { name: 'group_leave_cluster' },
+  ],
+}, {
+  groupName: 'harvesterManagement',
+  privileges: [
+    { name: 'group_add_harvester' },
+    { name: 'group_remove_harvester' },
+  ],
+}, {
+  groupName: 'inventoryManagement',
+  privileges: [
+    { name: 'group_add_atm_inventory' },
+    { name: 'group_remove_atm_inventory' },
   ],
 }];
 
