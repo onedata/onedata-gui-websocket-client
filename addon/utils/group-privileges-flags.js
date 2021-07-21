@@ -44,6 +44,18 @@ export const groupedFlags = [{
     { name: 'group_create_handle_service' },
     { name: 'group_leave_handle_service' },
   ],
+}, {
+  groupName: 'clusterManagement',
+  privileges: [
+    { name: 'group_add_cluster' },
+    { name: 'group_leave_cluster' },
+  ],
+}, {
+  groupName: 'harvesterManagement',
+  privileges: [
+    { name: 'group_add_harvester' },
+    { name: 'group_remove_harvester' },
+  ],
 }];
 
 export default groupedFlags
