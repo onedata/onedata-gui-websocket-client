@@ -112,10 +112,11 @@ export default Service.extend(Evented, {
       entityType,
       entityId,
       aspect,
+      aspectId,
     } = parseGri(gri);
     const handler = this.get(`handlers.${entityType}.${aspect}`);
     if (handler) {
-      const response = handler.bind(this)(operation, entityId, data, authHint);
+      const response = handler.bind(this)(operation, entityId, data, authHint, aspectId);
       if (response.error) {
         return reject(response.error);
       } else {
