@@ -13,6 +13,7 @@ import { resolve } from 'rsvp';
 import { get, computed } from '@ember/object';
 import { promise } from 'ember-awesome-macros';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
+import isDeletedEmberError from '../../utils/is-deleted-ember-error';
 
 export default Mixin.create(GraphModel, {
   didDelete() {
@@ -87,7 +88,13 @@ export default Mixin.create(GraphModel, {
       } else {
         return store.findRecord(relationModelType, gri, { reload })
           .catch(error => this.reload().then(() => {
-            throw error;
+            if (isDeletedEmberError(error)) {
+              // make custom Ember error that occurs, when resource was deleted
+              // in the same session, "easier to consume"
+              throw { id: 'notFound' };
+            } else {
+              throw error;
+            }
           }));
       }
     });
