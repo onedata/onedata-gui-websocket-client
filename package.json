@@ -20,7 +20,7 @@
     "test-ci": "npm run deps && xvfb-run ember test -r xunit",
     "test": "ember test",
     "tdd": "ember test --server",
-    "clean": "rm -rf tmp dist node_modules bower_components .sass-cache tests/test-results.xml"
+    "clean": "rm -rf tmp dist node_modules .sass-cache tests/test-results.xml"
   },
   "dependencies": {
     "babel-plugin-ember-modules-api-polyfill": "2.13.0",
