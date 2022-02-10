@@ -53,7 +53,7 @@
     "ember-sinon": "1.0.1",
     "ember-source": "2.18.2",
     "ember-uuid": "2.0.0",
-    "eslint-plugin-ember": "5.0.3",
+    "eslint-plugin-ember": "6.10.1",
     "loader.js": "4.6.0",
     "sinon": "4.2.0",
     "sinon-chai": "2.14.0"
