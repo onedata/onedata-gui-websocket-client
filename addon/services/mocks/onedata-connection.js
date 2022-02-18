@@ -1,5 +1,5 @@
 /**
- * A mocked abstraction layer for Onedata Sync API Websocket connection properties 
+ * A mocked abstraction layer for Onedata Sync API Websocket connection properties
  * For properties description see non-mocked `services/onedata-connection`
  *
  * @module services/mocks/onedata-connection
@@ -12,4 +12,5 @@ import Service from '@ember/service';
 
 export default Service.extend({
   serviceVersion: '18.02.0-mock',
+  globalTimeSecondsOffset: 0,
 });
