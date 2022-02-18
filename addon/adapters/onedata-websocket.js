@@ -92,13 +92,15 @@ export default Adapter.extend(AdapterBase, {
       })
       .catch(findError => {
         if (get(findError, 'id') === 'forbidden') {
-          return this.searchForNextContext(id, !!authHint)
-            .catch(() => {
-              if (!get(record, 'isForbidden')) {
-                set(record, 'isForbidden', true);
-              }
-              throw findError;
-            });
+          return this.searchForNextContext(id, {
+            allowEmptyAuthHint: !!authHint,
+            subscribe,
+          }).catch(() => {
+            if (!get(record, 'isForbidden')) {
+              set(record, 'isForbidden', true);
+            }
+            throw findError;
+          });
         } else {
           throw findError;
         }
@@ -333,7 +335,7 @@ export default Adapter.extend(AdapterBase, {
         onedataGraphContext.deregister(gri);
       }
       // try to find another working context
-      this.searchForNextContext(gri, !!authHint)
+      this.searchForNextContext(gri, { allowEmptyAuthHint: !!authHint })
         .then(data => this.pushUpdated(gri, data))
         .catch(() =>
           set(record, 'isForbidden', true)
@@ -346,12 +348,16 @@ export default Adapter.extend(AdapterBase, {
    * context until working one found. If some context does not work, it will be
    * removed from the list of available contexts.
    * @param {string} gri GRI
-   * @param {boolean} allowEmptyAuthHint if true, at the end of checking chain
+   * @param {boolean} options.allowEmptyAuthHint if true, at the end of checking chain
    *   empty authHint will be used
+   * @param {boolean} options.subscribe
    * @returns {Promise} resolves with successful request result, rejects if
    *   none of available contexts allows to reach specified resource
    */
-  searchForNextContext(gri, allowEmptyAuthHint = true) {
+  searchForNextContext(gri, {
+    allowEmptyAuthHint = true,
+    subscribe = this.get('subscribe'),
+  } = {}) {
     const {
       onedataGraphContext,
       onedataGraph,
@@ -368,6 +374,7 @@ export default Adapter.extend(AdapterBase, {
       gri,
       operation: 'get',
       authHint,
+      subscribe,
     }).catch(error => {
       console.debug(
         `adapter:onedata-websocket: cannot subscribe to ${gri} using authHint ${authHint}, returned data :`,
@@ -376,7 +383,10 @@ export default Adapter.extend(AdapterBase, {
       if (contextGri) {
         onedataGraphContext.deregister(contextGri, null, gri);
       }
-      return this.searchForNextContext(gri, allowEmptyAuthHint && !!contextGri);
+      return this.searchForNextContext(gri, {
+        allowEmptyAuthHint: allowEmptyAuthHint && !!contextGri,
+        subscribe,
+      });
     });
   },
 
