@@ -3,7 +3,7 @@
 module.exports = {
   root: true,
   parserOptions: {
-    ecmaVersion: 2017,
+    ecmaVersion: 2019,
     sourceType: 'module',
   },
   plugins: [
@@ -57,5 +57,9 @@ module.exports = {
       },
     ],
     'promise/param-names': 'off', // default: error
+    // disable some default eslint-plugin-ember rules
+    'ember/no-observers': 'off',
+    'ember/no-side-effects': 'off',
+    'ember/no-restricted-resolver-tests': 'off',
   },
 };

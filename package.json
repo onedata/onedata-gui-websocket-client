@@ -23,8 +23,8 @@
     "clean": "rm -rf tmp dist node_modules .sass-cache tests/test-results.xml"
   },
   "dependencies": {
-    "babel-plugin-ember-modules-api-polyfill": "2.13.0",
-    "ember-cli-babel": "6.17.2",
+    "babel-plugin-ember-modules-api-polyfill": "2.13.4",
+    "ember-cli-babel": "7.3.0",
     "ember-cli-htmlbars": "2.0.3"
   },
   "devDependencies": {
@@ -34,7 +34,7 @@
     "ember-cli": "2.18.0",
     "ember-cli-chai": "0.5.0",
     "ember-cli-dependency-checker": "2.1.0",
-    "ember-cli-eslint": "4.2.3",
+    "ember-cli-eslint": "5.1.0",
     "ember-cli-htmlbars-inline-precompile": "1.0.2",
     "ember-cli-inject-live-reload": "1.7.0",
     "ember-cli-mocha": "0.14.4",
@@ -53,7 +53,7 @@
     "ember-sinon": "1.0.1",
     "ember-source": "2.18.2",
     "ember-uuid": "2.0.0",
-    "eslint-plugin-ember": "5.0.3",
+    "eslint-plugin-ember": "6.10.1",
     "loader.js": "4.6.0",
     "sinon": "4.2.0",
     "sinon-chai": "2.14.0"
