@@ -1,4 +1,1 @@
-import resolver from './helpers/resolver';
-import { setResolver } from 'ember-mocha';
-
-setResolver(resolver);
+../onedata-gui-utils/project-common/tests/test-helper.js
