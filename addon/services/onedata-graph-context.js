@@ -1,7 +1,7 @@
 /**
  * Globally stores mapping of records to other records that should be used for
  * authHint.
- * 
+ *
  * Glossary:
  * - `requestedGri` is GRI (which is used as a record ID) of record, that needs
  *    using an `authHint` on `findRecord`
@@ -17,7 +17,7 @@
  * It's indifferent which `contextGri` will be used for fetching `requestedGri`
  * as long as `contextGri` is valid (the record exists, user has permissions to
  * it and it still can be used as an authHint for `requestedGri`).
- * 
+ *
  * Mapping between `requestedGri` and `contextGri` is stored in `findRecordContext`
  * property. It is a map requestedGri: string -> array of objects in format:
  * ```
@@ -70,7 +70,7 @@ export default Service.extend({
     if (!authHintThrough) {
       return;
     }
-    let contexts = this.get('findRecordContext');
+    const contexts = this.get('findRecordContext');
     let registeredContexts = contexts.get(requestedGri);
     if (registeredContexts == null) {
       registeredContexts = A();
@@ -166,9 +166,9 @@ export default Service.extend({
    * @returns {Array.string} [auth hint type, context GRI]
    */
   getAuthHint(requestedId) {
-    let contextId = this.getContext(requestedId);
+    const contextId = this.getContext(requestedId);
     if (contextId) {
-      let contextEntityId = contextId.match(/.*\.(.*)\..*/)[1];
+      const contextEntityId = contextId.match(/.*\.(.*)\..*/)[1];
       return [authHintGet(contextId), contextEntityId];
     }
   },

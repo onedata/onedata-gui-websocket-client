@@ -99,7 +99,7 @@ export default Service.extend({
    * @returns {Promise<object>} resolves with message response
    */
   sendMessage(subtype, message) {
-    let handlerFun = this[camelize(`handle-send-${subtype}`)];
+    const handlerFun = this[camelize(`handle-send-${subtype}`)];
     if (handlerFun) {
       return handlerFun.bind(this)(message);
     } else {

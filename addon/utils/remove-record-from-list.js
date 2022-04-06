@@ -17,7 +17,11 @@ import RSVP from 'rsvp';
  * @return {RSVP.Promise} Promise, that resolves to record object if all
  * save operations success.
  */
-export default function removeRecordFromList(record, recordList, destroyRecordEntity = true) {
+export default function removeRecordFromList(
+  record,
+  recordList,
+  destroyRecordEntity = true
+) {
   let initPromise = RSVP.Promise.resolve();
   if (destroyRecordEntity) {
     initPromise = record.destroyRecord();

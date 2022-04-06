@@ -5,7 +5,7 @@
  * - push:graph
  * - push:nosub
  * - push:error
- * 
+ *
  * For mocked service, that does not need backend, see `onedata-websocket`
  *
  * @module services/onedata-websocket
@@ -137,21 +137,21 @@ export default Service.extend(Evented, {
    * @returns {Promise<object, object>} resolves with Onedata Sync API response
    */
   sendMessage(subtype, message) {
-    let {
+    const {
       _webSocket,
       _deferredMessages,
     } = this.getProperties(
       '_webSocket',
       '_deferredMessages',
     );
-    let id = this._generateUuid();
-    let rawMessage = {
+    const id = this._generateUuid();
+    const rawMessage = {
       id,
       type: 'request',
       subtype,
       payload: message,
     };
-    let sendDeferred = defer();
+    const sendDeferred = defer();
     if (_deferredMessages.has(id)) {
       // TODO: reason - collision
       sendDeferred.reject({
@@ -162,7 +162,7 @@ export default Service.extend(Evented, {
       });
     }
     try {
-      let rawMessageString = JSON.stringify(rawMessage);
+      const rawMessageString = JSON.stringify(rawMessage);
       console.debug(`onedata-websocket: Will send: ${rawMessageString}`);
       _webSocket.send(rawMessageString);
     } catch (error) {
@@ -175,7 +175,7 @@ export default Service.extend(Evented, {
     }
 
     _deferredMessages.set(id, { sendDeferred });
-    let sendPromise = sendDeferred.promise;
+    const sendPromise = sendDeferred.promise;
     sendPromise.catch(error =>
       console.warn(
         `service:onedata-websocket: sendMessage error: ${JSON.stringify(error)}`
@@ -201,14 +201,14 @@ export default Service.extend(Evented, {
     const apiOrigin = guiContext.apiOrigin;
     const suffix = '/graph_sync/gui';
 
-    let url = protocol + apiOrigin + suffix;
+    const url = protocol + apiOrigin + suffix;
 
     _initDefer.promise.catch((error) => {
       console.error(`Websocket initialization error: ${error}`);
     });
 
     try {
-      let socket = new WebSocketClass(url);
+      const socket = new WebSocketClass(url);
       socket.onopen = this._onOpen.bind(this);
       socket.onmessage = this._onMessage.bind(this);
       socket.onerror = this._onError.bind(this);
@@ -257,13 +257,13 @@ export default Service.extend(Evented, {
     _initDefer.resolve();
   },
 
-  _onMessage({ data }) {
-    data = JSON.parse(data);
+  _onMessage({ data: dataString }) {
+    const data = JSON.parse(dataString);
 
     if (isArray(data.batch)) {
       // not using forEach for performance
-      let batch = data.batch;
-      let length = batch.length;
+      const batch = data.batch;
+      const length = batch.length;
       for (let i = 0; i < length; ++i) {
         this._handleMessage(batch[i]);
       }
@@ -277,8 +277,7 @@ export default Service.extend(Evented, {
    * @param {number} options.protocolVersion
    * @returns {Promise<object, object>} resolves with successful handshake data
    */
-  _handshake(options) {
-    options = options || {};
+  _handshake(options = {}) {
     const protocolVersion = (options.protocolVersion === undefined) ?
       this.get('defaultProtocolVersion') : options.protocolVersion;
     const token = options.token;
@@ -295,7 +294,7 @@ export default Service.extend(Evented, {
     }
 
     return new Promise((resolve, reject) => {
-      let handshaking = this.sendMessage('handshake', handshakeData);
+      const handshaking = this.sendMessage('handshake', handshakeData);
       handshaking.then(({ payload: { success, data, error } }) => {
         if (success) {
           resolve(data);
@@ -333,7 +332,7 @@ export default Service.extend(Evented, {
     }
   },
 
-  /** 
+  /**
    * Generates a random uuid of message
    * @return {string}
    */
@@ -341,7 +340,7 @@ export default Service.extend(Evented, {
     let date = new Date().getTime();
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
       function (character) {
-        let random = (date + Math.random() * 16) % 16 | 0;
+        const random = (date + Math.random() * 16) % 16 | 0;
         date = Math.floor(date / 16);
         return (character === 'x' ? random : random & 0x7 | 0x8).toString(16);
       });
@@ -358,11 +357,11 @@ export default Service.extend(Evented, {
    */
   _handleMessage(message) {
     console.debug(`onedata-websocket: Handling message: ${JSON.stringify(message)}`);
-    let {
+    const {
       type,
     } = message;
 
-    let handler = this[this._MESSAGE_HANDLERS[type]];
+    const handler = this[this._MESSAGE_HANDLERS[type]];
 
     if (typeof handler === 'function') {
       handler.bind(this)(message);
@@ -374,7 +373,7 @@ export default Service.extend(Evented, {
   /**
    * Handles a push message from server
    * - some messages are error responses for requests, these are used to reject
-   *   promises 
+   *   promises
    * - some messages are regular push messages with various subtypes - they cause
    *   an event to be sent (`push:<subtype>`), eg. `push:graph`
    * @param {object} message
@@ -382,7 +381,7 @@ export default Service.extend(Evented, {
    */
   _handlePushMessage(message) {
     // HACK convert push error message to response message
-    let badMessageId = this._badMessageId(message);
+    const badMessageId = this._badMessageId(message);
     if (badMessageId) {
       const badMessage = _.assign({}, message, { id: badMessageId, type: 'response' });
       this._handleResponseMessage(badMessage);
@@ -392,12 +391,12 @@ export default Service.extend(Evented, {
   },
 
   _handleResponseMessage(message) {
-    let _deferredMessages = this.get('_deferredMessages');
-    let {
+    const _deferredMessages = this.get('_deferredMessages');
+    const {
       id,
     } = message;
     if (_deferredMessages.has(id)) {
-      let { sendDeferred } = _deferredMessages.get(id);
+      const { sendDeferred } = _deferredMessages.get(id);
       // NOTE Map.delete will not work on IE 10 or lower
       _deferredMessages.delete(id);
       sendDeferred.resolve(message);
@@ -410,7 +409,7 @@ export default Service.extend(Evented, {
 
   /**
    * Helper: if response reports badMessage error, return id of bad message
-   * @param {string} message 
+   * @param {string} message
    * @returns {string|undefined}
    */
   _badMessageId(message) {
@@ -420,7 +419,7 @@ export default Service.extend(Evented, {
       message.payload.error &&
       message.payload.error.id === 'badMessage'
     ) {
-      let requestMessage = JSON.parse(message.payload.error.details.message);
+      const requestMessage = JSON.parse(message.payload.error.details.message);
       return requestMessage.id;
     } else {
       return undefined;

@@ -31,8 +31,8 @@ export default Mixin.create({
    * @returns {Promise.<HandshakeData>}
    */
   handleSendHandshake() {
-    let isAuthenticated = this.get('cookies').read('is-authenticated') === 'true';
-    let user = this.get('defaultUserId');
+    const isAuthenticated = this.get('cookies').read('is-authenticated') === 'true';
+    const user = this.get('defaultUserId');
     return Promise.resolve({
       version: 1,
       sessionId: 'some-session-id',

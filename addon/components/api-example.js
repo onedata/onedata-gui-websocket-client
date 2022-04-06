@@ -77,7 +77,7 @@ export default Component.extend({
     },
 
     getRecord() {
-      let gr = this.get('currentUser').get('groupsList');
+      const gr = this.get('currentUser').get('groupsList');
       gr.then(record => {
         this.set('messageResponse', JSON.stringify(record));
       });
@@ -85,9 +85,9 @@ export default Component.extend({
     },
 
     createRecord() {
-      let userId = this.get('userId');
-      let store = this.get('store');
-      let record = store.createRecord('space', {
+      const userId = this.get('userId');
+      const store = this.get('store');
+      const record = store.createRecord('space', {
         name: 'one' + this.get('inputValue'),
         _meta: {
           authHint: ['asUser', userId],
@@ -102,7 +102,7 @@ export default Component.extend({
     },
 
     updateRecord() {
-      let tmpRecord = this.get('tmpRecord');
+      const tmpRecord = this.get('tmpRecord');
       tmpRecord.set('name', this.get('inputValue'));
       return tmpRecord.save();
     },
@@ -121,7 +121,7 @@ export default Component.extend({
     },
 
     getTokens() {
-      let tmpRecord = this.get('tmpRecord');
+      const tmpRecord = this.get('tmpRecord');
       Promise.all([
         tmpRecord.getInviteToken('user'),
         tmpRecord.getInviteToken('group'),

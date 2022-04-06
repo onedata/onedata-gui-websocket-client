@@ -15,7 +15,11 @@
  * @returns {string}
  */
 export default function gri() {
-  let entityType, entityId, aspect, aspectId, scope;
+  let entityType;
+  let entityId;
+  let aspect;
+  let aspectId;
+  let scope;
   if (typeof arguments[0] === 'object') {
     const options = arguments[0];
     entityType = options.entityType;

@@ -5,7 +5,7 @@ import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 describe('Unit | Utility | parse gri', function () {
 
   it('parses gri string', function () {
-    let {
+    const {
       entityType,
       entityId,
       aspect,
@@ -19,7 +19,7 @@ describe('Unit | Utility | parse gri', function () {
   });
 
   it('parses gri string without aspect', function () {
-    let {
+    const {
       entityType,
       entityId,
       aspect,
@@ -33,7 +33,7 @@ describe('Unit | Utility | parse gri', function () {
   });
 
   it('parses gri string with aspect id', function () {
-    let {
+    const {
       entityType,
       entityId,
       aspect,

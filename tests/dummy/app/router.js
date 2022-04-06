@@ -6,6 +6,8 @@ const Router = EmberRouter.extend({
   rootURL: config.rootURL,
 });
 
+// ESlint considers this method as Array.map, ignore it
+/* eslint-disable array-callback-return */
 Router.map(function () {
   this.route('login');
 });

@@ -46,10 +46,10 @@ describe('Unit | Service | onedata websocket', function () {
 
   it('resolves initWebsocket promise by opening ws connection', function (done) {
     let promiseResolved = false;
-    let service = this.subject();
+    const service = this.subject();
 
     service.set('_webSocketClass', WebSocketMock);
-    let promise = service._initWebsocket();
+    const promise = service._initWebsocket();
     promise.then(() => {
       promiseResolved = true;
     });
@@ -60,10 +60,10 @@ describe('Unit | Service | onedata websocket', function () {
   });
 
   it('sends event with message content when push message is sent', function (done) {
-    let service = this.subject();
+    const service = this.subject();
     service.set('_webSocketClass', WebSocketMock);
     let pushHandlerDone = false;
-    let pushHandler = function (m) {
+    const pushHandler = function (m) {
       expect(m).to.equal('hello');
       pushHandlerDone = true;
     };
@@ -77,7 +77,7 @@ describe('Unit | Service | onedata websocket', function () {
     });
 
     service._initWebsocket().then(() => {
-      let _webSocket = service.get('_webSocket');
+      const _webSocket = service.get('_webSocket');
       _webSocket.onmessage({
         data: JSON.stringify({
           batch: [{
@@ -95,14 +95,14 @@ describe('Unit | Service | onedata websocket', function () {
   });
 
   it('handles message responses', function (done) {
-    let service = this.subject();
+    const service = this.subject();
     service.set('_webSocketClass', WebSocketMock);
     const messageId = 'some_message_id';
     const responsePayload = { x: 'good evening' };
     service.set('_generateUuid', () => messageId);
 
     service._initWebsocket().then(() => {
-      let _webSocket = service.get('_webSocket');
+      const _webSocket = service.get('_webSocket');
 
       _webSocket.send = function () {
         window.setTimeout(() => {

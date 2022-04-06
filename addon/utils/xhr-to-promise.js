@@ -5,11 +5,13 @@
  * @author Jakub Liput
  * @copyright (C) 2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
- * 
+ *
  * @param {jq promise object} jqPromise eg. returned from `$.ajax`
  * @returns {Promise}
  */
 
+import { resolve } from 'rsvp';
+
 export default function xhrToPromise(jqPromise) {
-  return Promise.resolve(jqPromise);
+  return resolve(jqPromise);
 }

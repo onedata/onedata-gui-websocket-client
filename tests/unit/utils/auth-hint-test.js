@@ -3,7 +3,7 @@ import { describe, it } from 'mocha';
 import authHintGet from 'onedata-gui-websocket-client/utils/auth-hint-get';
 
 describe('Unit | Utility | auth hints', function () {
-  let authHintGetCases = [
+  const authHintGetCases = [
     ['group', 'users', 'throughGroup'],
     ['group', 'groups', 'throughGroup'],
     ['space', 'users', 'throughSpace'],
@@ -15,7 +15,7 @@ describe('Unit | Utility | auth hints', function () {
     it(
       `generates hint prefix for ${parentType} shared ${collectionType} list`,
       function () {
-        let gid = `${parentType}.some_id.${collectionType}`;
+        const gid = `${parentType}.some_id.${collectionType}`;
         expect(
           authHintGet(gid),
           `input gid: ${gid}`,

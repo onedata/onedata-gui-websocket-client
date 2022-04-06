@@ -4,6 +4,7 @@ import { setupTest } from 'ember-mocha';
 import wait from 'ember-test-helpers/wait';
 import sinon from 'sinon';
 import { registerService, lookupService } from '../../helpers/stub-service';
+import { resolve } from 'rsvp';
 
 import OnedataWebsocketService from '../../helpers/stubs/services/onedata-websocket';
 import ActiveRequestsService from '../../helpers/stubs/services/active-requests';
@@ -19,11 +20,11 @@ describe('Unit | Service | onedata rpc', function () {
   });
 
   it('can use onedata-websocket mock handleSendRpc', function (done) {
-    let service = this.subject();
-    let ws = lookupService(this, 'onedata-websocket');
-    let handleSendRpc = sinon.spy({
+    const service = this.subject();
+    const ws = lookupService(this, 'onedata-websocket');
+    const handleSendRpc = sinon.spy({
       handleSendRpc() {
-        return Promise.resolve({
+        return resolve({
           payload: {
             success: true,
             args: {},

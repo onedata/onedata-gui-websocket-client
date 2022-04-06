@@ -12,14 +12,14 @@ import { get } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
 /**
- * @param {object|string} record 
+ * @param {object|string} recordOrGri
  * @returns {string}
  */
-export default function modelRoutableId(record) {
-  record = record || {};
-  const recordId = typeof record === 'string' ? record : get(record, 'id');
+export default function modelRoutableId(recordOrGri) {
+  const recordGri = typeof recordOrGri === 'string' ?
+    recordOrGri : get(recordOrGri || {}, 'id');
   try {
-    return parseGri(recordId).entityId;
+    return parseGri(recordGri).entityId;
   } catch (err) {
     return null;
   }
