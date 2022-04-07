@@ -19,7 +19,7 @@ export default Service.extend({
    * @param {string} entityType Entity type of record specified by token
    * @param {string} token invitation token
    * @param {[string, string]} authHint
-   * @return {Promise}
+   * @returns {Promise}
    */
   joinRelation(entityType, token, authHint) {
     return this.get('onedataGraph').request({
@@ -43,7 +43,7 @@ export default Service.extend({
    * @param {string} entityId
    * @param {string} aspect
    * @param {string} aspectId
-   * @return {Promise}
+   * @returns {Promise}
    */
   leaveRelation(entityType, entityId, aspect, aspectId) {
     return this.get('onedataGraph').request({

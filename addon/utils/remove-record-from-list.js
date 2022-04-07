@@ -14,7 +14,7 @@ import RSVP from 'rsvp';
  * @param {DS.Model} recordList parent record (with `list` property)
  * @param {boolean} destroyRecordEntity If true, record will be saved before
  * removing it from the list
- * @return {RSVP.Promise} Promise, that resolves to record object if all
+ * @returns {RSVP.Promise} Promise, that resolves to record object if all
  * save operations success.
  */
 export default function removeRecordFromList(

@@ -334,7 +334,7 @@ export default Service.extend(Evented, {
 
   /**
    * Generates a random uuid of message
-   * @return {string}
+   * @returns {string}
    */
   _generateUuid() {
     let date = new Date().getTime();
