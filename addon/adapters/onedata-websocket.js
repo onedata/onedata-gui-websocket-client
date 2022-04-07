@@ -122,7 +122,7 @@ export default Adapter.extend(AdapterBase, {
    * @param {DS.Store} store
    * @param {DS.Model} type
    * @param {DS.Snapshot} snapshot
-   * @return {Promise} promise
+   * @returns {Promise} promise
    */
   createRecord(store, type, snapshot) {
     const {
@@ -198,7 +198,7 @@ export default Adapter.extend(AdapterBase, {
    * @param {DS.Store} store
    * @param {DS.Model} type
    * @param {DS.Snapshot} snapshot
-   * @return {Promise} promise
+   * @returns {Promise} promise
    */
   updateRecord(store, type, snapshot) {
     const {
@@ -237,7 +237,7 @@ export default Adapter.extend(AdapterBase, {
    * @param {DS.Store} store
    * @param {DS.Model} type
    * @param {DS.Snapshot} snapshot
-   * @return {Promise} promise
+   * @returns {Promise} promise
    */
   deleteRecord(store, type, snapshot) {
     const {
