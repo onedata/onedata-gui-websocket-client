@@ -273,11 +273,12 @@ export default Service.extend(Evented, {
   },
 
   /**
-   * @param {object} options
-   * @param {number} options.protocolVersion
+   * @param {object} rawOptions
+   * @param {number} rawOptions.protocolVersion
    * @returns {Promise<object, object>} resolves with successful handshake data
    */
-  _handshake(options = {}) {
+  _handshake(rawOptions) {
+    const options = rawOptions || {};
     const protocolVersion = (options.protocolVersion === undefined) ?
       this.get('defaultProtocolVersion') : options.protocolVersion;
     const token = options.token;

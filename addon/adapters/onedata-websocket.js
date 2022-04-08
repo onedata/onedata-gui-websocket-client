@@ -348,6 +348,7 @@ export default Adapter.extend(AdapterBase, {
    * context until working one found. If some context does not work, it will be
    * removed from the list of available contexts.
    * @param {string} gri GRI
+   * @param {Object} options
    * @param {boolean} options.allowEmptyAuthHint if true, at the end of checking chain
    *   empty authHint will be used
    * @param {boolean} options.subscribe

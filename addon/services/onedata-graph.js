@@ -42,12 +42,12 @@ export default Service.extend(Evented, {
   },
 
   /**
-   * @param {String} gri
-   * @param {String} operation one of: get, create, update, delete
-   * @param {Object} data
-   * @param {[String,String]} authHint [HintType, Id of subject]
-   * @param {boolean} subscribe
-   * @param {String} [requestName]
+   * @param {Object} options
+   * @param {String} options.gri
+   * @param {String} options.operation one of: get, create, update, delete
+   * @param {Object} options.data
+   * @param {[String,String]} options.authHint [HintType, Id of subject]
+   * @param {boolean} [options.subscribe]
    * @returns {Promise<Object, Object>} resolves with Onedata Graph resource
    *   (typically record data)
    */
