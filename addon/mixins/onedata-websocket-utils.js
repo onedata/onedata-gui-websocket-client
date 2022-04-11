@@ -11,7 +11,7 @@
 
 import Mixin from '@ember/object/mixin';
 import { inject as service } from '@ember/service';
-import { resolve } from 'rsvp';
+import { Promise, resolve } from 'rsvp';
 import getGuiAuthToken from 'onedata-gui-websocket-client/utils/get-gui-auth-token';
 const NOBODY_IDENTITY = 'nobody';
 

@@ -19,40 +19,40 @@ describe('Unit | Utility | development environment', function () {
   });
 
   it('detects if backend should be mocked', function () {
-    let config = { APP: { MOCK_BACKEND: true } };
-    let result = isDevelopment(config);
+    const config = { APP: { MOCK_BACKEND: true } };
+    const result = isDevelopment(config);
     expect(result).to.be.true;
   });
 
   it('returns symbol based on MOCK_BACKEND environment flag true', function () {
-    let config = {
+    const config = {
       APP: {
         MOCK_BACKEND: true,
       },
     };
-    let Production = {};
-    let Development = {};
-    let result = environmentExport(config, Production, Development);
+    const Production = {};
+    const Development = {};
+    const result = environmentExport(config, Production, Development);
     expect(result).to.be.equal(Development);
   });
 
   it('returns symbol based on MOCK_BACKEND environment flag false', function () {
-    let config = {
+    const config = {
       APP: {},
     };
-    let Production = {};
-    let Development = {};
-    let result = environmentExport(config, Production, Development);
+    const Production = {};
+    const Development = {};
+    const result = environmentExport(config, Production, Development);
     expect(result).to.be.equal(Production);
   });
 
   it('detects that model is already mocked', function (done) {
-    let userRecord = {};
-    let findRecord = sinon.stub(this.storeStub, 'findRecord');
+    const userRecord = {};
+    const findRecord = sinon.stub(this.storeStub, 'findRecord');
     findRecord.withArgs('user', sinon.match(/.*stub_user_id.*/))
       .resolves(userRecord);
 
-    let promise = isModelMocked(this.storeStub);
+    const promise = isModelMocked(this.storeStub);
     promise.then(result => {
       expect(result).to.be.true;
       done();
@@ -64,7 +64,7 @@ describe('Unit | Utility | development environment', function () {
       .withArgs('user', sinon.match(/.*stub_user_id.*/))
       .rejects();
 
-    let promise = isModelMocked(this.storeStub);
+    const promise = isModelMocked(this.storeStub);
     promise.then(result => {
       expect(result).to.be.false;
       done();

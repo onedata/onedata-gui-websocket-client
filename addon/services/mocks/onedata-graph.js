@@ -8,7 +8,7 @@
  */
 
 import Evented from '@ember/object/evented';
-import { resolve, reject } from 'rsvp';
+import { Promise, resolve, reject } from 'rsvp';
 import Service, { inject as service } from '@ember/service';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { v4 as uuid } from 'ember-uuid';

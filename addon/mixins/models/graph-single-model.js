@@ -57,8 +57,9 @@ export default Mixin.create(GraphModel, {
    * relationship. Note that this method will reload the record if the relationship
    * is null or an error occurs when loading relationship.
    * @param {String} relationName
-   * @param {Boolean} [reload] reload flag passed to `findRecord`
-   * @param {Boolean} [allowNull] if true, lack of relationship id does not cause error
+   * @param {Object} [options]
+   * @param {Boolean} [options.reload] reload flag passed to `findRecord`
+   * @param {Boolean} [options.allowNull] if true, lack of relationship id does not cause error
    * @returns {Promise<Model>}
    */
   getRelation(relationName, { allowNull = false, reload = false } = {}) {

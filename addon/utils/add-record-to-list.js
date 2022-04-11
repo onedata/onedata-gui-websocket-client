@@ -14,7 +14,7 @@ import RSVP from 'rsvp';
  * @param {DS.Model} recordList parent record (with `list` property)
  * @param {boolean} saveRecordEntity If true, record will be saved before
  * pushing it to the list
- * @return {RSVP.Promise} Promise, that resolves to record object if all
+ * @returns {RSVP.Promise} Promise, that resolves to record object if all
  * save operations success.
  */
 export default function addRecordToList(record, recordList, saveRecordEntity = false) {

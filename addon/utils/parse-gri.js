@@ -1,5 +1,5 @@
 /**
- * Destructure GRI string into parts 
+ * Destructure GRI string into parts
  *
  * @module utils/parse-gri
  * @author Jakub Liput
@@ -13,7 +13,7 @@
  * @returns {Object} contains strings with GRI parts
  */
 export default function (griValue) {
-  let m = griValue.match(/(.*)\.(.*)\.([^:,]*)(,[^:]*)?(:.*)?/);
+  const m = griValue.match(/(.*)\.(.*)\.([^:,]*)(,[^:]*)?(:.*)?/);
   if (!m) {
     throw new Error('util:gri#parseGri: unparsable gri: ' + griValue);
   }

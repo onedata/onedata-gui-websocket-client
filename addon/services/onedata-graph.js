@@ -42,12 +42,12 @@ export default Service.extend(Evented, {
   },
 
   /**
-   * @param {String} gri
-   * @param {String} operation one of: get, create, update, delete
-   * @param {Object} data
-   * @param {[String,String]} authHint [HintType, Id of subject]
-   * @param {boolean} subscribe
-   * @param {String} [requestName]
+   * @param {Object} options
+   * @param {String} options.gri
+   * @param {String} options.operation one of: get, create, update, delete
+   * @param {Object} options.data
+   * @param {[String,String]} options.authHint [HintType, Id of subject]
+   * @param {boolean} [options.subscribe]
    * @returns {Promise<Object, Object>} resolves with Onedata Graph resource
    *   (typically record data)
    */
@@ -66,13 +66,13 @@ export default Service.extend(Evented, {
 
     const promise = this.getRequestPrerequisitePromise(requestData).then(() =>
       new Promise((resolve, reject) => {
-        subscribe = operation === 'get' ||
+        const effSubscribe = operation === 'get' ||
           operation === 'create' ? subscribe : false;
-        let message = {
+        const message = {
           gri,
           operation,
           data,
-          subscribe,
+          subscribe: effSubscribe,
         };
         if (authHint) {
           if (Array.isArray(authHint) && authHint.length === 2) {
@@ -82,7 +82,7 @@ export default Service.extend(Evented, {
           }
         }
         this.removeScheduledUnsubscription(gri);
-        let requesting = onedataWebsocket.sendMessage('graph', message);
+        const requesting = onedataWebsocket.sendMessage('graph', message);
         requesting.then(({ payload: { success, data: payloadData, error } }) => {
           if (success) {
             if (!payloadData) {
@@ -177,7 +177,7 @@ export default Service.extend(Evented, {
    * @param {string} payload.gri GRI of entity to update/delete
    * @param {object|undefined} payload.data if updateType is updated: object
    *   containing properties to change in record; undefined otherwise
-   * 
+   *
    * @returns {undefined}
    */
   handlePush({ updateType, gri, data }) {
@@ -199,7 +199,7 @@ export default Service.extend(Evented, {
    *   value is: forbidden
    * @param {string} payload.gri GRI of entity
    * @param {string|undefined} payload.authHint authHint
-   * 
+   *
    * @returns {undefined}
    */
   handleNosub({ reason, gri, authHint }) {

@@ -16,11 +16,11 @@ import { camelize } from '@ember/string';
  * @returns {string} first part of authHint
  */
 export default function authHintGet(gri) {
-  let griMatch = gri.match(
+  const griMatch = gri.match(
     /(op_)?(cluster|harvester|space|group|atm_inventory)\..*\.(users|groups|spaces|harvesters|eff_providers|providers|children|eff_users|eff_groups|eff_children|owners|instance)/
   );
   if (griMatch) {
-    let modelName = griMatch[2];
+    const modelName = griMatch[2];
     return camelize(`through-${modelName}`);
   }
 }

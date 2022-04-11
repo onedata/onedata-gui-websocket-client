@@ -23,10 +23,10 @@ describe('Unit | Serializer | context collection', function () {
       list: ['one.two.three', 'five.six.seven'],
     };
 
-    let graphContext = lookupService(this, 'onedata-graph-context');
-    let registerStub = sinon.stub(graphContext, 'registerArray');
+    const graphContext = lookupService(this, 'onedata-graph-context');
+    const registerStub = sinon.stub(graphContext, 'registerArray');
 
-    let serializer = this.subject();
+    const serializer = this.subject();
 
     serializer.registerContextForItems(hash);
 

@@ -35,14 +35,14 @@ describe('Unit | Adapter | onedata websocket', function () {
   });
 
   it('uses graph service to findRecord', function () {
-    let store = {};
-    let type = getModelType();
-    let recordId = 'record.record_id.instance:private';
-    let graphData = {};
-    let adapter = this.subject();
+    const store = {};
+    const type = getModelType();
+    const recordId = 'record.record_id.instance:private';
+    const graphData = {};
+    const adapter = this.subject();
 
-    let graph = lookupService(this, 'onedata-graph');
-    let graphRequestStub = stub(graph, 'request');
+    const graph = lookupService(this, 'onedata-graph');
+    const graphRequestStub = stub(graph, 'request');
     graphRequestStub.throws('onedata-graph#request called with wrong args');
     graphRequestStub
       .withArgs({
@@ -53,7 +53,7 @@ describe('Unit | Adapter | onedata websocket', function () {
       })
       .resolves(graphData);
 
-    let graphContext = lookupService(this, 'onedata-graph-context');
+    const graphContext = lookupService(this, 'onedata-graph-context');
     stub(graphContext, 'getAuthHint').returns(undefined);
 
     return adapter.findRecord(store, type, recordId, {}).then(adapterRecord => {
@@ -63,15 +63,15 @@ describe('Unit | Adapter | onedata websocket', function () {
 
   it('uses graph service to createRecord with support for metadata',
     function () {
-      let store = {};
-      let modelName = 'something';
-      let type = getModelType(modelName);
-      let authHint = ['asUser', 'u1'];
-      let recordData = {
+      const store = {};
+      const modelName = 'something';
+      const type = getModelType(modelName);
+      const authHint = ['asUser', 'u1'];
+      const recordData = {
         foo: 'bar',
         one: null,
       };
-      let snapshot = {
+      const snapshot = {
         record: {
           _meta: {
             authHint,
@@ -79,11 +79,11 @@ describe('Unit | Adapter | onedata websocket', function () {
         },
         serialize: () => recordData,
       };
-      let retGraphData = {};
-      let adapter = this.subject();
-      let graph = lookupService(this, 'onedata-graph');
-      let graphRequestStub = stub(graph, 'request');
-      let graphValidArgs = {
+      const retGraphData = {};
+      const adapter = this.subject();
+      const graph = lookupService(this, 'onedata-graph');
+      const graphRequestStub = stub(graph, 'request');
+      const graphValidArgs = {
         gri: 'something.null.instance:auto',
         operation: 'create',
         // data for graph is stripped from _meta
@@ -102,14 +102,14 @@ describe('Unit | Adapter | onedata websocket', function () {
     });
 
   it('uses graph service to updateRecord', function () {
-    let store = {};
-    let modelName = 'something';
-    let type = getModelType(modelName);
-    let recordId = 'a.b.c:private';
-    let recordData = {
+    const store = {};
+    const modelName = 'something';
+    const type = getModelType(modelName);
+    const recordId = 'a.b.c:private';
+    const recordData = {
       foo: 'bar',
     };
-    let snapshot = {
+    const snapshot = {
       record: {
         id: recordId,
       },
@@ -117,12 +117,12 @@ describe('Unit | Adapter | onedata websocket', function () {
         return recordData;
       },
     };
-    let graphData = {};
-    let adapter = this.subject();
+    const graphData = {};
+    const adapter = this.subject();
 
-    let graph = lookupService(this, 'onedata-graph');
-    let graphRequestStub = stub(graph, 'request');
-    let graphValidArgs = {
+    const graph = lookupService(this, 'onedata-graph');
+    const graphRequestStub = stub(graph, 'request');
+    const graphValidArgs = {
       gri: recordId,
       operation: 'update',
       data: recordData,
@@ -138,14 +138,14 @@ describe('Unit | Adapter | onedata websocket', function () {
   });
 
   it('uses graph service to deleteRecord', function () {
-    let store = {};
-    let modelName = 'something';
-    let type = getModelType(modelName);
-    let recordId = 'a.b.c:private';
-    let recordData = {
+    const store = {};
+    const modelName = 'something';
+    const type = getModelType(modelName);
+    const recordId = 'a.b.c:private';
+    const recordData = {
       foo: 'bar',
     };
-    let snapshot = {
+    const snapshot = {
       record: {
         id: recordId,
       },
@@ -153,12 +153,12 @@ describe('Unit | Adapter | onedata websocket', function () {
         return recordData;
       },
     };
-    let graphData = {};
-    let adapter = this.subject();
+    const graphData = {};
+    const adapter = this.subject();
 
-    let graph = lookupService(this, 'onedata-graph');
-    let graphRequestStub = stub(graph, 'request');
-    let graphValidArgs = {
+    const graph = lookupService(this, 'onedata-graph');
+    const graphRequestStub = stub(graph, 'request');
+    const graphValidArgs = {
       gri: recordId,
       operation: 'delete',
     };

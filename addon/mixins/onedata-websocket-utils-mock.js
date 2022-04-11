@@ -46,7 +46,7 @@ export default Mixin.create({
    * @returns {Promise<undefined>}
    */
   forceCloseConnection() {
-    return Promise.resolve();
+    return resolve();
   },
 
   /**

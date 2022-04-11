@@ -16,7 +16,7 @@ module.exports = {
    * @returns {any}
    */
   treeForPublic: function () {
-    var tree = this._super.treeForPublic.apply(this, arguments);
+    const tree = this._super.treeForPublic.apply(this, arguments);
     if (tree) {
       tree.destDir = '/';
     }

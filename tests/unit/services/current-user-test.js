@@ -28,8 +28,8 @@ describe('Unit | Service | current user', function () {
       'data.authenticated.identity.user',
       userEntityId
     );
-    let store = lookupService(this, 'store');
-    let findRecord = stub(store, 'findRecord');
+    const store = lookupService(this, 'store');
+    const findRecord = stub(store, 'findRecord');
     findRecord
       .withArgs('user', sinon.match(new RegExp(`.*${userEntityId}.*`)))
       .resolves(userRecord);
@@ -38,7 +38,7 @@ describe('Unit | Service | current user', function () {
       .withArgs('user1')
       .returns('user.user1.instance:private');
 
-    let service = this.subject();
+    const service = this.subject();
 
     service.getCurrentUserRecord().then(record => {
       expect(record).to.equal(userRecord);

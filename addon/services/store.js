@@ -11,7 +11,7 @@
 import { get } from '@ember/object';
 import Store from 'ember-data/store';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
-import { resolve } from 'rsvp';
+import { all as allFulfilled, resolve } from 'rsvp';
 import { inject as service } from '@ember/service';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 
@@ -33,7 +33,7 @@ export default Store.extend({
   recalculateListsWithEntity(modelName, entityId) {
     const listModelName = `${modelName}-list`;
     const records = this.peekAll(listModelName);
-    return Promise.all(records.map(listModel => {
+    return allFulfilled(records.map(listModel => {
       if (!get(listModel, 'isForbidden')) {
         const ids = listModel.hasMany('list').ids();
         if (ids && ids.some(id => parseGri(id).entityId === entityId)) {
@@ -64,7 +64,7 @@ export default Store.extend({
 
   /**
    * Cancels subscription for specified record
-   * 
+   *
    * @param {GraphModel} record
    * @returns {Promise}
    */

@@ -1,5 +1,5 @@
 /**
- * A set of functions helping with using app in development or production mode 
+ * A set of functions helping with using app in development or production mode
  *
  * @module utils/development-environment
  * @author Jakub Liput
@@ -11,13 +11,13 @@ const mockUserId = 'stub_user_id';
 
 /**
  * Checks if we are in environment that needs to create development model
- * 
+ *
  * @export
  * @param {object} config Ember application config, get it with: `ember-get-config`
  * @returns {boolean}
  */
 export function isDevelopment(config) {
-  let {
+  const {
     APP: {
       MOCK_BACKEND,
     },
@@ -31,7 +31,7 @@ function getSingletonUser(store) {
 
 /**
  * Returns true if mode seems to be already mocked
- * 
+ *
  * @export
  * @param {EmberData.Store} store
  * @returns {Promise<boolean, any>}
@@ -45,11 +45,11 @@ export function isModelMocked(store) {
 
 /**
  * Return one of two symbols based on MOCK_BACKEND flag from environment object
- * 
+ *
  * @export
  * @param {any} config an Ember environment object (get it with ember-get-config)
- * @param {any} productionSymbol 
- * @param {any} developmentSymbol 
+ * @param {any} productionSymbol
+ * @param {any} developmentSymbol
  * @returns {any}
  */
 export function environmentExport(config, productionSymbol, developmentSymbol) {

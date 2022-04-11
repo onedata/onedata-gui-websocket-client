@@ -21,8 +21,9 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
 
   /**
    * @override
-   * @param {string} username 
-   * @param {string} password
+   * @param {Object} options
+   * @param {string} options.username
+   * @param {string} options.password
    */
   authenticate({ username, password }) {
     return ((username && password) ? doLogin(username, password) : reject())
@@ -41,8 +42,8 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
 
 /**
  * Makes REST request to create authenticated HTTP session
- * @param {string} username 
- * @param {string} password 
+ * @param {string} username
+ * @param {string} password
  * @returns {Promise} a promise with then, catch and finally method
  *   based on jqPromise; resolves when username and password are valid
  *   and session is created; rejects otherwise
