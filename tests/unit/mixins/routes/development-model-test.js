@@ -3,7 +3,7 @@ import { describe, it, beforeEach } from 'mocha';
 import EmberObject from '@ember/object';
 import RoutesDevelopmentModelMixin from 'onedata-gui-websocket-client/mixins/routes/development-model';
 import sinon from 'sinon';
-import wait from 'ember-test-helpers/wait';
+import { settled } from '@ember/test-helpers';
 import { resolve } from 'rsvp';
 
 const storeStub = {};
@@ -22,7 +22,7 @@ describe('Unit | Mixin | routes/development model', function () {
       });
   });
 
-  it('resolves beforeModel if model is already mocked', function (done) {
+  it('resolves beforeModel if model is already mocked', async function () {
     const subject = this.RoutesDevelopmentModelObject.create();
 
     const generateDevelopmentModel = sinon.stub(subject, 'generateDevelopmentModel');
@@ -34,16 +34,15 @@ describe('Unit | Mixin | routes/development model', function () {
 
     const promise = subject.beforeModel();
 
-    wait().then(() => {
-      expect(isDevelopment).to.be.calledOnce;
-      expect(isModelMocked).to.be.called;
-      expect(clearDevelopmentModel).to.be.called;
-      expect(generateDevelopmentModel).to.not.be.called;
-      expect(promise).to.eventually.be.fulfilled.notify(done);
-    });
+    await settled();
+    expect(isDevelopment).to.be.calledOnce;
+    expect(isModelMocked).to.be.called;
+    expect(clearDevelopmentModel).to.be.called;
+    expect(generateDevelopmentModel).to.not.be.called;
+    await expect(promise).to.eventually.be.fulfilled;
   });
 
-  it('invokes generateDevelopmentModel if model is not mocked yet', function (done) {
+  it('invokes generateDevelopmentModel if model is not mocked yet', async function () {
     const subject = this.RoutesDevelopmentModelObject.create();
 
     const generateDevelopmentModel = sinon.stub(subject, 'generateDevelopmentModel');
@@ -55,12 +54,12 @@ describe('Unit | Mixin | routes/development model', function () {
     isModelMocked.resolves(false);
 
     const promise = subject.beforeModel();
-    wait().then(() => {
-      expect(isDevelopment).to.be.calledOnce;
-      expect(isModelMocked).to.be.called;
-      expect(clearDevelopmentModel).to.be.called;
-      expect(generateDevelopmentModel).to.be.calledOnce;
-      expect(promise).to.eventually.be.fulfilled.notify(done);
-    });
+
+    await settled();
+    expect(isDevelopment).to.be.calledOnce;
+    expect(isModelMocked).to.be.called;
+    expect(clearDevelopmentModel).to.be.called;
+    expect(generateDevelopmentModel).to.be.calledOnce;
+    await expect(promise).to.eventually.be.fulfilled;
   });
 });

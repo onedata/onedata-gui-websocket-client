@@ -3,10 +3,10 @@ import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
 
 describe('Unit | Transform | array', function () {
-  setupTest('transform:array', {});
+  setupTest();
 
   it('deserializes array', function () {
-    const transform = this.subject();
+    const transform = this.owner.lookup('transform:array');
     const source = [1, 2, 3];
     const result = transform.deserialize(source);
     expect(result.length).to.equal(source.length);
@@ -14,7 +14,7 @@ describe('Unit | Transform | array', function () {
   });
 
   it('serializes array', function () {
-    const transform = this.subject();
+    const transform = this.owner.lookup('transform:array');
     const source = [1, 2, 3];
     const result = transform.serialize(source);
     expect(result.length).to.equal(source.length);

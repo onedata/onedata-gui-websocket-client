@@ -1,14 +1,13 @@
 import EmberObject from '@ember/object';
 import Evented from '@ember/object/evented';
 import { expect } from 'chai';
-import { describe, it, beforeEach, afterEach } from 'mocha';
+import { describe, it, beforeEach } from 'mocha';
 import { setupTest } from 'ember-mocha';
-import wait from 'ember-test-helpers/wait';
+import { settled } from '@ember/test-helpers';
 import { registerService, lookupService } from '../../helpers/stub-service';
 import Service from '@ember/service';
 import sinon from 'sinon';
 import { get } from '@ember/object';
-import { getOwner } from '@ember/application';
 
 class WebSocketMock {
   constructor() {
@@ -22,9 +21,7 @@ const OnedataWebsocketErrorHandler = Service.extend({
 });
 
 describe('Unit | Service | onedata websocket', function () {
-  setupTest('service:onedata-websocket', {
-    needs: [],
-  });
+  const { afterEach } = setupTest();
 
   beforeEach(function () {
     registerService(
@@ -32,35 +29,31 @@ describe('Unit | Service | onedata websocket', function () {
       'onedataWebsocketErrorHandler',
       OnedataWebsocketErrorHandler
     );
-    const owner = getOwner(this);
-    this.ownerApplicationBak = owner.application;
-    owner.application = {
+    this.ownerApplicationBak = this.owner.application;
+    this.owner.application = {
       guiContext: {},
     };
   });
 
   afterEach(function () {
-    const owner = getOwner(this);
-    owner.application = this.ownerApplicationBak;
+    this.owner.application = this.ownerApplicationBak;
   });
 
-  it('resolves initWebsocket promise by opening ws connection', function (done) {
+  it('resolves initWebsocket promise by opening ws connection', async function () {
     let promiseResolved = false;
-    const service = this.subject();
+    const service = this.owner.lookup('service:onedata-websocket');
 
     service.set('_webSocketClass', WebSocketMock);
     const promise = service._initWebsocket();
     promise.then(() => {
       promiseResolved = true;
     });
-    wait().then(() => {
-      expect(promiseResolved).to.be.true;
-      done();
-    });
+    await settled();
+    expect(promiseResolved).to.be.true;
   });
 
-  it('sends event with message content when push message is sent', function (done) {
-    const service = this.subject();
+  it('sends event with message content when push message is sent', async function () {
+    const service = this.owner.lookup('service:onedata-websocket');
     service.set('_webSocketClass', WebSocketMock);
     let pushHandlerDone = false;
     const pushHandler = function (m) {
@@ -76,64 +69,58 @@ describe('Unit | Service | onedata websocket', function () {
       },
     });
 
-    service._initWebsocket().then(() => {
-      const _webSocket = service.get('_webSocket');
-      _webSocket.onmessage({
-        data: JSON.stringify({
-          batch: [{
-            type: 'push',
-            subtype: 'graph',
-            payload: 'hello',
-          }],
-        }),
-      });
-      wait().then(() => {
-        expect(pushHandlerDone).to.be.true;
-        done();
-      });
+    await service._initWebsocket();
+    const _webSocket = service.get('_webSocket');
+    _webSocket.onmessage({
+      data: JSON.stringify({
+        batch: [{
+          type: 'push',
+          subtype: 'graph',
+          payload: 'hello',
+        }],
+      }),
     });
+    await settled();
+    expect(pushHandlerDone).to.be.true;
   });
 
-  it('handles message responses', function (done) {
-    const service = this.subject();
+  it('handles message responses', async function () {
+    const service = this.owner.lookup('service:onedata-websocket');
     service.set('_webSocketClass', WebSocketMock);
     const messageId = 'some_message_id';
     const responsePayload = { x: 'good evening' };
     service.set('_generateUuid', () => messageId);
 
-    service._initWebsocket().then(() => {
-      const _webSocket = service.get('_webSocket');
+    await service._initWebsocket();
+    const _webSocket = service.get('_webSocket');
 
-      _webSocket.send = function () {
-        window.setTimeout(() => {
-          // response on any send
-          this.onmessage({
-            data: JSON.stringify({
-              id: messageId,
-              type: 'response',
-              payload: responsePayload,
-            }),
-          });
-        }, 0);
-      };
+    _webSocket.send = function () {
+      window.setTimeout(() => {
+        // response on any send
+        this.onmessage({
+          data: JSON.stringify({
+            id: messageId,
+            type: 'response',
+            payload: responsePayload,
+          }),
+        });
+      }, 0);
+    };
 
-      service.sendMessage({}).then(m => {
-        expect(m).has.property('payload');
-        expect(m.payload).has.property('x');
-        expect(m.payload.x).to.equal(responsePayload.x);
-        done();
-      });
-    });
+    const message = await service.sendMessage({});
+    expect(message).has.property('payload');
+    expect(message.payload).has.property('x');
+    expect(message.payload.x).to.equal(responsePayload.x);
   });
 
-  it('does not invoke abnormal close handler when closed manually', function () {
+  it('does not invoke abnormal close handler when closed manually', async function () {
     const onedataWebsocketErrorHandler =
       lookupService(this, 'onedataWebsocketErrorHandler');
     let openResolved = false;
     let closeResolved = false;
     const abnormalClose = sinon.spy(onedataWebsocketErrorHandler, 'abnormalClose');
 
-    const service = this.subject();
+    const service = this.owner.lookup('service:onedata-websocket');
 
     service.set('_webSocketClass', WebSocketMock);
 
@@ -142,27 +129,25 @@ describe('Unit | Service | onedata websocket', function () {
       openResolved = true;
     });
 
-    return wait().then(() => {
-      expect(openResolved).to.be.true;
-      const closePromise = service.closeConnection();
-      closePromise.then(() => {
-        closeResolved = true;
-      });
-      return wait().then(() => {
-        expect(closeResolved).to.be.true;
-        expect(abnormalClose).to.be.not.called;
-      });
+    await settled();
+    expect(openResolved).to.be.true;
+    const closePromise = service.closeConnection();
+    closePromise.then(() => {
+      closeResolved = true;
     });
+    await settled();
+    expect(closeResolved).to.be.true;
+    expect(abnormalClose).to.be.not.called;
   });
 
-  it('invokes abnormal close handler when not closed manually', function () {
+  it('invokes abnormal close handler when not closed manually', async function () {
     const onedataWebsocketErrorHandler =
       lookupService(this, 'onedataWebsocketErrorHandler');
     let openResolved = false;
     const abnormalClose = sinon.spy(onedataWebsocketErrorHandler, 'abnormalClose');
     const closeEvent = {};
 
-    const service = this.subject();
+    const service = this.owner.lookup('service:onedata-websocket');
 
     service.set('_webSocketClass', WebSocketMock);
 
@@ -171,24 +156,22 @@ describe('Unit | Service | onedata websocket', function () {
       openResolved = true;
     });
 
-    return wait().then(() => {
-      expect(openResolved).to.be.true;
-      const webSocket = get(service, '_webSocket');
-      webSocket.onclose(closeEvent);
-      return wait().then(() => {
-        expect(abnormalClose).to.be.calledWith(closeEvent);
-      });
-    });
+    await settled();
+    expect(openResolved).to.be.true;
+    const webSocket = get(service, '_webSocket');
+    webSocket.onclose(closeEvent);
+    await settled();
+    expect(abnormalClose).to.be.calledWith(closeEvent);
   });
 
-  it('invokes error handler when WebSocket onerror occures', function () {
+  it('invokes error handler when WebSocket onerror occures', async function () {
     const onedataWebsocketErrorHandler =
       lookupService(this, 'onedataWebsocketErrorHandler');
     let openResolved = false;
     const errorOccured = sinon.spy(onedataWebsocketErrorHandler, 'errorOccured');
     const errorEvent = {};
 
-    const service = this.subject();
+    const service = this.owner.lookup('service:onedata-websocket');
 
     service.set('_webSocketClass', WebSocketMock);
 
@@ -197,13 +180,11 @@ describe('Unit | Service | onedata websocket', function () {
       openResolved = true;
     });
 
-    return wait().then(() => {
-      expect(openResolved).to.be.true;
-      const webSocket = get(service, '_webSocket');
-      webSocket.onerror(errorEvent);
-      return wait().then(() => {
-        expect(errorOccured).to.be.calledWith(errorEvent);
-      });
-    });
+    await settled();
+    expect(openResolved).to.be.true;
+    const webSocket = get(service, '_webSocket');
+    webSocket.onerror(errorEvent);
+    await settled();
+    expect(errorOccured).to.be.calledWith(errorEvent);
   });
 });

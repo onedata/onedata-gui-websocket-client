@@ -3,12 +3,10 @@ import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
 
 describe('Unit | Service | mocks/onedata rpc', function () {
-  setupTest('service:mocks/onedata-rpc', {
-    needs: [],
-  });
+  setupTest();
 
   it('responds to testRPC like echo', function (done) {
-    const service = this.subject();
+    const service = this.owner.lookup('service:mocks/onedata-rpc');
 
     const promise = service.request('testRPC', { echo: 'hello' });
 
