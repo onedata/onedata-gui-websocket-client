@@ -3,15 +3,13 @@ import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
 
 describe('Unit | Service | onedata graph context', function () {
-  setupTest('service:onedata-graph-context', {
-    needs: [],
-  });
+  setupTest();
 
   it('removes specific registered context, leaving previous contexts', function () {
     const requestedId = 'a:b:c';
     const firstContext = 'group.abc.children';
     const secondContext = 'space.def.groups';
-    const service = this.subject();
+    const service = this.owner.lookup('service:onedata-graph-context');
 
     service.register(requestedId, firstContext);
     service.register(requestedId, secondContext);
@@ -26,7 +24,7 @@ describe('Unit | Service | onedata graph context', function () {
     const requestedId = 'a:b:c';
     const firstContext = 'group.abc.children';
     const secondContext = 'space.def.groups';
-    const service = this.subject();
+    const service = this.owner.lookup('service:onedata-graph-context');
 
     service.register(requestedId, firstContext);
     service.register(requestedId, secondContext);

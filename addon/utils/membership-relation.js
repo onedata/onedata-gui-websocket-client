@@ -7,7 +7,11 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import EmberObject, { computed, observer, get } from '@ember/object';
+import EmberObject, {
+  computed,
+  observer,
+  get,
+} from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { string } from 'ember-awesome-macros';
 

@@ -23,9 +23,7 @@ function getModelType(modelName) {
 }
 
 describe('Unit | Adapter | onedata websocket', function () {
-  setupTest('adapter:onedata-websocket', {
-    needs: [],
-  });
+  setupTest();
 
   beforeEach(function () {
     registerService(this, 'onedata-graph', OnedataGraphStub);
@@ -39,7 +37,7 @@ describe('Unit | Adapter | onedata websocket', function () {
     const type = getModelType();
     const recordId = 'record.record_id.instance:private';
     const graphData = {};
-    const adapter = this.subject();
+    const adapter = this.owner.lookup('adapter:onedata-websocket');
 
     const graph = lookupService(this, 'onedata-graph');
     const graphRequestStub = stub(graph, 'request');
@@ -80,7 +78,7 @@ describe('Unit | Adapter | onedata websocket', function () {
         serialize: () => recordData,
       };
       const retGraphData = {};
-      const adapter = this.subject();
+      const adapter = this.owner.lookup('adapter:onedata-websocket');
       const graph = lookupService(this, 'onedata-graph');
       const graphRequestStub = stub(graph, 'request');
       const graphValidArgs = {
@@ -118,7 +116,7 @@ describe('Unit | Adapter | onedata websocket', function () {
       },
     };
     const graphData = {};
-    const adapter = this.subject();
+    const adapter = this.owner.lookup('adapter:onedata-websocket');
 
     const graph = lookupService(this, 'onedata-graph');
     const graphRequestStub = stub(graph, 'request');
@@ -154,7 +152,7 @@ describe('Unit | Adapter | onedata websocket', function () {
       },
     };
     const graphData = {};
-    const adapter = this.subject();
+    const adapter = this.owner.lookup('adapter:onedata-websocket');
 
     const graph = lookupService(this, 'onedata-graph');
     const graphRequestStub = stub(graph, 'request');
