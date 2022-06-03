@@ -11,6 +11,7 @@ import EmberObject, {
   computed,
   observer,
   get,
+  defineProperty,
 } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { string } from 'ember-awesome-macros';
@@ -120,7 +121,7 @@ export default EmberObject.extend({
         'parentListName',
         'childListName'
       );
-      this.set('exists', computed(
+      defineProperty(this, 'exists', computed(
         `parent.${childListName}.{list.[],isReloading}`,
         `child.${parentListName}.{list.[],isReloading}`,
         function () {
