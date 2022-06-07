@@ -77,8 +77,7 @@ Test:
       - |-
         git remote set-url origin ${bamboo.repository.git.repositoryUrl}
         git remote -v
-        # added for VFS-7135, currently optionally - output should checked after merge
-        make submodules || true
+        make submodules
       working-dir: onedata-gui-websocket-client
       description: Init submodules
   - script:
@@ -86,10 +85,6 @@ Test:
       scripts:
       - |-
         ../bamboos/make.py test_ci
-        TEST_EXITCODE=$?
-        echo "Trying to copy test results from legacy location... (do not bother when there will be cp error)"
-        cp tests/test-results.xml tmp/test-results.xml || true
-        exit $TEST_EXITCODE
       working-dir: onedata-gui-websocket-client
       description: Run CI Ember tests
   final-tasks:
