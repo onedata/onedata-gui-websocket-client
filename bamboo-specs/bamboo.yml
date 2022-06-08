@@ -34,8 +34,6 @@ stages:
 repositories:
 - onedata-gui-websocket-client:
     scope: global
-- bamboos:
-    scope: global
 branches:
   create: for-new-branch
   delete:
@@ -61,14 +59,15 @@ Test:
         buildHangingConfig.enabled: 'false'
   tasks:
   - checkout:
-      repository: bamboos
-      path: bamboos
-      force-clean-build: 'false'
-      description: Get bamboos scripts
-  - checkout:
       path: onedata-gui-websocket-client
       force-clean-build: 'true'
       description: Get the code
+  - script:
+      interpreter: SHELL
+      scripts:
+      - |-
+        git clone ssh://git@git.onedata.org:7999/vfs/bamboos.git
+      description: Get bamboos scripts
   - script:
       interpreter: SHELL
       scripts:
