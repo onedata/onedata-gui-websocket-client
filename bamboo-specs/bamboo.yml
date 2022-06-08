@@ -84,9 +84,18 @@ Test:
       interpreter: BINSH_OR_CMDEXE
       scripts:
       - |-
+        ../bamboos/make.py lint
+        LINT_RESULT=$?
         ../bamboos/make.py test_ci
+        TEST_CI_RESULT=$?
+        if [ $LINT_RESULT -ne 0 ]; then
+          exit $LINT_RESULT
+        fi
+        if [ $TEST_CI_RESULT -ne 0 ]; then
+          exit $TEST_CI_RESULT
+        fi
       working-dir: onedata-gui-websocket-client
-      description: Run CI Ember tests
+      description: Run CI Ember tests and linter
   final-tasks:
   - test-parser:
       type: junit
