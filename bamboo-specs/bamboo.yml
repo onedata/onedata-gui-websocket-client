@@ -34,8 +34,6 @@ stages:
 repositories:
 - onedata-gui-websocket-client:
     scope: global
-- bamboos:
-    scope: global
 branches:
   create: for-new-branch
   delete:
@@ -58,19 +56,18 @@ Test:
     all-other-apps:
       custom:
         auto: {}
-        clover:
-          useLocalLicenseKey: 'true'
         buildHangingConfig.enabled: 'false'
   tasks:
-  - checkout:
-      repository: bamboos
-      path: bamboos
-      force-clean-build: 'false'
-      description: Get bamboos scripts
   - checkout:
       path: onedata-gui-websocket-client
       force-clean-build: 'true'
       description: Get the code
+  - script:
+      interpreter: SHELL
+      scripts:
+      - |-
+        git clone ssh://git@git.onedata.org:7999/vfs/bamboos.git
+      description: Get bamboos scripts
   - script:
       interpreter: SHELL
       scripts:
@@ -87,13 +84,7 @@ Test:
         ../bamboos/make.py lint
         LINT_RESULT=$?
         ../bamboos/make.py test_ci
-        TEST_CI_RESULT=$?
-        if [ $LINT_RESULT -ne 0 ]; then
-          exit $LINT_RESULT
-        fi
-        if [ $TEST_CI_RESULT -ne 0 ]; then
-          exit $TEST_CI_RESULT
-        fi
+        return `expr $LINT_RESULT + $?`
       working-dir: onedata-gui-websocket-client
       description: Run CI Ember tests and linter
   final-tasks:
