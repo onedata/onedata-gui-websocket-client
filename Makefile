@@ -1,23 +1,23 @@
-.PHONY: test test_ci clean
+.PHONY: clean deps test test_ci lint submodules
 
 all: test
 
 clean:
 	npm run clean
 
-deps: node_modules
-
 node_modules: package.json
 	npm run deps
 
-test: node_modules
+deps: node_modules
+
+test: deps
 	npm run test
 
-test_ci: node_modules
+test_ci: deps
 	npm run test-ci
 
-lint: node_modules
-	npm run-script lint
+lint: deps
+	npm run lint
 
 submodules:
 	git submodule sync --recursive ${submodule}
