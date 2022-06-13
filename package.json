@@ -17,13 +17,16 @@
     "start": "ember server",
     "test-try": "ember try:each",
     "deps": "npm install",
-    "test-ci": "npm run deps && xvfb-run ember test -r xunit",
+    "test-ci": "xvfb-run ember test -r xunit",
     "test": "ember test",
     "tdd": "ember test --server",
-    "clean": "rm -rf tmp dist node_modules .sass-cache tests/test-results.xml"
+    "clean": "rm -rf tmp dist node_modules .sass-cache tests/test-results.xml",
+    "lint": "npm run-script lint:js",
+    "lint:js": "./onedata-gui-utils/scripts/eslint-all.sh"
   },
   "dependencies": {
-    "babel-plugin-ember-modules-api-polyfill": "2.13.4",
+    "@babel/runtime": "7.18.3",
+    "babel-plugin-ember-modules-api-polyfill": "3.5.0",
     "ember-cli-babel": "7.3.0",
     "ember-cli-htmlbars": "3.0.0"
   },
@@ -36,7 +39,6 @@
     "ember-cli": "3.4.4",
     "ember-cli-chai": "0.5.0",
     "ember-cli-dependency-checker": "3.2.0",
-    "ember-cli-eslint": "5.1.0",
     "ember-cli-htmlbars-inline-precompile": "2.1.0",
     "ember-cli-inject-live-reload": "2.1.0",
     "ember-cli-sri": "2.1.1",
@@ -52,20 +54,21 @@
     "ember-one-way-controls": "3.1.0",
     "ember-resolver": "5.0.1",
     "ember-simple-auth": "1.8.2",
-    "ember-sinon": "3.0.0",
+    "ember-sinon": "4.1.1",
     "ember-source": "3.4.8",
     "ember-source-channel-url": "1.1.0",
     "ember-try": "1.0.0",
     "ember-uuid": "2.0.0",
-    "eslint-plugin-ember": "6.10.1",
-    "eslint-plugin-jsdoc": "33.3.0",
+    "eslint": "8.16.0",
+    "eslint-plugin-ember": "10.6.1",
+    "eslint-plugin-jsdoc": "39.3.2",
     "eslint-plugin-promise": "3.6.0",
     "loader.js": "4.7.0",
-    "sinon": "4.2.0",
-    "sinon-chai": "2.14.0"
+    "sinon": "7.2.0",
+    "sinon-chai": "3.7.0"
   },
   "engines": {
-    "node": ">= 10.*"
+    "node": ">= 14.*"
   },
   "private": true,
   "ember-addon": {
