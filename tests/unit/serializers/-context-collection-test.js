@@ -8,9 +8,7 @@ import RecordRegistryStub from '../../helpers/stubs/services/onedata-graph-conte
 import sinon from 'sinon';
 
 describe('Unit | Serializer | context collection', function () {
-  setupTest('serializer:-context-collection', {
-    needs: [],
-  });
+  setupTest();
 
   beforeEach(function () {
     registerService(this, 'onedata-graph-context', GraphContextStub);
@@ -26,7 +24,8 @@ describe('Unit | Serializer | context collection', function () {
     const graphContext = lookupService(this, 'onedata-graph-context');
     const registerStub = sinon.stub(graphContext, 'registerArray');
 
-    const serializer = this.subject();
+    const serializer = this.owner.lookup('service:store')
+      .serializerFor('-context-collection');
 
     serializer.registerContextForItems(hash);
 

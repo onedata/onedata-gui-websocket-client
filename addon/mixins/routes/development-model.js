@@ -57,7 +57,7 @@ export default Mixin.create({
    * @virtual
    * @type {object}
    */
-  developmentModelConfig: {},
+  developmentModelConfig: Object.freeze({}),
 
   /**
    * @virtual

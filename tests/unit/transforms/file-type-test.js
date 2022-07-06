@@ -3,14 +3,12 @@ import { describe, it, context, beforeEach } from 'mocha';
 import { setupTest } from 'ember-mocha';
 
 describe('Unit | Transform | file type', function () {
-  setupTest('transform:file-type', {
-    // Specify the other units that are required for this test.
-    // needs: ['transform:foo']
-  });
+  setupTest();
 
   context('during serialization', function () {
     beforeEach(function () {
-      this.convert = (...args) => this.subject().serialize(...args);
+      this.convert = (...args) =>
+        this.owner.lookup('transform:file-type').serialize(...args);
     });
 
     itConverts('file', 'REG');
@@ -25,7 +23,8 @@ describe('Unit | Transform | file type', function () {
 
   context('during deserialization', function () {
     beforeEach(function () {
-      this.convert = (...args) => this.subject().deserialize(...args);
+      this.convert = (...args) =>
+        this.owner.lookup('transform:file-type').deserialize(...args);
     });
 
     itConverts('REG', 'file');

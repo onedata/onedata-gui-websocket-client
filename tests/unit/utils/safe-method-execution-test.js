@@ -2,8 +2,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import safeMethodExecution from 'onedata-gui-websocket-client/utils/safe-method-execution';
 import { run } from '@ember/runloop';
-import wait from 'ember-test-helpers/wait';
-
+import { settled } from '@ember/test-helpers';
 import EmberObject from '@ember/object';
 
 describe('Unit | Utility | safe method execution', function () {
@@ -19,7 +18,7 @@ describe('Unit | Utility | safe method execution', function () {
   });
 
   it('does not throw exception if invoking method on destroyed object',
-    function (done) {
+    async function () {
       const testObject = EmberObject.create({
         hello() {
           return 'world';
@@ -28,12 +27,10 @@ describe('Unit | Utility | safe method execution', function () {
 
       run(() => testObject.destroy());
 
-      wait().then(() => {
-        const result = safeMethodExecution(testObject, 'hello');
+      await settled();
+      const result = safeMethodExecution(testObject, 'hello');
 
-        expect(result).to.be.undefined;
-        done();
-      });
+      expect(result).to.be.undefined;
     });
 
   it('allows to use function instead of method name', function () {

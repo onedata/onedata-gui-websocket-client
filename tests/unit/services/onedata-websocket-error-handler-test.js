@@ -4,7 +4,7 @@ import { setupTest } from 'ember-mocha';
 import { registerService, lookupService } from '../../helpers/stub-service';
 import Service from '@ember/service';
 import sinon from 'sinon';
-import wait from 'ember-test-helpers/wait';
+import { settled } from '@ember/test-helpers';
 
 const OnedataWebsocket = Service.extend({
   closeConnection() {},
@@ -13,18 +13,18 @@ const OnedataWebsocket = Service.extend({
 });
 
 describe('Unit | Service | onedata websocket error handler', function () {
-  setupTest('service:onedata-websocket-error-handler', {});
+  setupTest();
 
   beforeEach(function () {
     registerService(this, 'onedata-websocket', OnedataWebsocket);
   });
 
-  it('forces close and handshake on websocket service on abnormal close', function () {
+  it('forces close and handshake on websocket service on abnormal close', async function () {
     const onedataWebsocket = lookupService(this, 'onedata-websocket');
     const closeEvent = {};
     const openingCompleted = true;
 
-    const service = this.subject();
+    const service = this.owner.lookup('service:onedata-websocket-error-handler');
 
     const closeConnection = sinon.stub(onedataWebsocket, 'closeConnection')
       .resolves();
@@ -32,9 +32,8 @@ describe('Unit | Service | onedata websocket error handler', function () {
       .resolves();
 
     service.abnormalClose(closeEvent, openingCompleted);
-    return wait().then(() => {
-      expect(closeConnection).to.be.calledOnce;
-      expect(initWebSocketConnection).to.be.calledOnce;
-    });
+    await settled();
+    expect(closeConnection).to.be.calledOnce;
+    expect(initWebSocketConnection).to.be.calledOnce;
   });
 });

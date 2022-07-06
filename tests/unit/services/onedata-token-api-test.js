@@ -2,22 +2,20 @@ import { expect } from 'chai';
 import { describe, it, beforeEach } from 'mocha';
 import { setupTest } from 'ember-mocha';
 import sinon from 'sinon';
-import wait from 'ember-test-helpers/wait';
+import { settled } from '@ember/test-helpers';
 
 import { registerService, lookupService } from '../../helpers/stub-service';
 import OnedataGraphStub from '../../helpers/stubs/services/onedata-graph';
 
 describe('Unit | Service | onedata token api', function () {
-  setupTest('service:onedata-token-api', {
-    needs: [],
-  });
+  setupTest();
 
   beforeEach(function () {
     registerService(this, 'onedata-graph', OnedataGraphStub);
   });
 
-  it('resolves invite token data using graph', function (done) {
-    const service = this.subject();
+  it('resolves invite token data using graph', async function () {
+    const service = this.owner.lookup('service:onedata-token-api');
 
     const TOKEN = 'abcd';
     const graph = lookupService(this, 'onedata-graph');
@@ -34,9 +32,8 @@ describe('Unit | Service | onedata token api', function () {
 
     const promise = service.getInviteToken('group', 'some_id', 'user');
 
-    wait().then(() => {
-      expect(graphRequestStub).to.be.calledWith(graphValidArgs);
-      expect(promise).to.eventually.be.equal(TOKEN).notify(done);
-    });
+    await settled();
+    expect(graphRequestStub).to.be.calledWith(graphValidArgs);
+    await expect(promise).to.eventually.be.equal(TOKEN);
   });
 });

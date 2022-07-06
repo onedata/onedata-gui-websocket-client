@@ -1,4 +1,5 @@
-# onedata-gui-websocket-client
+onedata-gui-websocket-client
+==============================================================================
 
 ## About
 

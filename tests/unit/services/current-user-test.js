@@ -12,9 +12,7 @@ import SessionStub from '../../helpers/stubs/services/session';
 import StoreStub from '../../helpers/stubs/services/store';
 
 describe('Unit | Service | current user', function () {
-  setupTest('service:current-user', {
-    needs: [],
-  });
+  setupTest();
 
   beforeEach(function () {
     registerService(this, 'session', SessionStub);
@@ -38,7 +36,7 @@ describe('Unit | Service | current user', function () {
       .withArgs('user1')
       .returns('user.user1.instance:private');
 
-    const service = this.subject();
+    const service = this.owner.lookup('service:current-user');
 
     service.getCurrentUserRecord().then(record => {
       expect(record).to.equal(userRecord);
