@@ -84,7 +84,7 @@ export const groupedFlags = [{
   privileges: [
     { name: 'space_view_atm_workflow_executions' },
     { name: 'space_schedule_atm_workflow_executions' },
-    { name: 'space_cancel_atm_workflow_executions' },
+    { name: 'space_manage_atm_workflow_executions' },
   ],
 }];
 
