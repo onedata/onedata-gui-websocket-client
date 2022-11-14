@@ -1,6 +1,11 @@
 /**
  * An abstraction layer for Onedata Sync API Websocket connection properties
  *
+ * Instance of onedata-connection service should be created before handshake,
+ * because `globalTimeSecondsOffset` property should be calculated at the
+ * the exact time of handshake occurence (it's calculation needs
+ * current timestamp).
+ *
  * @module services/onedata-connection
  * @author Jakub Liput, Michał Borzęcki
  * @copyright (C) 2018-2022 ACK CYFRONET AGH
