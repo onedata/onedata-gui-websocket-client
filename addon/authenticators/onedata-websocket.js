@@ -11,7 +11,6 @@
 
 import OnedataBaseAuthenticator from 'onedata-gui-websocket-client/authenticators/-base';
 import OnedataWebsocketUtils from 'onedata-gui-websocket-client/mixins/onedata-websocket-utils';
-import xhrToPromise from 'onedata-gui-websocket-client/utils/xhr-to-promise';
 import { reject } from 'rsvp';
 
 import { inject as service } from '@ember/service';
@@ -44,19 +43,26 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
  * Makes REST request to create authenticated HTTP session
  * @param {string} username
  * @param {string} password
- * @returns {Promise} a promise with then, catch and finally method
- *   based on jqPromise; resolves when username and password are valid
- *   and session is created; rejects otherwise
+ * @returns {Promise} a promise which resolves when username and password are
+ * valid and session is created; rejects otherwise
  */
-function doLogin(username, password) {
-  const jqPromise = $.ajax('/login', {
+async function doLogin(username, password) {
+  const response = await window.fetch('/login', {
     method: 'POST',
-    beforeSend: (xhr) => {
-      xhr.setRequestHeader(
-        'Authorization',
-        'Basic ' + btoa(`${username}:${password}`)
-      );
+    headers: {
+      authorization: `Basic ${btoa(`${username}:${password}`)}`,
     },
   });
-  return xhrToPromise(jqPromise);
+
+  if (!response.ok) {
+    let loginError;
+    try {
+      loginError = (await response.json())?.error;
+    } catch (error) {
+      console.error('Cannot parse JSON from response due to error:', error);
+      throw response.status === 401 ? { id: 'unauthorized' } : { id: 'unknown' };
+    }
+
+    throw loginError;
+  }
 }
