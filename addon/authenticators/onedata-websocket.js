@@ -44,7 +44,7 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
  * @param {string} username
  * @param {string} password
  * @returns {Promise} a promise which resolves when username and password are
- * valid and session is created; rejects otherwise
+ *   valid and session is created; rejects otherwise
  */
 async function doLogin(username, password) {
   const response = await window.fetch('/login', {
