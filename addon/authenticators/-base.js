@@ -9,7 +9,6 @@
  */
 
 import BaseAuthenticator from 'ember-simple-auth/authenticators/base';
-import xhrToPromise from 'onedata-gui-websocket-client/utils/xhr-to-promise';
 import { inject as service } from '@ember/service';
 import { Promise } from 'rsvp';
 import getGuiAuthToken from 'onedata-gui-websocket-client/utils/get-gui-auth-token';
@@ -105,7 +104,21 @@ export default BaseAuthenticator.extend({
    * @returns {Promise} resolves when session on server side has been
    *  invalidated successfully
    */
-  remoteInvalidate() {
-    return xhrToPromise($.post('/logout'));
+  async remoteInvalidate() {
+    const response = await window.fetch('/logout', {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      let invalidateError;
+      try {
+        invalidateError = (await response.json())?.error;
+      } catch (error) {
+        console.error('Cannot parse JSON from response due to error:', error);
+        throw { id: 'unknown' };
+      }
+
+      throw invalidateError;
+    }
   },
 });

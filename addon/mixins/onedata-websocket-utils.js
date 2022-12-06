@@ -49,7 +49,7 @@ export default Mixin.create({
       getGuiAuthToken().then(({ token }) => token) : resolve();
     return tokenPromise
       .catch(error => {
-        if (error && error.status === 401) {
+        if (error?.id === 'unauthorized') {
           if (type === 'any') {
             return null;
           } else {

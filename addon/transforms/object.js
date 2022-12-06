@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import DS from 'ember-data';
 
 /**
@@ -13,17 +12,17 @@ import DS from 'ember-data';
  */
 export default DS.Transform.extend({
   deserialize: function (value) {
-    if (!$.isPlainObject(value)) {
-      return {};
-    } else {
+    if (value && (typeof value === 'object') && !Array.isArray(value)) {
       return value;
+    } else {
+      return {};
     }
   },
   serialize: function (value) {
-    if (!$.isPlainObject(value)) {
-      return {};
-    } else {
+    if (value && (typeof value === 'object') && !Array.isArray(value)) {
       return value;
+    } else {
+      return {};
     }
   },
 });

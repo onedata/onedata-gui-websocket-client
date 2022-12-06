@@ -7,12 +7,25 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import $ from 'jquery';
-import { resolve } from 'rsvp';
-
 /**
  * @returns {Promise<{ token: string, ttl: number }>}
  */
-export default function getToken() {
-  return resolve($.post('./gui-preauthorize'));
+export default async function getToken() {
+  const response = await window.fetch('./gui-preauthorize', {
+    method: 'POST',
+  });
+  let responseBody;
+  try {
+    responseBody = await response.json();
+  } catch (error) {
+    console.error('Cannot parse JSON from response due to error:', error);
+  }
+
+  if (response.ok) {
+    return responseBody;
+  } else if (!responseBody?.error && response.status === 401) {
+    throw { id: 'unauthorized' };
+  } else {
+    throw responseBody?.error;
+  }
 }
