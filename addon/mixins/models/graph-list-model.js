@@ -27,11 +27,15 @@ export default Mixin.create(GraphModel, {
     return this.hasMany('list').ids().length;
   }),
 
+  // FIXME: check if the hack is still relevant
   // A hack for some ember-data change between 3.3.2 -> 3.4.0 that casued not fetching
   // hasMany item that was pushed using GraphSync update.
   // When get is done on the list, the new item is fetched. Hence we force getting
   // the list every time when array items change.
   listObserver: observer('list.[]', function listObserver() {
+    if (this.store.isDestroying || this.store.isDestroyed) {
+      return;
+    }
     this.get('list');
   }),
 });
