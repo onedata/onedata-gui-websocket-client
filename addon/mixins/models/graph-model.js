@@ -82,16 +82,11 @@ export default Mixin.create({
     'isLoading',
     'isReloading',
     function isLoadingObserver() {
-      if (this.get('isForbidden')) {
+      if (this.isForbidden) {
         this.set('isForbidden', false);
       }
     }
   ),
-
-  didLoad() {
-    this._super(...arguments);
-    this.notifyPropertyChange('isLoading');
-  },
 
   reload() {
     return this._super(...arguments)
