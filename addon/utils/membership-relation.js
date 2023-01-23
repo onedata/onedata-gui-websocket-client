@@ -45,11 +45,13 @@ export default EmberObject.extend({
    * TODO: VFS-7620 fix naming
    * @type {string}
    */
+  // eslint-disable-next-line ember/no-string-prototype-extensions
   parentType: string.camelize('parent.constructor.modelName'),
 
   /**
    * @type {string}
    */
+  // eslint-disable-next-line ember/no-string-prototype-extensions
   childType: string.camelize('child.constructor.modelName'),
 
   /**
