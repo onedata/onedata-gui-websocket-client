@@ -32,6 +32,9 @@ export default Mixin.create(GraphModel, {
   // When get is done on the list, the new item is fetched. Hence we force getting
   // the list every time when array items change.
   listObserver: observer('list.[]', function listObserver() {
+    if (this.store.isDestroying || this.store.isDestroyed) {
+      return;
+    }
     this.get('list');
   }),
 });
