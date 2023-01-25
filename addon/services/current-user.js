@@ -1,5 +1,5 @@
 /**
- * Provides global access to signed in user record (backend data) 
+ * Provides global access to signed in user record (backend data)
  *
  * @module services/current-user
  * @author Jakub Liput, Michał Borzęcki
@@ -19,6 +19,13 @@ export default Service.extend({
   session: inject(),
 
   userId: reads('session.data.authenticated.identity.user'),
+
+  /**
+   * If current user is already loaded (typically after resolving `onedata` route)
+   * it contains current user record. If it is not loaded yet, returns null.
+   * @type {Models.User}
+   */
+  user: reads('userProxy.content'),
 
   /**
    * @type {ComputedProperty<PromiseObject<Models.User>>}
@@ -49,7 +56,7 @@ export default Service.extend({
 
   /**
    * If passed entityId matches entityId of the current user, callback is called.
-   * @param {string} userEntityId 
+   * @param {string} userEntityId
    * @param {function} callback
    * @returns {Promise}
    */
