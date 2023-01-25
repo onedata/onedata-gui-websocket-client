@@ -1,28 +1,25 @@
 /**
  * Adds properties and methods specific to single (non-list) records
  *
- * @module mixins/models/graph-single-model
  * @author Michał Borzęcki
- * @copyright (C) 2018-2020 ACK CYFRONET AGH
+ * @copyright (C) 2018-2023 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 import { resolve } from 'rsvp';
-import { get, computed } from '@ember/object';
+import { get, computed, observer } from '@ember/object';
 import { promise } from 'ember-awesome-macros';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import isDeletedEmberError from '../../utils/is-deleted-ember-error';
 
 export default Mixin.create(GraphModel, {
-  didDelete() {
-    this._super(...arguments);
-    this.get('store').recalculateListsWithEntity(
-      this.get('constructor.modelName'),
-      this.get('entityId')
-    );
-  },
+  isDeletedObserver: observer('isDeleted', function isDeletedObserver() {
+    if (this.isDeleted) {
+      this.store.recalculateListsWithEntity(this.constructor.modelName, this.entityId);
+    }
+  }),
 
   /**
    * Deeply reloads list relation. If list has not been fetched, nothing is
