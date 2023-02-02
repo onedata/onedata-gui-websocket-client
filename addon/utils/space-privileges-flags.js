@@ -76,6 +76,7 @@ export const groupedFlags = [{
     { name: 'space_manage_datasets' },
     { name: 'space_view_archives' },
     { name: 'space_create_archives' },
+    { name: 'space_manage_archives' },
     { name: 'space_remove_archives' },
     { name: 'space_recall_archives' },
   ],

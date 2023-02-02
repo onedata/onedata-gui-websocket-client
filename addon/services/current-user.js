@@ -14,6 +14,14 @@ import Service, { inject } from '@ember/service';
 import { Promise, resolve } from 'rsvp';
 import { promise } from 'ember-awesome-macros';
 
+/**
+ * User model implemented in each project with specific fields supported by backend.
+ * See `models/user.js` in specific projects (onezone-gui, oneprovider-gui).
+ * @typedef {DS.Model} UserRecord
+ * @property {string} fullName
+ * @property {string} username
+ */
+
 export default Service.extend({
   store: inject(),
   session: inject(),
@@ -23,12 +31,12 @@ export default Service.extend({
   /**
    * If current user is already loaded (typically after resolving `onedata` route)
    * it contains current user record. If it is not loaded yet, returns null.
-   * @type {Models.User}
+   * @type {UserRecord}
    */
   user: reads('userProxy.content'),
 
   /**
-   * @type {ComputedProperty<PromiseObject<Models.User>>}
+   * @type {ComputedProperty<PromiseObject<UserRecord>>}
    */
   userProxy: promise.object(computed('userId', function userProxy() {
     const {
