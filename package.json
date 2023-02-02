@@ -64,6 +64,7 @@
     "eslint-plugin-ember": "10.6.1",
     "eslint-plugin-jsdoc": "39.6.4",
     "eslint-plugin-promise": "6.1.1",
+    "eslint-plugin-regex": "1.10.0",
     "loader.js": "4.7.0",
     "sinon": "7.2.0",
     "sinon-chai": "3.7.0",
