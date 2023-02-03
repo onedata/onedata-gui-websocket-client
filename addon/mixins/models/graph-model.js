@@ -2,9 +2,8 @@
  * Adds convenience computed properties for desctructuring Graph Resource Identifier
  * from ID of records
  *
- * @module mixins/models/graph-model
  * @author Jakub Liput, Michał Borzęcki
- * @copyright (C) 2017-2019 ACK CYFRONET AGH
+ * @copyright (C) 2017-2023 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -78,20 +77,22 @@ export default Mixin.create({
     return this.get('isForbidden') ? { id: 'forbidden' } : undefined;
   }),
 
+  isLoadedObserver: observer(
+    'isLoaded',
+    function isLoadedObserver() {
+      this.notifyPropertyChange('isLoading');
+    }
+  ),
+
   isLoadingObserver: observer(
     'isLoading',
     'isReloading',
     function isLoadingObserver() {
-      if (this.get('isForbidden')) {
+      if (this.isForbidden) {
         this.set('isForbidden', false);
       }
     }
   ),
-
-  didLoad() {
-    this._super(...arguments);
-    this.notifyPropertyChange('isLoading');
-  },
 
   reload() {
     return this._super(...arguments)

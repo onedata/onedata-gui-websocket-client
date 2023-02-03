@@ -1,28 +1,25 @@
 /**
  * Adds properties and methods specific to single (non-list) records
  *
- * @module mixins/models/graph-single-model
  * @author Michał Borzęcki
- * @copyright (C) 2018-2020 ACK CYFRONET AGH
+ * @copyright (C) 2018-2023 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 import { resolve } from 'rsvp';
-import { get, computed } from '@ember/object';
+import { get, computed, observer } from '@ember/object';
 import { promise } from 'ember-awesome-macros';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import isDeletedEmberError from '../../utils/is-deleted-ember-error';
 
 export default Mixin.create(GraphModel, {
-  didDelete() {
-    this._super(...arguments);
-    this.get('store').recalculateListsWithEntity(
-      this.get('constructor.modelName'),
-      this.get('entityId')
-    );
-  },
+  isDeletedObserver: observer('isDeleted', function isDeletedObserver() {
+    if (this.isDeleted) {
+      this.store.recalculateListsWithEntity(this.constructor.modelName, this.entityId);
+    }
+  }),
 
   /**
    * Deeply reloads list relation. If list has not been fetched, nothing is
@@ -124,25 +121,37 @@ export default Mixin.create(GraphModel, {
  * @returns {Promise<Ember.Model>}
  */
 export function computedRelationProxy(recordPath, relationName, options) {
-  // used only if `options.computedRelationErrorProperty` is not provided
-  let privateLoadError;
-  let currentPromise;
   const loadErrorProperty = options && options.computedRelationErrorProperty;
-  return promise.object(computed(`${recordPath}.${relationName}`,
+  /**
+   * Key of property in which private data for this computed property will be stored
+   * in owner instance.
+   */
+  const computedPropertyUuid = `__${(recordPath + '__' + relationName).replace('.', '_')}__`;
+  return promise.object(computed(
+    `${recordPath}.${relationName}`,
     async function relationProxy() {
+      if (!this[computedPropertyUuid]) {
+        this[computedPropertyUuid] = {
+          // used only if `options.computedRelationErrorProperty` is not provided
+          privateLoadError: null,
+          currentPromise: null,
+        };
+      }
+      /** Private data of computed property for owner instance.*/
+      const data = this[computedPropertyUuid];
       const record = this.get(recordPath);
       const loadError = loadErrorProperty ?
-        this.get(loadErrorProperty) : privateLoadError;
+        this.get(loadErrorProperty) : data.privateLoadError;
 
-      if (currentPromise) {
+      if (data.currentPromise) {
         if (get(record, 'isReloading')) {
           if (loadError) {
             throw loadError;
           } else {
-            return currentPromise;
+            return data.currentPromise;
           }
         } else {
-          return currentPromise;
+          return data.currentPromise;
         }
       }
 
@@ -152,32 +161,31 @@ export function computedRelationProxy(recordPath, relationName, options) {
         throw loadError;
       }
 
-      let promise;
+      let relationPromise;
       if (record) {
         if (typeof record.getRelation === 'function') {
-          promise = record.getRelation(relationName, options);
+          relationPromise = record.getRelation(relationName, options);
         } else {
           console.warn(
             `mixin:graph-single-model#computedRelationProxy: no getRelation for ${recordPath}, ${relationName} - falling back to get property by path`
           );
-          promise = get(record, relationName);
+          relationPromise = get(record, relationName);
         }
       } else {
-        promise = resolve(null);
+        relationPromise = resolve(null);
       }
-      currentPromise = promise;
-      promise.catch(error => {
+      data.currentPromise = relationPromise;
+      relationPromise.catch(error => {
         if (loadErrorProperty) {
           this.set(loadErrorProperty, error);
         } else {
-          privateLoadError = error;
+          data.privateLoadError = error;
         }
         throw error;
       });
-      promise.finally(() => {
-        currentPromise = null;
+      relationPromise.finally(() => {
+        data.currentPromise = null;
       });
-      return promise;
-    }
-  ));
+      return relationPromise;
+    }));
 }
