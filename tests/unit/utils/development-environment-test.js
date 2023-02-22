@@ -46,28 +46,20 @@ describe('Unit | Utility | development environment', function () {
     expect(result).to.be.equal(Production);
   });
 
-  it('detects that model is already mocked', function (done) {
+  it('detects that model is already mocked', async function () {
     const userRecord = {};
     const findRecord = sinon.stub(this.storeStub, 'findRecord');
     findRecord.withArgs('user', sinon.match(/.*stub_user_id.*/))
       .resolves(userRecord);
 
-    const promise = isModelMocked(this.storeStub);
-    promise.then(result => {
-      expect(result).to.be.true;
-      done();
-    });
+    expect(await isModelMocked(this.storeStub)).to.be.true;
   });
 
-  it('detects that model is not mocked', function (done) {
+  it('detects that model is not mocked', async function () {
     sinon.stub(this.storeStub, 'findRecord')
       .withArgs('user', sinon.match(/.*stub_user_id.*/))
       .rejects();
 
-    const promise = isModelMocked(this.storeStub);
-    promise.then(result => {
-      expect(result).to.be.false;
-      done();
-    });
+    expect(await isModelMocked(this.storeStub)).to.be.false;
   });
 });
