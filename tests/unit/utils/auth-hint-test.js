@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import authHintGet from 'onedata-gui-websocket-client/utils/auth-hint-get';
 
-describe('Unit | Utility | auth hints', function () {
+describe('Unit | Utility | auth-hints', function () {
   const authHintGetCases = [
     ['group', 'users', 'throughGroup'],
     ['group', 'groups', 'throughGroup'],

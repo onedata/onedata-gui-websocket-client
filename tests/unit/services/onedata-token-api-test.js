@@ -7,7 +7,7 @@ import { settled } from '@ember/test-helpers';
 import { registerService, lookupService } from '../../helpers/stub-service';
 import OnedataGraphStub from '../../helpers/stubs/services/onedata-graph';
 
-describe('Unit | Service | onedata token api', function () {
+describe('Unit | Service | onedata-token-api', function () {
   setupTest();
 
   beforeEach(function () {

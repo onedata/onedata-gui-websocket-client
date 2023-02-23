@@ -4,7 +4,7 @@ import EmberObject from '@ember/object';
 import UserProxyMixin from 'onedata-gui-websocket-client/mixins/user-proxy';
 import sinon from 'sinon';
 
-describe('Unit | Mixin | user proxy', function () {
+describe('Unit | Mixin | user-proxy', function () {
   beforeEach(function () {
     this.currentUserStub = EmberObject.create({
       getCurrentUserRecord() {},

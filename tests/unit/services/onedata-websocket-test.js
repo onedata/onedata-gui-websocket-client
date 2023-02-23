@@ -20,7 +20,7 @@ const OnedataWebsocketErrorHandler = Service.extend({
   abnormalClose() {},
 });
 
-describe('Unit | Service | onedata websocket', function () {
+describe('Unit | Service | onedata-websocket', function () {
   const { afterEach } = setupTest();
 
   beforeEach(function () {

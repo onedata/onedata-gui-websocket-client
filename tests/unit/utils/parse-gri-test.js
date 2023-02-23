@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 
-describe('Unit | Utility | parse gri', function () {
+describe('Unit | Utility | parse-gri', function () {
 
   it('parses gri string', function () {
     const {

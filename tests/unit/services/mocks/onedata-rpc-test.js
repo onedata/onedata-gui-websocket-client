@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
 
-describe('Unit | Service | mocks/onedata rpc', function () {
+describe('Unit | Service | mocks/onedata-rpc', function () {
   setupTest();
 
   it('responds to testRPC like echo', async function () {
