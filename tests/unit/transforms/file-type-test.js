@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe, it, context, beforeEach } from 'mocha';
 import { setupTest } from 'ember-mocha';
 
-describe('Unit | Transform | file type', function () {
+describe('Unit | Transform | file-type', function () {
   setupTest();
 
   context('during serialization', function () {

@@ -22,7 +22,7 @@ function getModelType(modelName) {
   };
 }
 
-describe('Unit | Adapter | onedata websocket', function () {
+describe('Unit | Adapter | onedata-websocket', function () {
   setupTest();
 
   beforeEach(function () {
