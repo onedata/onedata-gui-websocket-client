@@ -12,7 +12,7 @@ const OnedataWebsocket = Service.extend({
   initConnection() {},
 });
 
-describe('Unit | Service | onedata websocket error handler', function () {
+describe('Unit | Service | onedata-websocket-error-handler', function () {
   setupTest();
 
   beforeEach(function () {

@@ -7,7 +7,7 @@ import GraphContextStub from '../../helpers/stubs/services/onedata-graph-context
 import RecordRegistryStub from '../../helpers/stubs/services/onedata-graph-context';
 import sinon from 'sinon';
 
-describe('Unit | Serializer | context collection', function () {
+describe('Unit | Serializer | context-collection', function () {
   setupTest();
 
   beforeEach(function () {

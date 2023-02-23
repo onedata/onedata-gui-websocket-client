@@ -8,7 +8,7 @@ import {
 } from 'onedata-gui-websocket-client/utils/development-environment';
 import sinon from 'sinon';
 
-describe('Unit | Utility | development environment', function () {
+describe('Unit | Utility | development-environment', function () {
   beforeEach(function () {
     this.storeStub = EmberObject.create({
       findRecord() {},

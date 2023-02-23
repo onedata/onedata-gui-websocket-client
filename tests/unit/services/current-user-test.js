@@ -11,7 +11,7 @@ import { registerService, lookupService } from '../../helpers/stub-service';
 import SessionStub from '../../helpers/stubs/services/session';
 import StoreStub from '../../helpers/stubs/services/store';
 
-describe('Unit | Service | current user', function () {
+describe('Unit | Service | current-user', function () {
   setupTest();
 
   beforeEach(function () {

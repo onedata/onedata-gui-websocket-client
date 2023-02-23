@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import GraphModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-model';
 
-describe('Unit | Mixin | models/graph model', function () {
+describe('Unit | Mixin | models/graph-model', function () {
   it('has parsed gri computed properties', function () {
     const gri = 'aa.bb.cc,dd:ee';
     const GraphModelObject = EmberObject.extend(GraphModelMixin, {
