@@ -59,7 +59,7 @@ export default Service.extend({
 
   /**
    * @public
-   * @param {Utils.Request} request 
+   * @param {Utils.Request} request
    * @returns {undefined}
    */
   addRequest(request) {
@@ -70,7 +70,9 @@ export default Service.extend({
     const targetCollection = this.get(`${type}Requests`);
     if (targetCollection) {
       targetCollection.addObject(request);
-      promise.finally(() => targetCollection.removeObject(request));
+      promise
+        .finally(() => targetCollection.removeObject(request))
+        .catch(() => {});
     }
   },
 });
