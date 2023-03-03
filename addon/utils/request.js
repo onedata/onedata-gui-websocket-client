@@ -1,7 +1,6 @@
 /**
  * A class that represents request triggered by Ember Store or RPC call.
  *
- * @module utils/request
  * @author Michał Borzęcki
  * @copyright (C) 2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

@@ -4,7 +4,6 @@
  * To mock RPC method, add `__handle_<methodName>` method and return a promise
  * that will resolve with response data or reject with error data.
  *
- * @module services/mocks/onedata-rpc
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

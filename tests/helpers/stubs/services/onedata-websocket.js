@@ -6,7 +6,6 @@
  *
  * For real service, see `onedata-websocket`
  *
- * @module tests/helpers/stubs/services/onedata-websocket
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

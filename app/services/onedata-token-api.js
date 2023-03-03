@@ -1,6 +1,6 @@
 /**
  * Exports a real onedata-token-api service or its mock.
- * @module services/onedata-token-api
+ *
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

@@ -1,7 +1,6 @@
 /**
  * Exports a real `session-store:onedata-websocket` or a development one
  *
- * @module session-stores/application
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

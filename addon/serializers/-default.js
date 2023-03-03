@@ -1,7 +1,6 @@
 /**
  * Exports a real onedata-websocket serializer or a development one
  *
- * @module serializers/application
  * @author Michał Borzęcki
  * @copyright (C) 2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

@@ -1,7 +1,6 @@
 /**
  * Construct a GRI (Graph Resource ID for Onedata API) string from needed elements
  *
- * @module utils/gri
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
