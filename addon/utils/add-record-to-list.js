@@ -1,8 +1,7 @@
 /**
  * Util function that saves record in list-like parent record (that has `list` property).
  *
- * @module utils/add-record-to-list
- * @author Michal Borzecki
+ * @author Michał Borzęcki
  * @copyright (C) 2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */

@@ -3,7 +3,6 @@
  * On each restore, try to use browser session to communicate with server - it
  * will response with session data
  *
- * @module session-stores/onedata-websocket
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

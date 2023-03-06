@@ -2,8 +2,7 @@
  * Returns id for passed record, that can be used for routing purposes
  * (inside link-to helper, transitionTo function, etc).
  *
- * @module utils/model-routable-id
- * @author Michal Borzecki, Jakub Liput
+ * @author Michał Borzęcki, Jakub Liput
  * @copyright (C) 2018-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */

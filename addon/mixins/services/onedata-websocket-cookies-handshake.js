@@ -4,7 +4,6 @@
  * When using this mixin, also `authenticator:mocks/onedata-websocket`
  * should be used as an authenticator
  *
- * @module mixins/services/onedata-websocket-cookies-handshake
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

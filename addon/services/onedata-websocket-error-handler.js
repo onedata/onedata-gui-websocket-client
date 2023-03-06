@@ -2,8 +2,7 @@
  * Abstract implementation of handling errors and abnormal close of WebSocket
  * connection. It should be extended to provide GUI information about error
  * and reconnection.
- * 
- * @module services/onedata-websocket-error-handler
+ *
  * @author Jakub Liput
  * @copyright (C) 2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
@@ -18,7 +17,7 @@ export default Service.extend(OnedataWebsocketUtils, {
   /**
    * Invoked when WebSocket `onclose` is invoked unexpectedly (without explicit
    * close by user).
-   * @param {CloseEvent} closeEvent 
+   * @param {CloseEvent} closeEvent
    * @param {boolean} openingCompleted true if `onclose` was invoked after
    *  the WebSocket `onopen` handler was invoked; false typically means
    *  that the connection was closed without open (opening failed)

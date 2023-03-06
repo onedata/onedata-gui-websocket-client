@@ -8,8 +8,7 @@
  * should be started manually by calling `notifyPropertyChange('isReloading')`
  * on the list record.
  *
- * @module mixins/models/graph-list-model
- * @author Michal Borzecki
+ * @author Michał Borzęcki
  * @copyright (C) 2018-2022 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */

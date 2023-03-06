@@ -3,7 +3,6 @@
  * Notice: requests should be added using addRequest method. Internal collections
  * are readonly.
  *
- * @module services/active-requests
  * @author Michał Borzęcki
  * @copyright (C) 2019-2020 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

@@ -1,7 +1,6 @@
 /**
  * A set of functions helping with using app in development or production mode
  *
- * @module utils/development-environment
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

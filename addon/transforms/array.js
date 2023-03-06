@@ -3,7 +3,6 @@
  *
  * It adds support for using arrays as a model property type.
  *
- * @module transforms/array
  * @author Jakub Liput
  * @copyright (C) 2016-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

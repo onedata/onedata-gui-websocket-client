@@ -8,7 +8,6 @@
  *
  * For mocked service, that does not need backend, see `onedata-websocket`
  *
- * @module services/onedata-websocket
  * @author Jakub Liput
  * @copyright (C) 2017-2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

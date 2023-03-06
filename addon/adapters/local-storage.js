@@ -2,7 +2,6 @@
  * Override some methods of `ember-local-storage` adapter to be compatible
  * with Onedata backend
  *
- * @module adapters/local-storage
  * @author Jakub Liput
  * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

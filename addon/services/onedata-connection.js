@@ -6,7 +6,6 @@
  * the exact time of handshake occurence (it's calculation needs
  * current timestamp).
  *
- * @module services/onedata-connection
  * @author Jakub Liput, Michał Borzęcki
  * @copyright (C) 2018-2022 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
