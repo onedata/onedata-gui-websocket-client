@@ -1,7 +1,10 @@
 <p>Hello api example</p>
 <strong>Authenticated:</strong> <span>{{isAuthenticated}}</span>
-{{!--{{input type="text" value=messageValue}}--}}
-{{one-way-input value=inputValue update=(action (mut inputValue))}}
+<input
+  type="text"
+  value={{inputValue}}
+  oninput={{action (mut inputValue) value="target.value"}}
+/>
 <button {{action "sendRpc"}}>RPC</button>
 <button {{action "getRecord"}}>Get user</button>
 <button {{action "createRecord"}}>Create something</button>
