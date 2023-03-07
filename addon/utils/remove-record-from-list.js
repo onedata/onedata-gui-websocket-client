@@ -1,8 +1,7 @@
 /**
  * Util function that removes record from list-like parent record (that has `list` property).
  *
- * @module utils/remove-record-from-list
- * @author Michal Borzecki
+ * @author Michał Borzęcki
  * @copyright (C) 2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */

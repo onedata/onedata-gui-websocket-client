@@ -2,14 +2,13 @@
  * Adds mocked model generation step on `beforeModel` hook
  *
  * Do not forget to implement virtual functions!
- * 
+ *
  * May be parametrized using developmentModelConfig property, which format is:
  * {
  *   clearOnReload {boolean} if true, model will be recreated on each page reload
  * }
  *
- * @module mixins/routes/development-model
- * @author Jakub Liput, Michal Borzecki
+ * @author Jakub Liput, Michał Borzęcki
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  *

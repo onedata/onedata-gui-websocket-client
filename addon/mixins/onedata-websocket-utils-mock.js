@@ -3,7 +3,6 @@
  * Implements functions needed by `authenticator:onedata-websocket` for development
  * environment
  *
- * @module mixins/onedata-websocket-utils-mock
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

@@ -5,7 +5,6 @@ import DS from 'ember-data';
  *
  * It adds support for using object as a model property type.
  *
- * @module transforms/object
  * @author Jakub Liput
  * @copyright (C) 2016-2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

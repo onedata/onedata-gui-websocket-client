@@ -2,8 +2,7 @@
  * Custom store extension that provides functions to deal with specific
  * features of the model.
  *
- * @module services/store
- * @author Michal Borzecki
+ * @author Michał Borzęcki
  * @copyright (C) 2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */

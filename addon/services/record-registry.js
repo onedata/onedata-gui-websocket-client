@@ -2,8 +2,7 @@
  * Registry with all records available for the application. Contains information
  * about relations between records IDs and model names.
  *
- * @module services/record-registry
- * @author Michal Borzecki
+ * @author Michał Borzęcki
  * @copyright (C) 2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
@@ -21,9 +20,9 @@ export default Service.extend({
 
   /**
    * Registers id in registry
-   * @param {string} id 
+   * @param {string} id
    * @param {string} modelName
-   * @returns {undefined} 
+   * @returns {undefined}
    */
   registerId(id, modelName) {
     this.get('modelNameMapping').set(id, modelName);
@@ -31,7 +30,7 @@ export default Service.extend({
 
   /**
    * Returns model name related to given id
-   * @param {string} id 
+   * @param {string} id
    * @returns {string|undefined}
    */
   getModelName(id) {

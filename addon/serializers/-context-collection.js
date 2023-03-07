@@ -2,8 +2,7 @@
  * A serializer that should be used for models that need authHint when finding
  * record.
  *
- * @module serializers/-context-collection
- * @author Jakub Liput, Michal Borzecki
+ * @author Jakub Liput, Michał Borzęcki
  * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
@@ -18,8 +17,8 @@ export default Serializer.extend({
   /**
    * @override Serializer#normalize by adding registration of list item context
    *   for further findRecord
-   * @param {*} typeClass 
-   * @param {*} hash 
+   * @param {*} typeClass
+   * @param {*} hash
    */
   normalize(typeClass, hash) {
     this.registerContextForItems(hash);

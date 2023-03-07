@@ -1,7 +1,6 @@
 /**
  * Adds static fields and methods to Graphsync models.
  *
- * @module mixins/models/static-graph-model
  * @author Michał Borzęcki
  * @copyright (C) 2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
@@ -15,7 +14,7 @@ export default Mixin.create({
   /**
    * Returns requests, that should be settled before `operation` on `model`
    * will be started.
-   * @param {Services.ActiveRequests} activeRequests 
+   * @param {Services.ActiveRequests} activeRequests
    * @param {string} operation one of: create, fetch, update, delete
    * @param {GraphModel} model
    * @returns {Array<Utils.Request>}

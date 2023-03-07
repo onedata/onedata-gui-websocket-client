@@ -1,14 +1,13 @@
 /**
  * Invoke method on Ember.Object with checking destroy flags
- * 
+ *
  * NOTE: copied from `onedata-gui-common`
  *
- * @module utils/safe-method-execution
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
- * 
- * @param {Ember.Object} obj 
+ *
+ * @param {Ember.Object} obj
  * @param {string|function} method
  * @returns {any} value returned by method or undefined on destroying error
  */

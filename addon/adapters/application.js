@@ -1,6 +1,6 @@
 /**
  * Exports a real onedata-websocket adapter or a development one
- * @module adapters/application
+ *
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

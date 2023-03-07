@@ -1,12 +1,11 @@
 /**
  * Copyright (C) 2018 Robert Menke
- * 
+ *
  * Defines constants for all websocket close event codes that are used in practice.
  * Copied from: https: //gist.github.com/RobertMenke/443e5cc57e4569c48b08c9592740da77
- * 
+ *
  * Link: https: //developer.mozilla.org/en-US/docs/Web/API/CloseEvent
- * 
- * @module utils/websocket-close-event-codes
+ *
  * @author Jakub Liput
  * @copyright (C) 2019 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
@@ -96,7 +95,7 @@ export const TRY_AGAIN_LATER = 1013;
 export const BAD_GATEWAY = 1014;
 
 /**
- * Reserved. Indicates that the connection was closed due to a failure to 
+ * Reserved. Indicates that the connection was closed due to a failure to
  * perform a TLS handshake (e.g., the server certificate can't be verified).
  */
 export const BAD_TLS_HANDSHAKE = 1015;
