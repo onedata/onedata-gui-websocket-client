@@ -2,7 +2,6 @@
  * A base for `ember-simple-auth` authenticators that use Onedata WebSocket API
  * Used both by real authenticator and mock authenticator
  *
- * @module authenticators/-base
  * @author Jakub Liput
  * @copyright (C) 2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

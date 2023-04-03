@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
 
-describe('Unit | Service | onedata graph context', function () {
+describe('Unit | Service | onedata-graph-context', function () {
   setupTest();
 
   it('removes specific registered context, leaving previous contexts', function () {

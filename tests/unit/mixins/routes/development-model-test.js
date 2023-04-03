@@ -9,7 +9,7 @@ import { resolve } from 'rsvp';
 const storeStub = {};
 const envConfig = {};
 
-describe('Unit | Mixin | routes/development model', function () {
+describe('Unit | Mixin | routes/development-model', function () {
   beforeEach(function () {
     this.RoutesDevelopmentModelObject =
       EmberObject.extend(RoutesDevelopmentModelMixin, {

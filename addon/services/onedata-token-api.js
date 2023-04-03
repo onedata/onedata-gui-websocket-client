@@ -2,7 +2,6 @@
  * Production implementation of `service:onedata-token-api`
  * Abstraction layer on getting tokens using Graph API
  *
- * @module services/onedata-token-api
  * @author Jakub Liput
  * @copyright (C) 2017-2018 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

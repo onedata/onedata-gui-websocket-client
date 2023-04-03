@@ -11,7 +11,7 @@ import { registerService, lookupService } from '../../helpers/stub-service';
 import SessionStub from '../../helpers/stubs/services/session';
 import StoreStub from '../../helpers/stubs/services/store';
 
-describe('Unit | Service | current user', function () {
+describe('Unit | Service | current-user', function () {
   setupTest();
 
   beforeEach(function () {
@@ -19,7 +19,7 @@ describe('Unit | Service | current user', function () {
     registerService(this, 'store', StoreStub);
   });
 
-  it('returns user record provided by store if available', function (done) {
+  it('returns user record provided by store if available', async function () {
     const userEntityId = 'user1';
     const userRecord = {};
     lookupService(this, 'session').set(
@@ -38,11 +38,7 @@ describe('Unit | Service | current user', function () {
 
     const service = this.owner.lookup('service:current-user');
 
-    service.getCurrentUserRecord().then(record => {
-      expect(record).to.equal(userRecord);
-      done();
-    });
-
     expect(service).to.be.ok;
+    expect(await service.getCurrentUserRecord()).to.equal(userRecord);
   });
 });

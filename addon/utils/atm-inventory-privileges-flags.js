@@ -1,7 +1,6 @@
 /**
  * Names of flags for automation inventory privileges.
  *
- * @module utils/atm-inventory-privileges-flags
  * @author Michał Borzęcki
  * @copyright (C) 2021 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.

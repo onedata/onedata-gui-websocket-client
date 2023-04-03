@@ -3,7 +3,6 @@
  * Notice: requests should be added using addRequest method. Internal collections
  * are readonly.
  *
- * @module services/active-requests
  * @author Michał Borzęcki
  * @copyright (C) 2019-2020 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
@@ -59,7 +58,7 @@ export default Service.extend({
 
   /**
    * @public
-   * @param {Utils.Request} request 
+   * @param {Utils.Request} request
    * @returns {undefined}
    */
   addRequest(request) {
@@ -70,7 +69,9 @@ export default Service.extend({
     const targetCollection = this.get(`${type}Requests`);
     if (targetCollection) {
       targetCollection.addObject(request);
-      promise.finally(() => targetCollection.removeObject(request));
+      promise
+        .finally(() => targetCollection.removeObject(request))
+        .catch(() => {});
     }
   },
 });

@@ -9,7 +9,7 @@ import { settled } from '@ember/test-helpers';
 import OnedataWebsocketService from '../../helpers/stubs/services/onedata-websocket';
 import ActiveRequestsService from '../../helpers/stubs/services/active-requests';
 
-describe('Unit | Service | onedata rpc', function () {
+describe('Unit | Service | onedata-rpc', function () {
   setupTest();
 
   beforeEach(function () {
