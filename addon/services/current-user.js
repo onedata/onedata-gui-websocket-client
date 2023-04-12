@@ -28,6 +28,13 @@ export default Service.extend({
   userId: reads('session.data.authenticated.identity.user'),
 
   /**
+   * If current user is already loaded (typically after resolving `onedata` route)
+   * it contains current user record. If it is not loaded yet, returns null.
+   * @type {UserRecord}
+   */
+  user: reads('userProxy.content'),
+
+  /**
    * @type {ComputedProperty<PromiseObject<UserRecord>>}
    */
   userProxy: promise.object(computed('userId', function userProxy() {

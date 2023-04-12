@@ -16,6 +16,7 @@ export const groupedFlags = [{
     { name: 'space_delete' },
     { name: 'space_view_privileges' },
     { name: 'space_set_privileges' },
+    { name: 'space_manage_in_marketplace' },
   ],
 }, {
   groupName: 'dataManagement',
