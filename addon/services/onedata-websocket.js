@@ -196,7 +196,8 @@ export default Service.extend(Evented, {
     this.set('_initDefer', _initDefer);
     // force initialization of proxy
     this.get('webSocketInitializedProxy');
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    /* eslint-disable-next-line no-restricted-globals */
+    const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
     const apiOrigin = guiContext.apiOrigin;
     const suffix = '/graph_sync/gui';
 

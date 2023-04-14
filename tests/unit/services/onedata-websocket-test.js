@@ -95,7 +95,7 @@ describe('Unit | Service | onedata-websocket', function () {
     const _webSocket = service.get('_webSocket');
 
     _webSocket.send = function () {
-      window.setTimeout(() => {
+      setTimeout(() => {
         // response on any send
         this.onmessage({
           data: JSON.stringify({

@@ -104,7 +104,8 @@ export default BaseAuthenticator.extend({
    *  invalidated successfully
    */
   async remoteInvalidate() {
-    const response = await window.fetch('/logout', {
+    /* eslint-disable-next-line no-restricted-globals */
+    const response = await fetch('/logout', {
       method: 'POST',
     });
 

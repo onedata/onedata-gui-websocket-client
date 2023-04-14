@@ -59,6 +59,12 @@ export default Mixin.create({
   developmentModelConfig: Object.freeze({}),
 
   /**
+   * @type {Storage}
+   */
+  /* eslint-disable-next-line no-restricted-globals */
+  localStorage,
+
+  /**
    * @virtual
    * @returns {Promise<undefined, any>}
    */
@@ -74,15 +80,15 @@ export default Mixin.create({
    */
   clearDevelopmentModel() {
     const clearLocalStoragePrefix = this.get('clearLocalStoragePrefix');
-    const localStorageLength = localStorage.length;
+    const localStorageLength = this.localStorage.length;
     const keysToRemove = [];
     for (let i = 0; i < localStorageLength; ++i) {
-      const key = localStorage.key(i);
+      const key = this.localStorage.key(i);
       if (key.startsWith(clearLocalStoragePrefix)) {
         keysToRemove.push(key);
       }
     }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    keysToRemove.forEach(key => this.localStorage.removeItem(key));
     return resolve();
   },
 
