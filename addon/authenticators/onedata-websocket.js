@@ -46,7 +46,6 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
  *   valid and session is created; rejects otherwise
  */
 async function doLogin(username, password) {
-  /* eslint-disable-next-line no-restricted-globals */
   const response = await fetch('/login', {
     method: 'POST',
     headers: {

@@ -61,7 +61,6 @@ export default Mixin.create({
   /**
    * @type {Storage}
    */
-  /* eslint-disable-next-line no-restricted-globals */
   localStorage,
 
   /**

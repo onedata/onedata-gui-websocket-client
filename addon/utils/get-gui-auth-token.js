@@ -10,7 +10,6 @@
  * @returns {Promise<{ token: string, ttl: number }>}
  */
 export default async function getToken() {
-  /* eslint-disable-next-line no-restricted-globals */
   const response = await fetch('./gui-preauthorize', {
     method: 'POST',
   });
