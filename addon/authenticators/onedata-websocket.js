@@ -46,7 +46,7 @@ export default OnedataBaseAuthenticator.extend(OnedataWebsocketUtils, {
  *   valid and session is created; rejects otherwise
  */
 async function doLogin(username, password) {
-  const response = await window.fetch('/login', {
+  const response = await fetch('/login', {
     method: 'POST',
     headers: {
       authorization: `Basic ${btoa(`${username}:${password}`)}`,

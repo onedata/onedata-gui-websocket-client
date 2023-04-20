@@ -10,7 +10,7 @@
  * @returns {Promise<{ token: string, ttl: number }>}
  */
 export default async function getToken() {
-  const response = await window.fetch('./gui-preauthorize', {
+  const response = await fetch('./gui-preauthorize', {
     method: 'POST',
   });
   let responseBody;
