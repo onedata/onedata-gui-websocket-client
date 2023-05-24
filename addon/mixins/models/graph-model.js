@@ -12,6 +12,8 @@ import attr from 'ember-data/attr';
 import Mixin from '@ember/object/mixin';
 import { computed, observer } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
+import { promise } from 'ember-awesome-macros';
+import { defer } from 'rsvp';
 
 export default Mixin.create({
   /**
@@ -24,6 +26,11 @@ export default Mixin.create({
    * @type {number}
    */
   revision: attr('number'),
+
+  /**
+   * @type {RSVP.Defer}
+   */
+  isLoadedDefer: undefined,
 
   /**
    * @type {boolean}
@@ -77,9 +84,19 @@ export default Mixin.create({
     return this.get('isForbidden') ? { id: 'forbidden' } : undefined;
   }),
 
+  /**
+   * Resolves to true when record gets loaded (state changes to loaded).
+   */
+  isLoadedProxy: promise.object(computed('isLoadedDefer', function isLoadedProxy() {
+    return this.get('isLoadedDefer').promise;
+  })),
+
   isLoadedObserver: observer(
     'isLoaded',
     function isLoadedObserver() {
+      if (this.get('isLoaded')) {
+        this.isLoadedDefer.resolve(true);
+      }
       this.notifyPropertyChange('isLoading');
     }
   ),
@@ -111,5 +128,12 @@ export default Mixin.create({
     const store = this.get('store');
     store.unsubscribeFromChanges(this);
     return this._super(...arguments);
+  },
+
+  init() {
+    this._super(...arguments);
+    this.set('isLoadedDefer', defer());
+    // activate observer changing isLoadedProxy
+    this.get('isLoaded');
   },
 });
