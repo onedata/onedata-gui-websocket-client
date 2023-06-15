@@ -47,10 +47,21 @@ export default Service.extend(OnedataWebsocketUtils, {
    * @param {any} errorEvent
    * @returns {undefined}
    */
-  errorOccured(errorEvent) {
+  async errorOccured(errorEvent) {
     console.warn(
-      `service:onedata-websocket-error-handler#abnormalClose: WS error: ${errorEvent && errorEvent.toString()}`
+      `service:onedata-websocket-error-handler#errorOccured: WS error: ${errorEvent && errorEvent.toString()}`
     );
+    try {
+      await this.reconnect();
+      console.debug(
+        'service:onedata-websocket-error-handler#errorOccured: WS has been reconnected successfully'
+      );
+    } catch (error) {
+      console.warn(
+        `service:onedata-websocket-error-handler#errorOccured: WS reconnection error: ${error && error.toString()}`
+      );
+      throw error;
+    }
   },
 
   reconnect() {
