@@ -308,7 +308,11 @@ export default Service.extend(Evented, {
 
   _onError(errorEvent) {
     this.get('_initDefer').reject();
-    this.get('onedataWebsocketErrorHandler').errorOccured(errorEvent);
+    const openingCompleted = this.get('webSocketInitializedProxy.isFulfilled');
+    this.get('onedataWebsocketErrorHandler').errorOccured(
+      errorEvent,
+      openingCompleted,
+    );
   },
 
   _onClose(closeEvent) {
