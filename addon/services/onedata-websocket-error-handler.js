@@ -54,8 +54,8 @@ export default Service.extend(OnedataWebsocketUtils, {
     console.dir(errorEvent);
   },
 
-  reconnect() {
-    return this.forceCloseConnection()
-      .then(() => this.initWebSocketConnection());
+  async reconnect() {
+    await this.forceCloseConnection();
+    await this.initWebSocketConnection();
   },
 });

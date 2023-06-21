@@ -38,6 +38,12 @@ export default Service.extend(Evented, {
   defaultProtocolVersion,
 
   /**
+   * Max duration in milliseconds to establish a WebSocket connection.
+   * @type {number}
+   */
+  websocketConnectionInitMaxDuration: 20000,
+
+  /**
    * @type {RSVP.Deferred}
    */
   _initDefer: null,
@@ -46,6 +52,11 @@ export default Service.extend(Evented, {
    * @type {RSVP.Deferred}
    */
   _closeDefer: null,
+
+  /**
+   * @type {RSVP.Deferred}
+   */
+  _closeWaitDefer: null,
 
   /**
    * Maps message id -> { sendDeferred: RSVP.Deferred  }
@@ -67,6 +78,12 @@ export default Service.extend(Evented, {
   _webSocket: null,
 
   /**
+   * Timeout ID for max connection establish duration.
+   * @type {any}
+   */
+  websocketConnectionTimeout: undefined,
+
+  /**
    * An object containing connection attributes sent after successful handshake.
    * Properties:
    * - `zoneName`: string
@@ -83,7 +100,7 @@ export default Service.extend(Evented, {
   webSocketInitializedProxy: computed(
     '_initDefer.promise',
     function webSocketInitializedProxy() {
-      const promise = this.get('_initDefer.promise');
+      const promise = this._initDefer?.promise;
       if (promise) {
         return ObjectPromiseProxy.create({ promise });
       }
@@ -101,12 +118,10 @@ export default Service.extend(Evented, {
    * @param {string} options.token
    * @returns {Promise} resolves with success handshake message
    */
-  initConnection(options) {
-    return this._initNewConnection(options)
-      .then(data => {
-        safeExec(this, 'set', 'connectionAttributes', data.attributes);
-        return data;
-      });
+  async initConnection(options) {
+    const data = await this._initNewConnection(options);
+    safeExec(this, 'set', 'connectionAttributes', data.attributes);
+    return data;
   },
 
   closeConnection() {
@@ -190,8 +205,11 @@ export default Service.extend(Evented, {
    */
   _initWebsocket( /* options */ ) {
     const guiContext = getOwner(this).application.guiContext;
-    const WebSocketClass = this.get('_webSocketClass');
+    const WebSocketClass = this._webSocketClass;
 
+    if (this._initDefer) {
+      this._initDefer.reject();
+    }
     const _initDefer = defer();
     this.set('_initDefer', _initDefer);
     // force initialization of proxy
@@ -213,6 +231,18 @@ export default Service.extend(Evented, {
       socket.onerror = this._onError.bind(this);
       socket.onclose = this._onClose.bind(this);
       this.set('_webSocket', socket);
+
+      const timeout = setTimeout(() => {
+        if (socket.readyState === 0) {
+          console.warn(
+            'WebSocket connection establish has timed out, terminating current connection'
+          );
+          socket.dispatchEvent(new Event({
+            type: 'error',
+          }));
+        }
+      }, this.websocketConnectionInitMaxDuration);
+      this.set('websocketConnectionTimeout', timeout);
     } catch (error) {
       console.error(`WebSocket constructor or events bind error: ${error}`);
       _initDefer.reject(error);
@@ -221,12 +251,13 @@ export default Service.extend(Evented, {
     return _initDefer.promise;
   },
 
-  _initNewConnection(options) {
-    return this._initWebsocket(options).then(() => this._handshake(options));
+  async _initNewConnection(options) {
+    await this._initWebsocket(options);
+    return await this._handshake(options);
   },
 
   _closeConnectionStart() {
-    const _webSocket = this.get('_webSocket');
+    const _webSocket = this._webSocket;
     if (_webSocket &&
       _webSocket.readyState >= WebSocket.CONNECTING &&
       _webSocket.readyState <= WebSocket.CLOSING) {
@@ -242,7 +273,7 @@ export default Service.extend(Evented, {
     } else {
       // if there is no _webSocket or active connection, we assume,
       // that there is no connection at all
-      const _closeWaitDefer = this.get('_closeWaitDefer');
+      const _closeWaitDefer = this._closeWaitDefer;
       if (_closeWaitDefer) {
         _closeWaitDefer.resolve();
       }
@@ -252,8 +283,8 @@ export default Service.extend(Evented, {
   },
 
   _onOpen( /*event*/ ) {
-    const _initDefer = this.get('_initDefer');
-    _initDefer.resolve();
+    clearTimeout(this.websocketConnectionTimeout);
+    this._initDefer.resolve();
   },
 
   _onMessage({ data: dataString }) {
@@ -307,7 +338,7 @@ export default Service.extend(Evented, {
   },
 
   _onError(errorEvent) {
-    this.get('_initDefer').reject();
+    this._initDefer.reject();
     const openingCompleted = this.get('webSocketInitializedProxy.isFulfilled');
     this.get('onedataWebsocketErrorHandler').errorOccured(
       errorEvent,
@@ -316,21 +347,19 @@ export default Service.extend(Evented, {
   },
 
   _onClose(closeEvent) {
-    const _closeDefer = this.get('_closeDefer');
-    const _closeWaitDefer = this.get('_closeWaitDefer');
-    if (_closeWaitDefer) {
-      _closeWaitDefer.resolve();
+    if (this._closeWaitDefer) {
+      this._closeWaitDefer.resolve();
     }
-    if (_closeDefer) {
-      _closeDefer.resolve();
+    if (this._closeDefer) {
+      this._closeDefer.resolve();
       safeExec(this, 'set', '_closeDefer', null);
     } else {
-      const openingCompleted = this.get('webSocketInitializedProxy.isFulfilled');
-      this.get('_initDefer').reject();
-      if (!_closeWaitDefer) {
+      const isOpeningCompleted = this.get('webSocketInitializedProxy.isFulfilled');
+      this._initDefer.reject();
+      if (!this._closeWaitDefer) {
         this.get('onedataWebsocketErrorHandler').abnormalClose(
           closeEvent,
-          openingCompleted
+          isOpeningCompleted
         );
       }
     }

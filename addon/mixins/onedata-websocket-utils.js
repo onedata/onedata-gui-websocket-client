@@ -10,12 +10,18 @@
 
 import Mixin from '@ember/object/mixin';
 import { inject as service } from '@ember/service';
-import { Promise, resolve } from 'rsvp';
+import { Promise, race } from 'rsvp';
 import getGuiAuthToken from 'onedata-gui-websocket-client/utils/get-gui-auth-token';
 const NOBODY_IDENTITY = 'nobody';
 
 export default Mixin.create({
   onedataWebsocket: service(),
+
+  /**
+   * Max time in milliseconds to get an authentication token.
+   * @type {number}
+   */
+  tokenGetMaxDuration: 20000,
 
   /**
    * Forces connection close on onedata-websocket service
@@ -37,43 +43,53 @@ export default Mixin.create({
    *  - anonymous (do not try to fetch the token)
    * @returns {Promise}
    */
-  initWebSocketConnection(type = 'any') {
+  async initWebSocketConnection(type = 'any') {
     if (!['authenticated', 'anonymous', 'any'].includes(type)) {
       throw new Error(
         `mixin:onedata-websocket-utils#initWebSocketConnection: wrong type specified: ${type}`
       );
     }
-    const onedataWebsocket = this.get('onedataWebsocket');
-    const tokenPromise = (['any', 'authenticated'].includes(type)) ?
-      getGuiAuthToken().then(({ token }) => token) : resolve();
-    return tokenPromise
-      .catch(error => {
-        if (error?.id === 'unauthorized') {
-          if (type === 'any') {
-            return null;
-          } else {
-            throw {
-              isOnedataCustomError: true,
-              type: 'fetch-token-error',
-              reason: 'unauthorized',
-              error,
-            };
-          }
-        } else {
+    let token = null;
+    try {
+      if (['any', 'authenticated'].includes(type)) {
+        let timeout;
+        const timeoutPromise = new Promise((timeoutResolve, timeoutReject) => {
+          timeout = setTimeout(
+            timeoutReject,
+            this.tokenGetMaxDuration,
+            new Error('token get timeout')
+          );
+        });
+
+        const authTokenGetResult = await race([getGuiAuthToken(), timeoutPromise]);
+        token = authTokenGetResult?.token;
+        clearTimeout(timeout);
+      }
+    } catch (tokenError) {
+      if (tokenError?.id === 'unauthorized') {
+        if (type !== 'any') {
           throw {
             isOnedataCustomError: true,
             type: 'fetch-token-error',
-            reason: 'unknown',
-            error,
+            reason: 'unauthorized',
+            tokenError,
           };
         }
-      })
-      .then(token => onedataWebsocket.initConnection({ token }))
-      .then(data => {
-        if (type === 'authenticated') {
-          return this.checkHandshake(data);
-        }
-      });
+      } else {
+        throw {
+          isOnedataCustomError: true,
+          type: 'fetch-token-error',
+          reason: 'unknown',
+          tokenError,
+        };
+      }
+    }
+    const data = await this.onedataWebsocket.initConnection({ token });
+    if (type === 'authenticated') {
+      return this.checkHandshake(data);
+    } else {
+      return data;
+    }
   },
 
   checkHandshake(data) {
