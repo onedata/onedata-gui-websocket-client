@@ -61,9 +61,12 @@ export default Mixin.create({
           );
         });
 
-        const authTokenGetResult = await race([getGuiAuthToken(), timeoutPromise]);
-        token = authTokenGetResult?.token;
-        clearTimeout(timeout);
+        try {
+          const authTokenGetResult = await race([getGuiAuthToken(), timeoutPromise]);
+          token = authTokenGetResult?.token;
+        } finally {
+          clearTimeout(timeout);
+        }
       }
     } catch (tokenError) {
       if (tokenError?.id === 'unauthorized') {
