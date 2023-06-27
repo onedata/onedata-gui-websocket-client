@@ -47,14 +47,15 @@ export default Service.extend(OnedataWebsocketUtils, {
    * @param {any} errorEvent
    * @returns {undefined}
    */
-  errorOccured(errorEvent) {
+  async errorOccured(errorEvent, openingCompleted) {
     console.warn(
-      `service:onedata-websocket-error-handler#abnormalClose: WS error: ${errorEvent && errorEvent.toString()}`
+      `service:onedata-websocket-error-handler#errorOccured: WS was ${openingCompleted ? 'opened' : 'NOT opened'}, error event object:`
     );
+    console.dir(errorEvent);
   },
 
-  reconnect() {
-    return this.forceCloseConnection()
-      .then(() => this.initWebSocketConnection());
+  async reconnect() {
+    await this.forceCloseConnection();
+    await this.initWebSocketConnection();
   },
 });
