@@ -27,7 +27,7 @@ export default JSONSerializer.extend({
       if (get(attributes, name) === undefined) {
         const defaultValue = get(meta, 'options.defaultValue');
         if (defaultValue !== undefined) {
-          set(attributes, name, false);
+          set(attributes, name, defaultValue);
         }
       }
     });
