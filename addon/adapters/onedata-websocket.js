@@ -16,16 +16,12 @@ import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import Request from 'onedata-gui-websocket-client/utils/request';
 import _ from 'lodash';
-// FIXME: trzeba nadpisać websocket, bo tutaj nie można tego użyć, albo np. jakiś serializer czy coś
-import FileQuery from 'oneprovider-gui/utils/file-query';
 
 export default Adapter.extend(AdapterBase, {
   onedataGraph: service(),
   onedataGraphContext: service(),
   recordRegistry: service(),
   activeRequests: service(),
-  // FIXME: trzeba nadpisać websocket, bo tutaj nie można, albo np. jakiś serializer czy coś
-  fileRequirementRegistry: service(),
 
   subscribe: true,
 
@@ -80,67 +76,8 @@ export default Adapter.extend(AdapterBase, {
     const subscribe = customSubscribe !== undefined ?
       customSubscribe : adapterSubscribe;
     const record = get(snapshot, 'record') ?? {};
-    let additionalData = meta?.additionalData;
-    // FIXME: wciąż nie następuje doładowanie od razu tych atrybutów, które trzeba
-    // od razu po zmianie requirementów
-    if (type.modelName === 'file' && !additionalData?.attributes) {
-      const queries = [FileQuery.create({
-        fileGri: id,
-      })];
-      const parentGri = snapshot?.belongsTo('parent')?.id;
-      if (parentGri) {
-        const parentId = parseGri(parentGri).entityId;
-        queries.push(FileQuery.create({
-          parentId,
-        }));
-      }
-      const attributes =
-        this.fileRequirementRegistry.findAttrsRequirement(...queries);
-      if (!_.isEmpty(attributes)) {
-        if (!additionalData) {
-          additionalData = {};
-        }
-        // FIXME: do not get attributes for buggy root dir
-        const fakeRoot =
-          'Z3VpZCN1c2VyUm9vdF9kYjg3MjFmMGFiM2E5YjFjZjU4ZGUwMWYwNGVlMzlhNGNoZDlhZCNyb290RGlyVmlydHVhbFNwYWNlSWQ';
-        if (!id.includes(fakeRoot)) {
-          additionalData.attributes = attributes;
-        } else {
-          additionalData.attributes = [
-            'fileId',
-            'name',
-            'type',
-            'activePermissionsType',
-            // 'archiveId',
-            'atime',
-            'conflictingFiles',
-            'conflictingName',
-            'ctime',
-            // 'effDatasetMembership',
-            // 'effDatasetProtectionFlags',
-            // 'effProtectionFlags',
-            // 'effQosMembership',
-            'hardlinksCount',
-            'hasMetadata',
-            'index',
-            'isDeleted',
-            'isFullyReplicated',
-            'localReplicationRate',
-            'mtime',
-            'ownerId',
-            'parentId',
-            'posixPermissions',
-            'providerId',
-            // 'qosStatus',
-            'shares',
-            'size',
-            // 'storageGroupId',
-            // 'storageUserId',
-            'symlinkValue',
-          ];
-        }
-      }
-    }
+    const additionalData = meta?.additionalData;
+
     const requestParams = {
       gri: id,
       operation: 'get',
