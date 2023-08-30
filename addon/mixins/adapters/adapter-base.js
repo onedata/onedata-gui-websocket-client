@@ -13,12 +13,12 @@ import { dasherize, underscore } from '@ember/string';
 
 export default Mixin.create({
   /**
-   * @type {Map<String,String>}
+   * @type {Map<string,string>}
    */
   entityTypeToEmberModelNameMap: Object.freeze(new Map()),
 
   /**
-   * @type {ComputedProperty<Map<String,String>>}
+   * @type {ComputedProperty<Map<string,string>>}
    */
   emberModelNameToEntityTypeMap: computed(
     'entityTypeToEmberModelNameMap',
@@ -36,12 +36,22 @@ export default Mixin.create({
 
   /**
    * Returns GRI entity type related to passed model name.
-   * @param {String} modelName dasherized or camelized model name.
+   * @param {string} modelName dasherized or camelized model name.
    *   TODO: VFS-7620 force to use only one form for modelName
-   * @returns {String}
+   * @returns {string}
    */
   getEntityTypeForModelName(modelName) {
     return this.get('emberModelNameToEntityTypeMap').get(dasherize(modelName)) ||
       underscore(modelName);
+  },
+
+  /**
+   * Returns model name related to passed GRI entity type.
+   * @param {string} entityType
+   * @returns {string} dasherized model name
+   */
+  getModelNameForEntityType(entityType) {
+    return dasherize(this.entityTypeToEmberModelNameMap.get(entityType)) ||
+      dasherize(entityType);
   },
 });
