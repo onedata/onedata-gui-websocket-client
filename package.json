@@ -32,14 +32,15 @@
     "ember-cli-htmlbars": "6.1.1"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "7.22.15",
     "@ember/jquery": "2.0.0",
     "@ember/optional-features": "2.0.0",
     "broccoli-asset-rev": "git+https://github.com/joankaradimov/broccoli-asset-rev.git#24c7816e2c95494d3e23ca9d757255b637aa0bd1",
     "chai-as-promised": "7.1.1",
     "ember-awesome-macros": "6.0.0",
-    "ember-cli": "3.8.3",
+    "ember-cli": "3.12.1",
     "ember-cli-chai": "0.5.0",
-    "ember-cli-dependency-checker": "3.3.1",
+    "ember-cli-dependency-checker": "3.3.2",
     "ember-cli-inject-live-reload": "2.1.0",
     "ember-cli-sri": "2.1.1",
     "ember-cli-terser": "4.0.2",
@@ -55,19 +56,19 @@
     "ember-resolver": "8.0.3",
     "ember-simple-auth": "3.0.0",
     "ember-sinon": "4.1.1",
-    "ember-source": "3.8.3",
+    "ember-source": "3.12.4",
     "ember-source-channel-url": "3.0.0",
     "ember-try": "2.0.0",
     "ember-uuid": "2.0.0",
-    "eslint": "8.31.0",
-    "eslint-plugin-ember": "10.6.1",
+    "eslint": "8.48.0",
+    "eslint-plugin-ember": "11.11.1",
     "eslint-plugin-jsdoc": "39.6.4",
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-regex": "1.10.0",
     "loader.js": "4.7.0",
     "sinon": "7.2.0",
     "sinon-chai": "3.7.0",
-    "webpack": "5.75.0"
+    "webpack": "5.88.2"
   },
   "engines": {
     "node": ">= 14.*"
