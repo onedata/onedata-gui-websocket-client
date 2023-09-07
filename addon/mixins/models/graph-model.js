@@ -125,8 +125,9 @@ export default Mixin.create({
    * @override
    */
   unloadRecord() {
-    const store = this.get('store');
-    store.unsubscribeFromChanges(this);
+    if (this.store.adapterFor(this.constructor.modelName).subscribe) {
+      this.store.unsubscribeFromChanges(this);
+    }
     return this._super(...arguments);
   },
 

@@ -57,7 +57,9 @@ export default Store.extend({
    * @override
    */
   unloadRecord(record) {
-    this.unsubscribeFromChanges(record);
+    if (this.adapterFor(record.constructor.modelName).subscribe) {
+      this.unsubscribeFromChanges(record);
+    }
     return this._super(...arguments);
   },
 
