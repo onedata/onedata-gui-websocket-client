@@ -169,7 +169,7 @@ export function computedRelationProxy(recordPath, relationName, options) {
           console.warn(
             `mixin:graph-single-model#computedRelationProxy: no getRelation for ${recordPath}, ${relationName} - falling back to get property by path`
           );
-          relationPromise = get(record, relationName);
+          relationPromise = resolve(get(record, relationName));
         }
       } else {
         relationPromise = resolve(null);
