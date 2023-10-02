@@ -169,6 +169,8 @@ export function computedRelationProxy(recordPath, relationName, options) {
           console.warn(
             `mixin:graph-single-model#computedRelationProxy: no getRelation for ${recordPath}, ${relationName} - falling back to get property by path`
           );
+          // TODO: VFS-11407 Figure out if using `resolve()` here is really needed
+          // (now it fixes oversimplified mocks in tests).
           relationPromise = resolve(get(record, relationName));
         }
       } else {
