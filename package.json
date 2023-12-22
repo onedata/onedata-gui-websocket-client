@@ -104,7 +104,7 @@
     "webpack": "5.88.2"
   },
   "engines": {
-    "node": ">= 14.*"
+    "node": ">= 18.*"
   },
   "private": true,
   "ember-addon": {
