@@ -69,19 +69,26 @@ export default Adapter.extend(AdapterBase, {
       'activeRequests'
     );
 
-    const authHint = get(snapshot, 'adapterOptions._meta.authHint') ||
-      onedataGraphContext.getAuthHint(id);
-    const customSubscribe = get(snapshot, 'adapterOptions._meta.subscribe');
+    /** @type {Object|undefined} */
+    const meta = snapshot.adapterOptions?._meta;
+    const authHint = meta?.authHint ?? onedataGraphContext.getAuthHint(id);
+    const customSubscribe = meta?.subscribe;
     const subscribe = customSubscribe !== undefined ?
       customSubscribe : adapterSubscribe;
-    const record = get(snapshot, 'record') || {};
+    const record = get(snapshot, 'record') ?? {};
+    const additionalData = meta?.additionalData;
+
+    const requestParams = {
+      gri: id,
+      operation: 'get',
+      authHint,
+      subscribe,
+    };
+    if (additionalData !== undefined) {
+      requestParams.data = additionalData;
+    }
     const promise = this.getRequestPrerequisitePromise('fetch', type, record)
-      .then(() => onedataGraph.request({
-        gri: id,
-        operation: 'get',
-        authHint,
-        subscribe,
-      }))
+      .then(() => onedataGraph.request(requestParams))
       .then(graphData => {
         // request is successful so access to the resource is not forbidden
         if (get(record, 'isForbidden')) {
