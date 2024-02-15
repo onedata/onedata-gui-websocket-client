@@ -80,7 +80,6 @@
     "ember-cli-typescript": "5.2.1",
     "ember-cookies": "0.5.2",
     "ember-data": "3.12.6",
-    "ember-export-application-global": "2.0.1",
     "ember-get-config": "2.1.1",
     "ember-load-initializers": "2.1.2",
     "ember-local-storage": "2.0.4",
