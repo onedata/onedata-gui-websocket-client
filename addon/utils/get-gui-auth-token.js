@@ -9,7 +9,7 @@
 /**
  * @returns {Promise<{ token: string, ttl: number }>}
  */
-export default async function getToken() {
+export default async function getGuiAuthToken() {
   const response = await fetch('./gui-preauthorize', {
     method: 'POST',
   });

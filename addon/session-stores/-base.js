@@ -12,13 +12,11 @@
  */
 
 import { resolve } from 'rsvp';
-
 import BaseSessionStore from 'ember-simple-auth/session-stores/base';
-
 import _ from 'lodash';
+import isCrossOriginIframe from 'onedata-gui-websocket-client/utils/is-cross-origin-iframe';
 
 export default BaseSessionStore.extend({
-
   /**
    * @virtual
    * @returns {Promise<undefined>}
@@ -32,17 +30,25 @@ export default BaseSessionStore.extend({
     return resolve();
   },
 
-  restore() {
-    return this.forceCloseConnection()
-      .then(() => this.initWebSocketConnection('authenticated'))
-      .then(handshakeData => ({
-        authenticated: _.merge(
-          handshakeData, { authenticator: 'authenticator:one-application' }),
-      }))
-      .catch(() =>
-        this.forceCloseConnection()
-        .then(() => this.initWebSocketConnection('anonymous'))
-        .then(() => {})
+  async restore() {
+    const useAnonymousSession = isCrossOriginIframe();
+    try {
+      await this.forceCloseConnection();
+      const handshakeData = await this.initWebSocketConnection(
+        useAnonymousSession ? 'anonymous' : 'authenticated'
       );
+      if (useAnonymousSession) {
+        return {};
+      } else {
+        return {
+          authenticated: _.merge(
+            handshakeData, { authenticator: 'authenticator:one-application' }),
+        };
+      }
+    } catch (error) {
+      await this.forceCloseConnection();
+      await this.initWebSocketConnection('anonymous');
+      return {};
+    }
   },
 });
