@@ -7,10 +7,8 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import globals from 'onedata-gui-common/utils/globals';
-
 export default function isCrossOriginIframe() {
-  const thisFrame = globals.window;
+  const thisFrame = window;
   try {
     let currentFrame = thisFrame;
     let parentFrame = thisFrame.parent;
