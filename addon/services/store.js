@@ -29,28 +29,31 @@ export default Store.extend({
    *   checked in list records (e.g. after deletion)
    * @returns {Promise} resolves when all lists all properly reloaded/recalculated
    */
-  recalculateListsWithEntity(modelName, entityId) {
+  async recalculateListsWithEntity(modelName, entityId) {
     const listModelName = `${modelName}-list`;
     const records = this.peekAll(listModelName);
-    return allFulfilled(records.map(listModel => {
-      if (!get(listModel, 'isForbidden')) {
-        const ids = listModel.hasMany('list').ids();
-        if (ids && ids.some(id => parseGri(id).entityId === entityId)) {
-          let promise = listModel.reload();
+
+    const reloadPromises = [];
+    for (const listModel of records.toArray()) {
+      if (get(listModel, 'isForbidden')) {
+        continue;
+      }
+      const ids = listModel.hasMany('list').ids();
+      if (ids && ids.some(id => parseGri(id).entityId === entityId)) {
+        const promise = (async () => {
+          await listModel.reload();
           // reload records in list only if they have been loaded earlier
           if (listModel.hasMany('list').value()) {
-            promise = promise.then(() => listModel.hasMany('list').reload());
+            await listModel.hasMany('list').reload();
           }
-          return promise;
-        } else {
-          // simulate reload to recalculated properties
-          listModel.notifyPropertyChange('isReloading');
-          return resolve();
-        }
+        })();
+        reloadPromises.push(promise);
       } else {
-        return resolve();
+        // simulate reload to recalculated properties
+        listModel.notifyPropertyChange('isReloading');
       }
-    }));
+    }
+    await allFulfilled(reloadPromises);
   },
 
   /**
