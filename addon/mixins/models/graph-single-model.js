@@ -24,8 +24,8 @@ export default Mixin.create(GraphModel, {
 
   listsRecalculator: observer(
     'isDeleted',
+    'hasDirtyAttributes',
     'isSaving',
-    'isDirty',
     function listsRecalculator() {
       const isDeletionPersisted =
         this.isDeleted &&

@@ -3,14 +3,14 @@
  * features of the model.
  *
  * @author Michał Borzęcki
- * @copyright (C) 2018 ACK CYFRONET AGH
+ * @copyright (C) 2018-2024 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import { get } from '@ember/object';
 import Store from 'ember-data/store';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
-import { all as allFulfilled, resolve } from 'rsvp';
+import { all as allFulfilled } from 'rsvp';
 import { inject as service } from '@ember/service';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 
