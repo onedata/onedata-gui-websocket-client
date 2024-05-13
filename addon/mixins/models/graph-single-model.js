@@ -2,7 +2,7 @@
  * Adds properties and methods specific to single (non-list) records
  *
  * @author Michał Borzęcki
- * @copyright (C) 2018-2023 ACK CYFRONET AGH
+ * @copyright (C) 2018-2024 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -15,11 +15,35 @@ import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import isDeletedEmberError from '../../utils/is-deleted-ember-error';
 
 export default Mixin.create(GraphModel, {
-  isDeletedObserver: observer('isDeleted', function isDeletedObserver() {
-    if (this.isDeleted) {
-      this.store.recalculateListsWithEntity(this.constructor.modelName, this.entityId);
-    }
-  }),
+  /**
+   * Flag automatically set to true when the record hits the deleted saved state and the
+   * callback for this transition has been invoked.
+   * @type {boolean}
+   */
+  isDeletionPersisted: false,
+
+  listsRecalculator: observer(
+    'isDeleted',
+    'hasDirtyAttributes',
+    'isSaving',
+    function listsRecalculator() {
+      const isDeletionPersisted =
+        this.isDeleted &&
+        !this.hasDirtyAttributes &&
+        !this.isSaving;
+      if (isDeletionPersisted && !this.isDeletionPersisted) {
+        this.store.recalculateListsWithEntity(this.constructor.modelName, this.entityId);
+        this.set('isDeletionPersisted', true);
+      }
+    }),
+
+  init() {
+    this._super(...arguments);
+    // enable observers
+    this.isDeleted;
+    this.isSaving;
+    this.isDirty;
+  },
 
   /**
    * Deeply reloads list relation. If list has not been fetched, nothing is
