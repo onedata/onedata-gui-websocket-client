@@ -7,7 +7,7 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import DS from 'ember-data';
+import Transform from '@ember-data/serializer/transform';
 import _ from 'lodash';
 
 export const normalizedFileTypes = {
@@ -21,7 +21,7 @@ const defaultNormalizedFileType = 'file';
 export const serializedFileTypes = _.invert(normalizedFileTypes);
 const defaultSerializedFileType = serializedFileTypes[defaultNormalizedFileType];
 
-export default DS.Transform.extend({
+export default Transform.extend({
   deserialize(serialized) {
     return normalizedFileTypes[serialized] || defaultNormalizedFileType;
   },

@@ -9,7 +9,7 @@
 import { get, set, getProperties } from '@ember/object';
 import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
-import Adapter from 'ember-data/adapter';
+import Adapter from '@ember-data/adapter';
 import AdapterBase from 'onedata-gui-websocket-client/mixins/adapters/adapter-base';
 import { reject, allSettled } from 'rsvp';
 import createGri from 'onedata-gui-websocket-client/utils/gri';

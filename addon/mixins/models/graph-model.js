@@ -8,7 +8,7 @@
  */
 
 import { oneWay, readOnly } from '@ember/object/computed';
-import attr from 'ember-data/attr';
+import { attr } from '@ember-data/model';
 import Mixin from '@ember/object/mixin';
 import { computed, observer } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
