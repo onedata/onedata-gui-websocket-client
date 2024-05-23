@@ -59,19 +59,17 @@ export default Adapter.extend(AdapterBase, {
   findRecord(store, type, id, snapshot) {
     const {
       onedataGraph,
-      onedataGraphContext,
       subscribe: adapterSubscribe,
       activeRequests,
     } = this.getProperties(
       'onedataGraph',
-      'onedataGraphContext',
       'subscribe',
       'activeRequests'
     );
 
     /** @type {Object|undefined} */
     const meta = snapshot.adapterOptions?._meta;
-    const authHint = meta?.authHint ?? onedataGraphContext.getAuthHint(id);
+    const authHint = meta?.authHint;
     const customSubscribe = meta?.subscribe;
     const subscribe = customSubscribe !== undefined ?
       customSubscribe : adapterSubscribe;
@@ -89,13 +87,6 @@ export default Adapter.extend(AdapterBase, {
     }
     const promise = this.getRequestPrerequisitePromise('fetch', type, record)
       .then(() => onedataGraph.request(requestParams))
-      .then(graphData => {
-        // request is successful so access to the resource is not forbidden
-        if (get(record, 'isForbidden')) {
-          set(record, 'isForbidden', false);
-        }
-        return graphData;
-      })
       .catch(findError => {
         if (get(findError, 'id') === 'forbidden') {
           return this.searchForNextContext(id, {
@@ -110,6 +101,13 @@ export default Adapter.extend(AdapterBase, {
         } else {
           throw findError;
         }
+      })
+      .then(graphData => {
+        // request is successful so access to the resource is not forbidden
+        if (get(record, 'isForbidden')) {
+          set(record, 'isForbidden', false);
+        }
+        return graphData;
       });
 
     activeRequests.addRequest(Request.create({
