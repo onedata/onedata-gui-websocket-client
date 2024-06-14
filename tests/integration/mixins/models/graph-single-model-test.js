@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
 import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
-import Model from 'ember-data/model';
+import Model from '@ember-data/model';
 import sinon from 'sinon';
 import { lookupService } from '../../../helpers/stub-service';
 import useLocalStorageForStore from '../../../helpers/use-local-storage-for-store';

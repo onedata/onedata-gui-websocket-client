@@ -32,8 +32,8 @@ export default Mixin.create(GraphModel, {
         !this.hasDirtyAttributes &&
         !this.isSaving;
       if (isDeletionPersisted && !this.isDeletionPersisted) {
-        this.store.recalculateListsWithEntity(this.constructor.modelName, this.entityId);
         this.set('isDeletionPersisted', true);
+        this.store.recalculateListsWithEntity(this.constructor.modelName, this.entityId);
       }
     }),
 

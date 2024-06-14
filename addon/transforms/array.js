@@ -8,10 +8,10 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import DS from 'ember-data';
+import Transform from '@ember-data/serializer/transform';
 import { A, isArray } from '@ember/array';
 
-export default DS.Transform.extend({
+export default Transform.extend({
   /**
    * @override
    */
