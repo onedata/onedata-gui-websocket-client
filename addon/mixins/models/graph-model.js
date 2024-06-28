@@ -131,6 +131,18 @@ export default Mixin.create({
     return this._super(...arguments);
   },
 
+  /**
+   * Workaround for `ember-data:model.toJSON` deprecation, because some models are
+   * serialized as eg. subject of ACL in tests (localstorage).
+   *
+   * See: https: //deprecations.emberjs.com/id/ember-data-model-toJSON
+   * @override
+   * @returns {Object}
+   */
+  toJSON() {
+    return this.serialize();
+  },
+
   init() {
     this._super(...arguments);
     this.set('isLoadedDefer', defer());
