@@ -11,9 +11,9 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { observer } from '@ember/object';
 import { reads } from '@ember/object/computed';
 import Service, { inject as service } from '@ember/service';
+import { asyncObserver as observer } from 'onedata-gui-websocket-client/utils/observer';
 
 export default Service.extend({
   onedataWebsocket: service(),
