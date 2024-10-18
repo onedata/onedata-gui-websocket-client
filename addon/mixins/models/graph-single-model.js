@@ -9,10 +9,11 @@
 import Mixin from '@ember/object/mixin';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
 import { resolve } from 'rsvp';
-import { get, computed, observer } from '@ember/object';
+import { get, computed } from '@ember/object';
 import { promise } from 'ember-awesome-macros';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
-import isDeletedEmberError from '../../utils/is-deleted-ember-error';
+import isDeletedEmberError from 'onedata-gui-websocket-client/utils/is-deleted-ember-error';
+import { asyncObserver as observer } from 'onedata-gui-websocket-client/utils/observer';
 
 export default Mixin.create(GraphModel, {
   /**

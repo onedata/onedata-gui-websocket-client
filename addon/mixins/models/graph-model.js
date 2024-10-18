@@ -10,10 +10,11 @@
 import { oneWay, readOnly } from '@ember/object/computed';
 import { attr } from '@ember-data/model';
 import Mixin from '@ember/object/mixin';
-import { computed, observer } from '@ember/object';
+import { computed } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { promise } from 'ember-awesome-macros';
 import { defer } from 'rsvp';
+import { asyncObserver as observer } from 'onedata-gui-websocket-client/utils/observer';
 
 export default Mixin.create({
   /**
