@@ -6,6 +6,7 @@ module.exports = function (environment, /* appConfig */ ) {
     environment,
     'ember-local-storage': {
       namespace: true,
+      loadInitializer: false,
     },
     'APP': {},
   };

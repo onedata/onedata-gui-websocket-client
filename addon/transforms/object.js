@@ -1,4 +1,4 @@
-import DS from 'ember-data';
+import Transform from '@ember-data/serializer/transform';
 
 /**
  * Transforms ``Object`` (frontend) <-> JSON (backend).
@@ -9,7 +9,7 @@ import DS from 'ember-data';
  * @copyright (C) 2016-2017 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
-export default DS.Transform.extend({
+export default Transform.extend({
   deserialize: function (value) {
     if (value && (typeof value === 'object') && !Array.isArray(value)) {
       return value;

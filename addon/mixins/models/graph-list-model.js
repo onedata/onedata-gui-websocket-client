@@ -14,8 +14,9 @@
  */
 
 import Mixin from '@ember/object/mixin';
-import { computed, observer } from '@ember/object';
+import { computed } from '@ember/object';
 import GraphModel from 'onedata-gui-websocket-client/mixins/models/graph-model';
+import { asyncObserver as observer } from 'onedata-gui-websocket-client/utils/observer';
 
 export default Mixin.create(GraphModel, {
   /**

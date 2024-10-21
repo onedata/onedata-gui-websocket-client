@@ -6,7 +6,7 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import JSONSerializer from 'ember-data/serializers/json';
+import JSONSerializer from '@ember-data/serializer/json';
 import { get, set, getProperties } from '@ember/object';
 import { inject as service } from '@ember/service';
 import { isArray } from '@ember/array';

@@ -9,7 +9,7 @@
 import {
   belongsTo as origBelongsTo,
   hasMany as origHasMany,
-} from 'ember-data/relationships';
+} from '@ember-data/model';
 
 export function belongsTo(modelName) {
   return origBelongsTo(modelName, { async: true, inverse: null });

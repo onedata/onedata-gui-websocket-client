@@ -8,7 +8,7 @@
  */
 
 import { get } from '@ember/object';
-import Store from 'ember-data/store';
+import Store from '@ember-data/store';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { all as allFulfilled } from 'rsvp';
 import { inject as service } from '@ember/service';

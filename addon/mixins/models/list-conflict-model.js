@@ -7,10 +7,11 @@
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
-import { get, observer } from '@ember/object';
+import { get } from '@ember/object';
 import { debounce } from '@ember/runloop';
 import addConflictLabels from 'onedata-gui-common/utils/add-conflict-labels';
 import Mixin from '@ember/object/mixin';
+import { asyncObserver as observer } from 'onedata-gui-websocket-client/utils/observer';
 
 export function createConflictModelMixin(relationName) {
   return Mixin.create({

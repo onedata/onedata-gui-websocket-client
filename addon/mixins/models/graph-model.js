@@ -8,12 +8,13 @@
  */
 
 import { oneWay, readOnly } from '@ember/object/computed';
-import attr from 'ember-data/attr';
+import { attr } from '@ember-data/model';
 import Mixin from '@ember/object/mixin';
-import { computed, observer } from '@ember/object';
+import { computed } from '@ember/object';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import { promise } from 'ember-awesome-macros';
 import { defer } from 'rsvp';
+import { asyncObserver as observer } from 'onedata-gui-websocket-client/utils/observer';
 
 export default Mixin.create({
   /**
@@ -129,6 +130,18 @@ export default Mixin.create({
       this.store.unsubscribeFromChanges(this);
     }
     return this._super(...arguments);
+  },
+
+  /**
+   * Workaround for `ember-data:model.toJSON` deprecation, because some models are
+   * serialized as eg. subject of ACL in tests (localstorage).
+   *
+   * See: https: //deprecations.emberjs.com/id/ember-data-model-toJSON
+   * @override
+   * @returns {Object}
+   */
+  toJSON() {
+    return this.serialize();
   },
 
   init() {

@@ -3,12 +3,13 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
 import GraphSingleModelMixin from 'onedata-gui-websocket-client/mixins/models/graph-single-model';
-import Model from 'ember-data/model';
+import Model from '@ember-data/model';
 import sinon from 'sinon';
 import { lookupService } from '../../../helpers/stub-service';
 import useLocalStorageForStore from '../../../helpers/use-local-storage-for-store';
 import StaticGraphModelMixin from 'onedata-gui-websocket-client/mixins/models/static-graph-model';
 import resetStorages from 'ember-local-storage/test-support/reset-storage';
+import { settled } from '@ember/test-helpers';
 
 describe('Integration | Mixin | graph-single-model', function () {
   const { beforeEach, afterEach } = setupTest();
@@ -35,6 +36,8 @@ describe('Integration | Mixin | graph-single-model', function () {
 
       await record.save();
       await record.destroyRecord();
+      // recalculation is done by async observer
+      await settled();
 
       expect(recalculateSpy).to.have.been.calledOnce;
     }
