@@ -49,13 +49,14 @@ export default BaseAuthenticator.extend({
    *
    * @returns {Promise}
    */
-  authenticate() {
-    return this.forceCloseConnection()
-      .then(() => this.initWebSocketConnection('authenticated'))
-      .catch(() =>
-        this.forceCloseConnection()
-        .then(() => this.initWebSocketConnection('anonymous'))
-      );
+  async authenticate() {
+    await this.forceCloseConnection();
+    try {
+      await this.initWebSocketConnection('authenticated');
+    } catch {
+      await this.forceCloseConnection();
+      await this.initWebSocketConnection('anonymous');
+    }
   },
 
   /**

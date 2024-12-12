@@ -15,6 +15,7 @@ import { resolve } from 'rsvp';
 import BaseSessionStore from 'ember-simple-auth/session-stores/base';
 import _ from 'lodash';
 import isCrossOriginIframe from 'onedata-gui-websocket-client/utils/is-cross-origin-iframe';
+import { isToleratedHandshakeError } from 'onedata-gui-websocket-client/services/onedata-websocket';
 
 export default BaseSessionStore.extend({
   /**
@@ -46,8 +47,10 @@ export default BaseSessionStore.extend({
         };
       }
     } catch (error) {
-      await this.forceCloseConnection();
-      await this.initWebSocketConnection('anonymous');
+      if (!useAnonymousSession && isToleratedHandshakeError(error)) {
+        await this.forceCloseConnection();
+        await this.initWebSocketConnection('anonymous');
+      }
       return {};
     }
   },
