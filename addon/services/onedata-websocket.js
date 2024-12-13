@@ -315,7 +315,6 @@ export default Service.extend(Evented, {
    * @returns {Promise<object, object>} resolves with successful handshake data
    */
   _handshake(rawOptions) {
-    console.log('FIXME: _handshake');
     const options = rawOptions || {};
     const protocolVersion = (options.protocolVersion === undefined) ?
       this.get('defaultProtocolVersion') : options.protocolVersion;
