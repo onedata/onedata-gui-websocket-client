@@ -94,6 +94,13 @@ export default Service.extend(Evented, {
   connectionAttributes: null,
 
   /**
+   * Set to error object when handshake fails not because of unauthorized error (which
+   * can be expected).
+   * @type {Object}
+   */
+  handshakeFatalError: null,
+
+  /**
    * Object promise proxy that isFulfilled when WebSocket opens
    * @type {ObjectPromiseProxy}
    */
@@ -324,17 +331,27 @@ export default Service.extend(Evented, {
       };
     }
 
-    return new Promise((resolve, reject) => {
-      const handshaking = this.sendMessage('handshake', handshakeData);
-      handshaking.then(({ payload: { success, data, error } }) => {
+    return (async () => {
+      try {
+        const {
+          payload: {
+            success,
+            data,
+            error,
+          },
+        } = await this.sendMessage('handshake', handshakeData);
         if (success) {
-          resolve(data);
+          return data;
         } else {
-          reject(error);
+          throw error;
         }
-      });
-      handshaking.catch(reject);
-    });
+      } catch (error) {
+        if (!isToleratedHandshakeError(error)) {
+          this.handshakeFatalError = error;
+        }
+        throw error;
+      }
+    })();
   },
 
   _onError(errorEvent) {
@@ -459,3 +476,7 @@ export default Service.extend(Evented, {
     }
   },
 });
+
+export function isToleratedHandshakeError(error) {
+  return error.type === 'fetch-token-error' && error.reason === 'unauthorized';
+}
