@@ -12,6 +12,17 @@ import { Promise, resolve } from 'rsvp';
 import Evented from '@ember/object/evented';
 import { later, cancel } from '@ember/runloop';
 import Request from 'onedata-gui-websocket-client/utils/request';
+import { WebsocketMessageSubtypeEnum } from './onedata-websocket';
+
+/**
+ * @enum {'get'|'create'|'update'|'delete'}
+ */
+export const OnedataGraphOperation = Object.freeze({
+  Get: 'get',
+  Create: 'create',
+  Update: 'update',
+  Delete: 'delete',
+});
 
 export default Service.extend(Evented, {
   onedataWebsocket: service(),
@@ -41,32 +52,43 @@ export default Service.extend(Evented, {
   },
 
   /**
-   * @param {Object} options
-   * @param {String} options.gri
-   * @param {String} options.operation one of: get, create, update, delete
-   * @param {Object} options.data
-   * @param {[String,String]} options.authHint [HintType, Id of subject]
-   * @param {boolean} [options.subscribe]
+   * Format: `[HintType, Id of subject]`.
+   * @typedef {[string, string]} OnedataGraphAuthHint
+   */
+
+  /**
+   * @typedef {Object} OnedataGraphRequestWebsocketMessage
+   * @property {string} gri
+   * @property {OnedataGraphOperation} operation
+   * @property {Object} [data]
+   * @property {OnedataGraphAuthHint} [authHint]
+   * @property {boolean} [subscribe]
+   */
+
+  /**
+   * @param {OnedataGraphRequestWebsocketMessage} requestData
    * @returns {Promise<Object, Object>} resolves with Onedata Graph resource
    *   (typically record data)
    */
-  request({
-    gri,
-    operation,
-    data,
-    authHint,
-    subscribe = true,
-  }) {
+  request(requestData) {
+    const {
+      gri,
+      operation,
+      data,
+      authHint,
+      subscribe = true,
+    } = requestData;
     const {
       onedataWebsocket,
       activeRequests,
-    } = this.getProperties('onedataWebsocket', 'activeRequests');
-    const requestData = arguments[0];
+    } = this;
+
+    operation === '';
 
     const promise = this.getRequestPrerequisitePromise(requestData).then(() =>
       new Promise((resolve, reject) => {
-        const effSubscribe = operation === 'get' ||
-          operation === 'create' ? subscribe : false;
+        const effSubscribe = operation === OnedataGraphOperation.Get ||
+          operation === OnedataGraphOperation.Create ? subscribe : false;
         const message = {
           gri,
           operation,
@@ -81,12 +103,17 @@ export default Service.extend(Evented, {
           }
         }
         this.removeScheduledUnsubscription(gri);
-        const requesting = onedataWebsocket.sendMessage('graph', message);
+        const requesting = onedataWebsocket.sendMessage(
+          WebsocketMessageSubtypeEnum.Graph,
+          message
+        );
+        // FIXME: dodać payload.id?
         requesting.then(({ payload: { success, data: payloadData, error } }) => {
           if (success) {
             if (!payloadData) {
               resolve();
             } else {
+              // FIXME: ten format to teraz nie jest czasami subtype? na potrzeby "batch"
               switch (payloadData.format) {
                 case 'resource':
                   resolve(payloadData.resource);

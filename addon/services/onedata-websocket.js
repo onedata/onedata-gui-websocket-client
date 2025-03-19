@@ -19,7 +19,6 @@ import { camelize } from '@ember/string';
 import ObjectProxy from '@ember/object/proxy';
 import PromiseProxyMixin from '@ember/object/promise-proxy-mixin';
 import { Promise, defer } from 'rsvp';
-import { isArray } from '@ember/array';
 import Service, { inject as service } from '@ember/service';
 import _ from 'lodash';
 import safeExec from 'onedata-gui-websocket-client/utils/safe-method-execution';
@@ -31,6 +30,36 @@ const ObjectPromiseProxy = ObjectProxy.extend(PromiseProxyMixin);
 const AVAIL_MESSAGE_HANDLERS = ['response', 'push'];
 
 const defaultProtocolVersion = config.onedataWebsocket.defaultProtocolVersion || 3;
+
+// FIXME: typ WebsocketMessage to jest tak na prawdę payload, a jest jeszcze envelope -
+// być może zmienić nazwę typu?
+
+/**
+ * @typedef {Object|OnedataGraphRequestWebsocketMessage|BatchRequestWebsocketMessage} WebsocketMessage
+ */
+
+/**
+ * @typedef {Object} BatchRequestWebsocketMessage
+ * @property {Array<WebsocketMessage>} batch
+ */
+
+/**
+ * @enum {'handshake'|'rpc'|'graph'|'batch'}
+ */
+export const WebsocketMessageSubtype = Object.freeze({
+  Handshake: 'handshake',
+  Rpc: 'rpc',
+
+  /**
+   * Message format: see OnedataGraphRequestWebsocketMessage type.
+   */
+  Graph: 'graph',
+
+  /**
+   * Message format: see BatchRequestWebsocketMessage type.
+   */
+  Batch: 'batch',
+});
 
 export default Service.extend(Evented, {
   onedataWebsocketErrorHandler: service(),
@@ -153,18 +182,15 @@ export default Service.extend(Evented, {
    * The promise rejects on:
    * - uuid collision
    * - websocket adapter exception
-   * @param {string} subtype one of: handshake, rpc, graph
-   * @param {object} message
+   * @param {WebsocketMessageSubtype} subtype
+   * @param {WebsocketMessage} message
    * @returns {Promise<object, object>} resolves with Onedata Sync API response
    */
   sendMessage(subtype, message) {
     const {
       _webSocket,
       _deferredMessages,
-    } = this.getProperties(
-      '_webSocket',
-      '_deferredMessages',
-    );
+    } = this;
     const id = this._generateUuid();
     const rawMessage = {
       id,
@@ -294,19 +320,13 @@ export default Service.extend(Evented, {
     this._initDefer.resolve();
   },
 
-  _onMessage({ data: dataString }) {
-    const data = JSON.parse(dataString);
-
-    if (isArray(data.batch)) {
-      // not using forEach for performance
-      const batch = data.batch;
-      const length = batch.length;
-      for (let i = 0; i < length; ++i) {
-        this._handleMessage(batch[i]);
-      }
-    } else {
-      this._handleMessage(data);
-    }
+  /**
+   * @param {MessageEvent} messageEvent
+   * @returns {void}
+   */
+  _onMessage(messageEvent) {
+    const data = JSON.parse(messageEvent.data);
+    this._handleMessage(data);
   },
 
   /**
@@ -403,7 +423,7 @@ export default Service.extend(Evented, {
 
   /**
    * @param {object} message
-   * @returns {undefined}
+   * @returns {void}
    */
   _handleMessage(message) {
     console.debug(`onedata-websocket: Handling message: ${JSON.stringify(message)}`);
