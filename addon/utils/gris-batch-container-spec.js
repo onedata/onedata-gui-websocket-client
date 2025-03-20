@@ -5,11 +5,11 @@
  */
 export default class GrisBatchContainerSpec {
   /**
-   * @param {OnedataGraphOperation}
+   * @param {OwsGraphOperation}
    * @param {Array<string>} gris
    */
   constructor(operation, gris) {
-    /** @type {OnedataGraphOperation} */
+    /** @type {OwsGraphOperation} */
     this.operation = operation;
 
     /** @type {Array<string>} */
@@ -17,7 +17,7 @@ export default class GrisBatchContainerSpec {
   }
 
   /**
-   * @param {WebsocketMessage} message
+   * @param {OwsRequestPayload} message
    * @returns {boolean}
    */
   matches(message) {

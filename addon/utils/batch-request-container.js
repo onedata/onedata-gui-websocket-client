@@ -1,6 +1,10 @@
 // FIXME: jsdoc
 
 import { defer } from 'rsvp';
+import {
+  OwsMessageSubtype,
+  wrapRequestPayload,
+} from 'onedata-gui-websocket-client/services/onedata-websocket';
 
 /**
  * @enum {string}
@@ -24,22 +28,24 @@ export default class BatchRequestContainer {
     this.onedataWebsocket = onedataWebsocket;
 
     /**
-     * @type {Map<WebsocketMessage, RSVP.Deferred>}
+     * @type {Object<string, { message: Object, deferred: RSVP.Deferred }>}
      */
-    this.messageDefers = new Map();
+    this.messageDefers = {};
 
     this.state = State.Open;
   }
 
   /**
-   * @param {WebsocketMessage} message
+   * @param {OwsMessageSubtype} subtype
+   * @param {OwsRequestPayload} payload
    * @returns {void}
    */
-  addMessage(message) {
+  addMessage(subtype, payload) {
     if (this.state === State.Sent) {
       throw new Error('BatchRequestContainer: cannot addMessage in state:', this.state);
     }
-    this.messageDefers.set(message, defer());
+    const message = this.wrapPayload(subtype, payload);
+    this.messageDefers[message.id] = { message, deferred: defer() };
   }
 
   start() {
@@ -52,13 +58,21 @@ export default class BatchRequestContainer {
   }
 
   async execute() {
-    const batchMessage = this.createBatchMessage();
-    const result = await this.onedataWebsocket.sendMessage(batchMessage);
+    const batchPayload = this.createBatchPayload();
+    /** @type {OwsResponse} */
+    const batchResult = await this.onedataWebsocket.sendMessage(
+      OwsMessageSubtype.Batch, batchPayload
+    );
+    // FIXME: test errors and wrong responses
+    for (const response of batchResult.payload.data.batch) {
+      // FIXME: warning przed brakiem defera
+      this.messageDefers[response.id]?.deferred.resolve(response);
+    }
     this.setState(State.Open);
   }
 
   /**
-   * @param {WebsocketMessage} message
+   * @param {OwsRequestPayload} message
    * @returns {boolean}
    */
   matches(message) {
@@ -76,13 +90,23 @@ export default class BatchRequestContainer {
 
   /**
    * @private
-   * @returns {BatchWebsocketMessage}
+   * @returns {BatchOwsRequestPayload}
    */
-  createBatchMessage() {
-    return {
-      batch: [
-        ...this.messageDefers.keys(),
-      ],
-    };
+  createBatchPayload() {
+    const batch = Object.values(this.messageDefers).map(({ message }) => message);
+    return { batch };
+  }
+
+  // FIXME: wykorzystać metodę statyczną wyciągniętą z OnedataWebsocket
+
+  /**
+   * FIXME: currently supports only graph subtype
+   * @private
+   * @param {OwsMessageSubtype}
+   * @param {OwsGraphRequestPayload} payload
+   * @returns {Object}
+   */
+  wrapPayload(subtype, payload) {
+    return wrapRequestPayload(subtype, payload);
   }
 }

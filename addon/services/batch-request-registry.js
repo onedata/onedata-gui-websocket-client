@@ -8,9 +8,8 @@ import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-requ
  */
 
 /**
- *
  * @typedef {Object} BaseBatchContainerSpec
- * @property {(message: WebsocketMessage) => boolean} matches Returns true if the message
+ * @property {(message: OwsRequestPayload) => boolean} matches Returns true if the message
  *   should be executed within this batch container.
  */
 
@@ -36,7 +35,7 @@ export default class BatchRequestRegistryService extends Service {
   }
 
   /**
-   * @param {WebsocketMessage} message
+   * @param {OwsRequestPayload} message
    * @returns {BatchRequestContainer}
    */
   getContainer(message) {

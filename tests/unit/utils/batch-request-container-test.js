@@ -3,9 +3,10 @@ import { describe, it } from 'mocha';
 import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-request-container';
 import { v4 as uuid } from 'ember-uuid';
 import gri from 'onedata-gui-websocket-client/utils/gri';
-import { OnedataGraphOperation } from 'onedata-gui-websocket-client/services/onedata-graph';
+import { OwsGraphOperation } from 'onedata-gui-websocket-client/services/onedata-graph';
 import _ from 'lodash';
 import sinon from 'sinon';
+import { OwsMessageSubtype, OwsMessageType } from 'onedata-gui-websocket-client/services/onedata-websocket';
 
 /**
  * @implements {BaseBatchContainerSpec}
@@ -17,88 +18,104 @@ class DummyContainerSpec {
 }
 
 class DummyOnedataWebsocket {
-  /** @type {BatchRequestWebsocketMessage} */
-  async sendMessage(message) {
-    if (!message.batch) {
+  /**
+   * Mocks only batch message with Graph messages.
+   * @param {OwsMessageSubtype} subtype
+   * @param {OwsRequestPayload} payload
+   * @returns {Promise<OwsMessage>}
+   */
+  async sendMessage(subtype, payload) {
+    const id = uuid();
+    if (subtype !== OwsMessageSubtype.Batch || !payload.batch) {
       throw new Error('DummyOnedataWebsocket.sendMessage: only batch is mocked');
     }
-    // throw new Error('DummyOnedataWebsocket.sendMessage not implemented');
-    const responses = message.batch.map(request => this.handleSingleMessage(request));
+    const responses = payload.batch.map(request => this.handleSingleMessage(request));
     return {
-
+      id,
+      type: OwsMessageType.Response,
+      subtype: OwsMessageSubtype.Batch,
+      payload: {
+        success: true,
+        error: null,
+        data: {
+          batch: responses,
+        },
+      },
     };
   }
-  handleSingleMessage(message) {
-
+  /**
+   * Mocked sync response for Graph request.
+   * @private
+   * @param {OwsRequest} request
+   * @returns {OwsResponse}
+   */
+  handleSingleMessage(request) {
+    return {
+      id: request.id,
+      type: OwsMessageType.Response,
+      subtype: OwsMessageSubtype.Graph,
+      payload: {
+        success: true,
+        error: null,
+        data: {
+          resource: {
+            gri: request.payload.gri,
+          },
+          format: 'resource',
+        },
+      },
+    };
   }
 }
 
 describe('Unit | Utility | batch-request-container', function () {
   it('can be instantiated', function () {
     // given
+    const onedataWebsocket = new DummyOnedataWebsocket();
     const containerSpec = new DummyContainerSpec(
       new DummyContainerSpec(),
       new DummyOnedataWebsocket(),
     );
 
     // when
-    const container = new BatchRequestContainer(containerSpec);
+    const container = new BatchRequestContainer(containerSpec, onedataWebsocket);
 
     // then
     expect(container).to.be.ok;
   });
 
-  it('has private method to create a single batch message from multiple messages', function () {
-    // given
-    const containerSpec = new DummyContainerSpec(
-      new DummyContainerSpec(),
-      new DummyOnedataWebsocket(),
-    );
-    const container = new BatchRequestContainer(containerSpec);
-    const messages = _.times(3).map(() => Helper.generateDummyMessage());
-    for (const message of messages) {
-      container.addMessage(message);
-    }
+  it('uses onedataWebsocket.sendMessage to send batch message including wrapped payloads on manual flush',
+    async function () {
+      // given
+      const onedataWebsocket = new DummyOnedataWebsocket();
+      const sendMessageSpy = sinon.spy(onedataWebsocket, 'sendMessage');
+      const containerSpec = new DummyContainerSpec(
+        new DummyContainerSpec(),
+        onedataWebsocket,
+      );
+      const container = new BatchRequestContainer(containerSpec, onedataWebsocket);
+      const messages = _.times(3).map(() => Helper.generateDummyPayload());
+      for (const message of messages) {
+        container.addMessage(OwsMessageSubtype.Graph, message);
+      }
 
-    // when
-    const batchMessage = container.createBatchMessage();
+      // when
+      await container.flush();
 
-    // then
-    expect(batchMessage).to.deep.equal({
-      batch: [
-        messages[0],
-        messages[1],
-        messages[2],
-      ],
+      // then
+      expect(sendMessageSpy).to.be.calledOnce;
+      const spyCall = sendMessageSpy.getCalls()[0];
+      const subtypeArg = spyCall.args[0];
+      expect(subtypeArg).to.equal(OwsMessageSubtype.Batch);
+      const payloadArg = spyCall.args[1];
+      expect(payloadArg.batch).to.have.lengthOf(3);
+      for (let i = 0; i < 3; ++i) {
+        expect(payloadArg.batch[i]).to.have.property('type', OwsMessageType.Request);
+        expect(payloadArg.batch[i]).to.have.property('subtype', OwsMessageSubtype.Graph);
+        expect(payloadArg.batch[i]).to.have.property('payload');
+        expect(payloadArg.batch[i].payload.gri).to.equal(messages[i].gri);
+      }
     });
-  });
-
-  it('', function () {
-    // given
-    const onedataWebsocket = new DummyOnedataWebsocket();
-    sinon.stub(onedataWebsocket, 'sendMessage').resolves();
-    const containerSpec = new DummyContainerSpec(
-      new DummyContainerSpec(),
-      onedataWebsocket,
-    );
-    const container = new BatchRequestContainer(containerSpec);
-    const messages = _.times(3).map(() => Helper.generateDummyMessage());
-    for (const message of messages) {
-      container.addMessage(message);
-    }
-
-    // when
-    const batchMessage = container.createBatchMessage();
-
-    // then
-    expect(batchMessage).to.deep.equal({
-      batch: [
-        messages[0],
-        messages[1],
-        messages[2],
-      ],
-    });
-  });
 });
 
 class Helper {
@@ -109,10 +126,10 @@ class Helper {
       aspect: 'instance',
     });
   }
-  static generateDummyMessage() {
+  static generateDummyPayload() {
     return {
       gri: Helper.generateGri(),
-      operation: OnedataGraphOperation.Gri,
+      operation: OwsGraphOperation.Get,
     };
   }
 }
