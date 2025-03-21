@@ -244,16 +244,16 @@ export default Service.extend(Evented, {
    * - uuid collision
    * - websocket adapter exception
    * @param {OwsMessageSubtype} subtype
-   * @param {OwsRequestPayload} message
+   * @param {OwsRequestPayload} payload
    * @returns {Promise<OwsResponse>} resolves with Onedata Sync API response
    */
-  sendMessage(subtype, message) {
+  sendMessage(subtype, payload) {
     const {
       _webSocket,
       _deferredMessages,
     } = this;
     const id = this._generateUuid();
-    const rawMessage = wrapRequestPayload(subtype, message, id);
+    const message = wrapRequestPayload(subtype, payload, id);
     const sendDeferred = defer();
     if (_deferredMessages.has(id)) {
       // TODO: reason - collision
@@ -265,7 +265,7 @@ export default Service.extend(Evented, {
       });
     }
     try {
-      const rawMessageString = JSON.stringify(rawMessage);
+      const rawMessageString = JSON.stringify(message);
       console.debug(`onedata-websocket: Will send: ${rawMessageString}`);
       _webSocket.send(rawMessageString);
     } catch (error) {

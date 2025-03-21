@@ -12,7 +12,7 @@ import { Promise, resolve } from 'rsvp';
 import Evented from '@ember/object/evented';
 import { later, cancel } from '@ember/runloop';
 import Request from 'onedata-gui-websocket-client/utils/request';
-import { OwsMessageSubtype } from './onedata-websocket';
+import { OwsMessageSubtype, OwsMessageType } from './onedata-websocket';
 
 /**
  * @enum {'get'|'create'|'update'|'delete'}
@@ -27,6 +27,7 @@ export const OwsGraphOperation = Object.freeze({
 export default Service.extend(Evented, {
   onedataWebsocket: service(),
   activeRequests: service(),
+  batchRequestRegistry: service(),
 
   /**
    * Time delay in milliseconds after which scheduled unsubscription
@@ -66,18 +67,18 @@ export default Service.extend(Evented, {
    */
 
   /**
-   * @param {OwsGraphRequestPayload} requestData
-   * @returns {Promise<Object, Object>} resolves with Onedata Graph resource
-   *   (typically record data)
+   * @param {OwsGraphRequestPayload} requestPayload
+   * @returns {Promise<Object>} Resolves with Onedata Graph resource (typically record
+   *   data).
    */
-  request(requestData) {
+  request(requestPayload) {
     const {
       gri,
       operation,
       data,
       authHint,
       subscribe = true,
-    } = requestData;
+    } = requestPayload;
     const {
       onedataWebsocket,
       activeRequests,
@@ -85,11 +86,12 @@ export default Service.extend(Evented, {
 
     operation === '';
 
-    const promise = this.getRequestPrerequisitePromise(requestData).then(() =>
+    const promise = this.getRequestPrerequisitePromise(requestPayload).then(() =>
       new Promise((resolve, reject) => {
         const effSubscribe = operation === OwsGraphOperation.Get ||
           operation === OwsGraphOperation.Create ? subscribe : false;
-        const message = {
+        /** @type {OwsGraphRequestPayload} */
+        const effPayload = {
           gri,
           operation,
           data,
@@ -97,16 +99,27 @@ export default Service.extend(Evented, {
         };
         if (authHint) {
           if (Array.isArray(authHint) && authHint.length === 2) {
-            message.authHint = authHint.join(':');
+            effPayload.authHint = authHint.join(':');
           } else {
             throw new Error('service:onedata-graph: invalid authHint');
           }
         }
         this.removeScheduledUnsubscription(gri);
-        const requesting = onedataWebsocket.sendMessage(
-          OwsMessageSubtype.Graph,
-          message
-        );
+
+        const batchContainer = this.batchRequestRegistry.getContainer(requestPayload);
+        let requesting;
+        // FIXME: refaktor: wspólne jedno wywołanie funkcji (napisać najpierw test)
+        if (batchContainer) {
+          requesting = batchContainer.addMessage(
+            OwsMessageSubtype.Graph,
+            effPayload,
+          );
+        } else {
+          requesting = onedataWebsocket.sendMessage(
+            OwsMessageSubtype.Graph,
+            effPayload
+          );
+        }
         requesting.then(({ payload: { success, data: payloadData, error } }) => {
           if (success) {
             if (!payloadData) {
@@ -133,8 +146,8 @@ export default Service.extend(Evented, {
 
     activeRequests.addRequest(Request.create({
       promise,
-      type: 'graph',
-      data: requestData,
+      type: OwsMessageType.Graph,
+      data: requestPayload,
     }));
 
     return promise;

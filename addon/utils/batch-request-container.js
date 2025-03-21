@@ -36,16 +36,20 @@ export default class BatchRequestContainer {
   }
 
   /**
+   * Schedules sending message in batch.
    * @param {OwsMessageSubtype} subtype
    * @param {OwsRequestPayload} payload
-   * @returns {void}
+   * @returns {Promise<OwsMessage>} The same result as when OnedataWebsocket.sendMessage
+   *   for corresponding message could resolve.
    */
   addMessage(subtype, payload) {
     if (this.state === State.Sent) {
       throw new Error('BatchRequestContainer: cannot addMessage in state:', this.state);
     }
     const message = this.wrapPayload(subtype, payload);
-    this.messageDefers[message.id] = { message, deferred: defer() };
+    const deferred = defer();
+    this.messageDefers[message.id] = { message, deferred };
+    return deferred.promise;
   }
 
   start() {
@@ -79,6 +83,7 @@ export default class BatchRequestContainer {
     return this.containerSpec.matches(message);
   }
 
+  // FIXME: być może system stanów nie będzie tutaj potrzebny
   /**
    * @private
    * @param {State} state

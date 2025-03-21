@@ -1,6 +1,6 @@
 // FIXME: jsdoc
 
-import Service from '@ember/service';
+import Service, { inject as service } from '@ember/service';
 import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-request-container';
 
 /**
@@ -14,6 +14,8 @@ import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-requ
  */
 
 export default class BatchRequestRegistryService extends Service {
+  @service onedataWebsocket;
+
   constructor() {
     super(...arguments);
 
@@ -29,18 +31,18 @@ export default class BatchRequestRegistryService extends Service {
    * @returns {BatchRequestContainer}
    */
   createContainer(containerSpec) {
-    const container = new BatchRequestContainer(containerSpec);
+    const container = new BatchRequestContainer(containerSpec, this.onedataWebsocket);
     this.containers.add(container);
     return container;
   }
 
   /**
-   * @param {OwsRequestPayload} message
+   * @param {OwsRequestPayload} payload
    * @returns {BatchRequestContainer}
    */
-  getContainer(message) {
+  getContainer(payload) {
     for (const container of this.containers.values()) {
-      if (container.matches(message)) {
+      if (container.matches(payload)) {
         return container;
       }
     }
