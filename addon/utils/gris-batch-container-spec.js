@@ -9,6 +9,17 @@ export default class GrisBatchContainerSpec {
    * @param {Array<string>} gris
    */
   constructor(operation, gris) {
+    if (!operation) {
+      throw new Error(
+        'GrisBatchContainerSpec.constructor: operation argument is mandatory'
+      );
+    }
+    if (!Array.isArray(gris)) {
+      throw new Error(
+        'GrisBatchContainerSpec.constructor: gris argument should be an array'
+      );
+    }
+
     /** @type {OwsGraphOperation} */
     this.operation = operation;
 

@@ -15,7 +15,12 @@ const State = Object.freeze({
   Sent: 'sent',
 });
 
+// FIXME: można rozważyć zwracanie message z flusha
+
 export default class BatchRequestContainer {
+  /** @type {AbstractBatchFlushStrategy} */
+  #flushStrategy;
+
   /**
    * @param {BatchContainerSpec} batchContainerSpec
    * @param {Service.OnedataWebsocket} onedataWebsocket
@@ -35,6 +40,18 @@ export default class BatchRequestContainer {
     this.state = State.Open;
   }
 
+  /** @type {AbstractBatchFlushStrategy} */
+  get flushStrategy() {
+    if (!this.#flushStrategy) {
+      throw new Error('BatchRequestContainer: flushStrategy not set');
+    }
+    return this.#flushStrategy;
+  }
+
+  set flushStrategy(value) {
+    this.#flushStrategy = value;
+  }
+
   /**
    * Schedules sending message in batch.
    * @param {OwsMessageSubtype} subtype
@@ -44,11 +61,12 @@ export default class BatchRequestContainer {
    */
   addMessage(subtype, payload) {
     if (this.state === State.Sent) {
-      throw new Error('BatchRequestContainer: cannot addMessage in state:', this.state);
+      throw new Error(`BatchRequestContainer: cannot addMessage in state: ${this.state}`);
     }
     const message = this.wrapPayload(subtype, payload);
     const deferred = defer();
     this.messageDefers[message.id] = { message, deferred };
+    this.flushStrategy.onMessageAdded(subtype, payload);
     return deferred.promise;
   }
 
@@ -56,12 +74,29 @@ export default class BatchRequestContainer {
     this.setState(State.Open);
   }
 
+  // FIXME: raczej trzeba nazwać metodę scheduleFlush, bo strategia może wstrzymać
+  // albo wrócić do koncepcji używania start - jeśli nie wrócę do tej konwencji, to usunąć
+  // metodę start
+
+  // FIXME: usunąć zastosowania?
+  /**
+   * @deprecated
+   */
   async flush() {
-    this.setState(State.Sent);
-    await this.execute();
+    this.scheduleFlush();
+    await this.waitForFlush();
+  }
+
+  scheduleFlush() {
+    this.flushStrategy.scheduleFlush();
+  }
+
+  async waitForFlush() {
+    await this.flushStrategy.waitForFlush();
   }
 
   async execute() {
+    this.setState(State.Sent);
     const batchPayload = this.createBatchPayload();
     /** @type {OwsResponse} */
     const batchResult = await this.onedataWebsocket.sendMessage(

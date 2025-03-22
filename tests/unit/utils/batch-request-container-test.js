@@ -7,6 +7,9 @@ import { OwsGraphOperation } from 'onedata-gui-websocket-client/services/onedata
 import _ from 'lodash';
 import sinon from 'sinon';
 import { OwsMessageSubtype, OwsMessageType } from 'onedata-gui-websocket-client/services/onedata-websocket';
+import { registerService, lookupService } from '../../helpers/stub-service';
+import { DummyBatchOnedataWebsocket } from '../../helpers/dummy-batch-onedata-websocket';
+import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
 
 /**
  * @implements {BaseBatchContainerSpec}
@@ -17,64 +20,13 @@ class DummyContainerSpec {
   }
 }
 
-class DummyOnedataWebsocket {
-  /**
-   * Mocks only batch message with Graph messages.
-   * @param {OwsMessageSubtype} subtype
-   * @param {OwsRequestPayload} payload
-   * @returns {Promise<OwsMessage>}
-   */
-  async sendMessage(subtype, payload) {
-    const id = uuid();
-    if (subtype !== OwsMessageSubtype.Batch || !payload.batch) {
-      throw new Error('DummyOnedataWebsocket.sendMessage: only batch is mocked');
-    }
-    const responses = payload.batch.map(request => this.handleSingleMessage(request));
-    return {
-      id,
-      type: OwsMessageType.Response,
-      subtype: OwsMessageSubtype.Batch,
-      payload: {
-        success: true,
-        error: null,
-        data: {
-          batch: responses,
-        },
-      },
-    };
-  }
-  /**
-   * Mocked sync response for Graph request.
-   * @private
-   * @param {OwsRequest} request
-   * @returns {OwsResponse}
-   */
-  handleSingleMessage(request) {
-    return {
-      id: request.id,
-      type: OwsMessageType.Response,
-      subtype: OwsMessageSubtype.Graph,
-      payload: {
-        success: true,
-        error: null,
-        data: {
-          resource: {
-            gri: request.payload.gri,
-          },
-          format: 'resource',
-        },
-      },
-    };
-  }
-}
-
 describe('Unit | Utility | batch-request-container', function () {
   it('can be instantiated', function () {
     // given
-    const onedataWebsocket = new DummyOnedataWebsocket();
+    const onedataWebsocket = new DummyBatchOnedataWebsocket();
     const containerSpec = new DummyContainerSpec(
       new DummyContainerSpec(),
-      new DummyOnedataWebsocket(),
+      onedataWebsocket
     );
 
     // when
@@ -87,13 +39,14 @@ describe('Unit | Utility | batch-request-container', function () {
   it('uses onedataWebsocket.sendMessage to send batch message including wrapped payloads on manual flush',
     async function () {
       // given
-      const onedataWebsocket = new DummyOnedataWebsocket();
+      const onedataWebsocket = new DummyBatchOnedataWebsocket();
       const sendMessageSpy = sinon.spy(onedataWebsocket, 'sendMessage');
       const containerSpec = new DummyContainerSpec(
         new DummyContainerSpec(),
         onedataWebsocket,
       );
       const container = new BatchRequestContainer(containerSpec, onedataWebsocket);
+      container.flushStrategy = new ImmediateBatchFlushStrategy(container);
       const messages = _.times(3).map(() => Helper.generateDummyPayload());
       for (const message of messages) {
         container.addMessage(OwsMessageSubtype.Graph, message);
@@ -131,5 +84,12 @@ class Helper {
       gri: Helper.generateGri(),
       operation: OwsGraphOperation.Get,
     };
+  }
+  constructor(mochaContext) {
+    this.mochaContext = mochaContext;
+  }
+  registerOnedataWebsocketService() {
+    registerService(this.mochaContext, 'onedata-websocket', DummyBatchOnedataWebsocket);
+    return lookupService(this.mochaContext, 'onedata-websocket');
   }
 }

@@ -2,6 +2,7 @@
 
 import Service, { inject as service } from '@ember/service';
 import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-request-container';
+import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
 
 /**
  * @typedef {GrisBatchContainerSpec} BatchContainerSpec
@@ -28,10 +29,18 @@ export default class BatchRequestRegistryService extends Service {
 
   /**
    * @param {BatchContainerSpec} containerSpec
+   * @param {typeof AbstractBatchFlushStrategy} [flushStrategyClass]
+   * @param {Object} flushStrategyOptions
    * @returns {BatchRequestContainer}
    */
-  createContainer(containerSpec) {
-    const container = new BatchRequestContainer(containerSpec, this.onedataWebsocket);
+  createContainer(containerSpec, flushStrategyClass, flushStrategyOptions) {
+    const container = new BatchRequestContainer(
+      containerSpec,
+      this.onedataWebsocket,
+    );
+    /** @type {AbstractBatchFlushStrategy} */
+    const EffFlushStrategyClass = flushStrategyClass ?? ImmediateBatchFlushStrategy;
+    container.flushStrategy = new EffFlushStrategyClass(container, flushStrategyOptions);
     this.containers.add(container);
     return container;
   }
