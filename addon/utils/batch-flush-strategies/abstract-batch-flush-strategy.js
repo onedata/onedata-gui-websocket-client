@@ -10,6 +10,12 @@ export default class AbstractBatchFlushStrategy {
     this.container = container;
   }
 
+  /**
+   * Callback called after the payload is added as a message to the batch container.
+   * @virtual optional
+   * @param {OwsMessageSubtype} subtype
+   * @param {OwsRequestPayload} payload
+   */
   onMessageAdded() {}
 
   scheduleFlush() {

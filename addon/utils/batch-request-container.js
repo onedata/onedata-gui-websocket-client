@@ -5,6 +5,7 @@ import {
   OwsMessageSubtype,
   wrapRequestPayload,
 } from 'onedata-gui-websocket-client/services/onedata-websocket';
+import config from 'ember-get-config';
 
 /**
  * @enum {string}
@@ -13,11 +14,15 @@ const State = Object.freeze({
   Open: 'open',
   Preparing: 'preparing',
   Sent: 'sent',
+  Completed: 'completed',
 });
 
 // FIXME: można rozważyć zwracanie message z flusha
 
 export default class BatchRequestContainer {
+  /** @type {State} */
+  #state;
+
   /** @type {AbstractBatchFlushStrategy} */
   #flushStrategy;
 
@@ -33,11 +38,36 @@ export default class BatchRequestContainer {
     this.onedataWebsocket = onedataWebsocket;
 
     /**
-     * @type {Object<string, { message: Object, deferred: RSVP.Deferred }>}
+     * Maps message ID (generated when the payload is wrapped) to pair of message object
+     * and deferred that is resolved when this specific message gets resolved on batch
+     * response.
+     * @type {Object<string, { message: OwsMessage, deferred: RSVP.Deferred }>}
      */
-    this.messageDefers = {};
+    this.messageDefers;
+    this.clearMessagesCache();
+  }
 
-    this.state = State.Open;
+  get state() {
+    return this.#state;
+  }
+
+  set state(state) {
+    if (
+      this.state === State.Open && state === State.Preparing ||
+      this.state === State.Preparing && state === State.Sent ||
+      this.state === State.Sent && state === State.Completed ||
+      (!this.state || this.state === State.Completed) && state === State.Open
+    ) {
+      this.#state = state;
+    } else {
+      const message =
+        `BatchRequestContainer.state: invalid state transition ${this.state} -> ${state}`;
+      if (config.environment === 'production') {
+        console.error(message);
+      } else {
+        throw new Error(message);
+      }
+    }
   }
 
   /** @type {AbstractBatchFlushStrategy} */
@@ -70,62 +100,93 @@ export default class BatchRequestContainer {
     return deferred.promise;
   }
 
-  start() {
-    this.setState(State.Open);
-  }
-
-  // FIXME: raczej trzeba nazwać metodę scheduleFlush, bo strategia może wstrzymać
-  // albo wrócić do koncepcji używania start - jeśli nie wrócę do tej konwencji, to usunąć
-  // metodę start
-
-  // FIXME: usunąć zastosowania?
   /**
-   * @deprecated
+   * Schedules flush and waits for its completion. It is recommended to use separate calls
+   * to `scheduleFlush` and `waitForFlush` instead to avoid potential deadlocks.
+   * @return {Promise} Resolves when the registered messages are resolved from batch
+   *   response.
    */
   async flush() {
     this.scheduleFlush();
     await this.waitForFlush();
   }
 
+  /**
+   * Schedules flush of batch message according to the injected strategy.
+   * @returns {void}
+   */
   scheduleFlush() {
-    this.flushStrategy.scheduleFlush();
+    if (this.state === State.Open) {
+      this.state = State.Preparing;
+      this.flushStrategy.scheduleFlush();
+    } else if (this.state !== State.Preparing) {
+      throw new Error(
+        `BatchRequestContainer.scheduleFlush: cannot scheduleFlush in state ${this.state}`
+      );
+    }
   }
 
+  /**
+   * Resolves when the registered messages are resolved from batch response accorging to the
+   * injected strategy.
+   * @returns {Promise<void>}
+   */
   async waitForFlush() {
     await this.flushStrategy.waitForFlush();
   }
 
+  /**
+   * Creates single batch message consisting of all messages added using `addMessage`. Do
+   * not use this method manually - instead use `scheduleFlush` or `flush`, which will
+   * schedule the execution according to injected strategy. Use it in the stragegy
+   * implementation.
+   * @returns {Promise<OwsResponse>} Graph Sync batch response.
+   */
   async execute() {
-    this.setState(State.Sent);
-    const batchPayload = this.createBatchPayload();
-    /** @type {OwsResponse} */
-    const batchResult = await this.onedataWebsocket.sendMessage(
-      OwsMessageSubtype.Batch, batchPayload
-    );
-    // FIXME: test errors and wrong responses
-    for (const response of batchResult.payload.data.batch) {
-      // FIXME: warning przed brakiem defera
-      this.messageDefers[response.id]?.deferred.resolve(response);
+    if (this.state !== State.Preparing) {
+      throw new Error(
+        'BatchRequestContainer.execute: cannot execute not in preparing state'
+      );
     }
-    this.setState(State.Open);
+    const batchPayload = this.createBatchPayload();
+    this.state = State.Sent;
+    // FIXME: obsługa błędu sendMessage - łapać błąd i resolvować wszystko oraz ustawiać odpowiedni stan
+    // FIXME: napisać test takiego errora batcha
+    /** @type {OwsResponse} */
+    let batchResult;
+    try {
+      try {
+        batchResult = await this.onedataWebsocket.sendMessage(
+          OwsMessageSubtype.Batch, batchPayload
+        );
+        // FIXME: test errors and wrong responses
+        for (const response of batchResult.payload.data.batch) {
+          // FIXME: warning przed brakiem defera
+          // FIXME: obsługa errora dla pojedynczych responsów (reject)
+          // FIXME: napisać test do powyższego
+          this.messageDefers[response.id]?.deferred.resolve(response);
+          // FIXME: co jeśli zostają jakieś niezresolvovane message? reject?
+        }
+        return batchResult;
+      } catch (error) {
+        for (const { deferred } of Object.values(this.messageDefers)) {
+          deferred.reject(error);
+        }
+        throw error;
+      }
+    } finally {
+      this.state = State.Completed;
+      this.clearMessagesCache();
+    }
   }
 
   /**
-   * @param {OwsRequestPayload} message
+   * Checks if the request payload should be added to this batch container.
+   * @param {OwsRequestPayload} requestPayload
    * @returns {boolean}
    */
-  matches(message) {
-    return this.containerSpec.matches(message);
-  }
-
-  // FIXME: być może system stanów nie będzie tutaj potrzebny
-  /**
-   * @private
-   * @param {State} state
-   * @returns {void}
-   */
-  setState(state) {
-    this.state = state;
+  matches(requestPayload) {
+    return this.containerSpec.matches(requestPayload);
   }
 
   /**
@@ -137,10 +198,7 @@ export default class BatchRequestContainer {
     return { batch };
   }
 
-  // FIXME: wykorzystać metodę statyczną wyciągniętą z OnedataWebsocket
-
   /**
-   * FIXME: currently supports only graph subtype
    * @private
    * @param {OwsMessageSubtype}
    * @param {OwsGraphRequestPayload} payload
@@ -148,5 +206,19 @@ export default class BatchRequestContainer {
    */
   wrapPayload(subtype, payload) {
     return wrapRequestPayload(subtype, payload);
+  }
+
+  // FIXME: napisać test wielokrotnego użycia tego samego kontenera (np. schedulerem count)
+  /**
+   * @private
+   */
+  clearMessagesCache() {
+    if (this.state && this.state !== State.Completed) {
+      throw new Error(
+        'BatchRequestContainer.clearMessageCache: cannot clear messages until flush completion'
+      );
+    }
+    this.messageDefers = {};
+    this.state = State.Open;
   }
 }
