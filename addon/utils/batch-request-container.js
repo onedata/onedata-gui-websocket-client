@@ -56,7 +56,8 @@ export default class BatchRequestContainer {
       this.state === State.Open && state === State.Preparing ||
       this.state === State.Preparing && state === State.Sent ||
       this.state === State.Sent && state === State.Completed ||
-      (!this.state || this.state === State.Completed) && state === State.Open
+      (!this.state || this.state === State.Completed) && state === State.Open ||
+      this.state === State.Preparing && state === State.Completed && !this.messagesCount
     ) {
       this.#state = state;
     } else {
@@ -80,6 +81,13 @@ export default class BatchRequestContainer {
 
   set flushStrategy(value) {
     this.#flushStrategy = value;
+  }
+
+  /**
+   * @type {number}
+   */
+  get messagesCount() {
+    return Object.keys(this.messageDefers).length;
   }
 
   /**
@@ -140,9 +148,15 @@ export default class BatchRequestContainer {
    * not use this method manually - instead use `scheduleFlush` or `flush`, which will
    * schedule the execution according to injected strategy. Use it in the stragegy
    * implementation.
-   * @returns {Promise<OwsResponse>} Graph Sync batch response.
+   * @returns {Promise<OwsResponse|null>} Graph Sync batch response or null if there were
+   *   no messages to send.
    */
   async execute() {
+    if (!this.messagesCount) {
+      this.state = State.Completed;
+      return null;
+    }
+
     if (this.state !== State.Preparing) {
       throw new Error(
         'BatchRequestContainer.execute: cannot execute not in preparing state'
