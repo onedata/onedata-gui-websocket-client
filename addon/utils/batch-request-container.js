@@ -1,4 +1,35 @@
-// FIXME: jsdoc
+/**
+ * Groups together requests that should be done as a single batch.
+ *
+ * Note, that BatchRequestContainers should be managed using BatchRequestRegistryService.
+ * See its documentation for details.
+ *
+ * The BatchRequestContainer is used to gather requests according to provided
+ * specification, which are eventually executed in single batch.
+ *
+ * **Creation:** The container is created with specification which requests it should
+ * gather. See classes implementing BatchContainerSpec type. This is typically done when
+ * we know what messages are going to be sent (eg. before fetching a list of spaces, when
+ * we know all GRIs).
+ *
+ * **Requests gathering:** After the creation, the container accepts message payloads.
+ * Messages are added typically by the requesting layer of the application (eg.
+ * OnedataGraphService) based on the aformentioned requests specification.
+ *
+ * **Execution schedule:** The container has one of batch flush strategy, which defines
+ * when the requests should be sent. For example, user can schedule flush and the strategy
+ * says that the actual execution will be perfomed when there were be 300 messages added
+ * to the container.
+ *
+ * **Execution:** When the flush is done, the container creates batch-type message and
+ * uses the requesting layer to send it to the server. When the response is received, all
+ * messages are resolved as they would be virtually separate messages - it is transparent
+ * to user.
+ *
+ * @author Jakub Liput
+ * @copyright (C) 2025 ACK CYFRONET AGH
+ * @license This software is released under the MIT license cited in 'LICENSE.txt'.
+ */
 
 import { defer } from 'rsvp';
 import {
@@ -6,6 +37,7 @@ import {
   wrapRequestPayload,
 } from 'onedata-gui-websocket-client/services/onedata-websocket';
 import config from 'ember-get-config';
+import { OwsMessageType } from '../services/onedata-websocket';
 
 /**
  * @enum {string}
@@ -17,7 +49,12 @@ const State = Object.freeze({
   Completed: 'completed',
 });
 
-// FIXME: można rozważyć zwracanie message z flusha
+/**
+ * @typedef {Object} BatchContainerMessageInfo
+ * @property {OwsMessage} message
+ * @property {RSVP.Deferred} deferred
+ * @property {boolean} isResolved
+ */
 
 export default class BatchRequestContainer {
   /** @type {State} */
@@ -41,7 +78,7 @@ export default class BatchRequestContainer {
      * Maps message ID (generated when the payload is wrapped) to pair of message object
      * and deferred that is resolved when this specific message gets resolved on batch
      * response.
-     * @type {Object<string, { message: OwsMessage, deferred: RSVP.Deferred }>}
+     * @type {Object<string, BatchContainerMessageInfo>}
      */
     this.messageDefers;
     this.clearMessagesCache();
@@ -103,7 +140,7 @@ export default class BatchRequestContainer {
     }
     const message = this.wrapPayload(subtype, payload);
     const deferred = defer();
-    this.messageDefers[message.id] = { message, deferred };
+    this.messageDefers[message.id] = { message, deferred, isResolved: false };
     this.flushStrategy.onMessageAdded(subtype, payload);
     return deferred.promise;
   }
@@ -164,30 +201,43 @@ export default class BatchRequestContainer {
     }
     const batchPayload = this.createBatchPayload();
     this.state = State.Sent;
-    // FIXME: obsługa błędu sendMessage - łapać błąd i resolvować wszystko oraz ustawiać odpowiedni stan
-    // FIXME: napisać test takiego errora batcha
     /** @type {OwsResponse} */
     let batchResult;
     try {
       try {
         batchResult = await this.onedataWebsocket.sendMessage(
-          OwsMessageSubtype.Batch, batchPayload
+          OwsMessageSubtype.Batch,
+          batchPayload
         );
-        // FIXME: test errors and wrong responses
-        for (const response of batchResult.payload.data.batch) {
-          // FIXME: warning przed brakiem defera
-          // FIXME: obsługa errora dla pojedynczych responsów (reject)
-          // FIXME: napisać test do powyższego
-          this.messageDefers[response.id]?.deferred.resolve(response);
-          // FIXME: co jeśli zostają jakieś niezresolvovane message? reject?
-        }
-        return batchResult;
       } catch (error) {
+        // FIXME: napisać test takiego errora batcha
         for (const { deferred } of Object.values(this.messageDefers)) {
           deferred.reject(error);
         }
         throw error;
       }
+      for (const response of batchResult.payload.data.batch) {
+        const messageDeferInfo = this.messageDefers[response.id];
+        const deferred = messageDeferInfo.deferred;
+        if (deferred) {
+          deferred.resolve(response);
+          messageDeferInfo.isResolved = true;
+        } else {
+          // FIXME: przetestować ten przypadek
+          console.warn(
+            `BatchRequestContainer.execute: no deferred registered for response: ${response.id}`,
+            response
+          );
+        }
+
+      }
+      // FIXME: test niezresolvowanego message
+      const notResolved = Object.values(this.messageDefers)
+        .filter(({ isResolved }) => !isResolved);
+      for (const { message, deferred } of notResolved) {
+        deferred.reject(this.noResponseInBatchErrorMessage(message));
+      }
+      return batchResult;
     } finally {
       this.state = State.Completed;
       this.clearMessagesCache();
@@ -205,7 +255,7 @@ export default class BatchRequestContainer {
 
   /**
    * @private
-   * @returns {BatchOwsRequestPayload}
+   * @returns {OwsBatchRequestPayload}
    */
   createBatchPayload() {
     const batch = Object.values(this.messageDefers).map(({ message }) => message);
@@ -234,5 +284,23 @@ export default class BatchRequestContainer {
     }
     this.messageDefers = {};
     this.state = State.Open;
+  }
+
+  /**
+   * Special pseudo-response message indicating, that batch did not have the response for
+   * the message (but it should have one).
+   * @param {OwsRequest} requestMessage
+   * @returns {OwsResponse}
+   */
+  noResponseInBatchErrorMessage(requestMessage) {
+    return {
+      id: requestMessage.id,
+      type: OwsMessageType.Response,
+      subtype: requestMessage.subtype,
+      payload: {
+        success: false,
+        error: { id: 'noResponseInBatch' },
+      },
+    };
   }
 }

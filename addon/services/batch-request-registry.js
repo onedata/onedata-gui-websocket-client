@@ -1,4 +1,27 @@
-// FIXME: jsdoc
+/**
+ * Manages all BatchRequestContainers: creating, sharing them to requesting layers and
+ * destroying.
+ *
+ * **Creating containers**: When we know in advance that N records will be fetched, and
+ * their GRIs are already known, we can create a container with specification
+ * (GrisBatchContainerSpec) that says every message matching that specification should be
+ * done in single batch represented by single container.
+ *
+ * **Sharing containers in requesting layers**: When any of the request matching the
+ * specification of the created container is tried to be executed in the lower layers of
+ * application, instead of executing the request immediately, the requesting service
+ * checks the registry. This service finds the registered matching container and the
+ * request is added to that container. The container has code to flush gathered messages
+ * as a single batch using appropriate requesting services when the time comes (see batch
+ * containers flush strategies).
+ *
+ * **Destroying containers**: When we receive responses for the batched requests, the
+ * container can be destroyed and deregistered from this registry.
+ *
+ * @author Jakub Liput
+ * @copyright (C) 2025 ACK CYFRONET AGH
+ * @license This software is released under the MIT license cited in 'LICENSE.txt'.
+ */
 
 import Service, { inject as service } from '@ember/service';
 import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-request-container';

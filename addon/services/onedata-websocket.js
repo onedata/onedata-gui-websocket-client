@@ -535,12 +535,16 @@ export default Service.extend(Evented, {
   _badMessageId(message) {
     if (
       message.type === 'push' &&
-      message.payload &&
-      message.payload.error &&
-      message.payload.error.id === 'badMessage'
+      message.payload?.error?.id === 'badMessage'
     ) {
-      const requestMessage = JSON.parse(message.payload.error.details.message);
-      return requestMessage.id;
+      const detailsMessage = message.payload.error.details?.message;
+      let requestMessage;
+      if (typeof detailsMessage === 'object') {
+        requestMessage = detailsMessage;
+      } else if (typeof detailsMessage === 'string') {
+        requestMessage = JSON.parse(detailsMessage);
+      }
+      return requestMessage?.id;
     } else {
       return undefined;
     }

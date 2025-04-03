@@ -1,4 +1,11 @@
-// FIXME: jsdoc
+/**
+ * Executes batch if there are at least `requiredMessagesNumber` messages in the
+ * container.
+ *
+ * @author Jakub Liput
+ * @copyright (C) 2025 ACK CYFRONET AGH
+ * @license This software is released under the MIT license cited in 'LICENSE.txt'.
+ */
 
 import { defer } from 'rsvp';
 import AbstractBatchFlushStrategy from './abstract-batch-flush-strategy';

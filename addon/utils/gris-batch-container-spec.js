@@ -1,4 +1,13 @@
-// FIXME: jsdoc
+/**
+ * The container specification that matches request for multiple GRIs.
+ *
+ * For example, you can create a specification for fetching spaces records from list of
+ * spaces while you know GRIs stored in SpaceList model before records fetch.
+ *
+ * @author Jakub Liput
+ * @copyright (C) 2025 ACK CYFRONET AGH
+ * @license This software is released under the MIT license cited in 'LICENSE.txt'.
+ */
 
 /**
  * @implements {BaseBatchContainerSpec}

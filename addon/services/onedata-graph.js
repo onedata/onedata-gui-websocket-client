@@ -15,6 +15,20 @@ import Request from 'onedata-gui-websocket-client/utils/request';
 import { OwsMessageSubtype, OwsMessageType } from './onedata-websocket';
 
 /**
+ * Format: `[HintType, Id of subject]`.
+ * @typedef {[string, string]} OwsGraphAuthHint
+ */
+
+/**
+ * @typedef {Object} OwsGraphRequestPayload
+ * @property {string} gri
+ * @property {OwsGraphOperation} operation
+ * @property {Object} [data]
+ * @property {OwsGraphAuthHint} [authHint]
+ * @property {boolean} [subscribe]
+ */
+
+/**
  * @enum {'get'|'create'|'update'|'delete'}
  */
 export const OwsGraphOperation = Object.freeze({
@@ -51,20 +65,6 @@ export default Service.extend(Evented, {
     onedataWebsocket.on('push:graph', this, this.handlePush);
     onedataWebsocket.on('push:nosub', this, this.handleNosub);
   },
-
-  /**
-   * Format: `[HintType, Id of subject]`.
-   * @typedef {[string, string]} OwsGraphAuthHint
-   */
-
-  /**
-   * @typedef {Object} OwsGraphRequestPayload
-   * @property {string} gri
-   * @property {OwsGraphOperation} operation
-   * @property {Object} [data]
-   * @property {OwsGraphAuthHint} [authHint]
-   * @property {boolean} [subscribe]
-   */
 
   /**
    * @param {OwsGraphRequestPayload} requestPayload
@@ -108,7 +108,6 @@ export default Service.extend(Evented, {
 
         const batchContainer = this.batchRequestRegistry.getContainer(requestPayload);
         let requesting;
-        // FIXME: refaktor: wspólne jedno wywołanie funkcji (napisać najpierw test)
         if (batchContainer) {
           requesting = batchContainer.addMessage(
             OwsMessageSubtype.Graph,

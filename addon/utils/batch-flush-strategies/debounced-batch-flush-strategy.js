@@ -1,4 +1,12 @@
-// FIXME: jsdoc
+/**
+ * Executes batch after `debounceTime` after the schedule or last message added.
+ *
+ * If the message is added after schedule, the timer starts again.
+ *
+ * @author Jakub Liput
+ * @copyright (C) 2025 ACK CYFRONET AGH
+ * @license This software is released under the MIT license cited in 'LICENSE.txt'.
+ */
 
 import { defer } from 'rsvp';
 import AbstractBatchFlushStrategy from './abstract-batch-flush-strategy';
@@ -25,7 +33,6 @@ export default class DebouncedBatchFlushStrategy extends AbstractBatchFlushStrat
   }
 
   /**
-   * FIXME: Czekamy n ms po każdym następnym onMessageAdd i wykonujemy execute.
    * @override
    */
   async scheduleFlush() {
