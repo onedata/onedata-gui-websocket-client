@@ -9,7 +9,6 @@ import gri from 'onedata-gui-websocket-client/utils/gri';
 import { OwsMessageType, OwsMessageSubtype } from 'onedata-gui-websocket-client/services/onedata-websocket';
 import OnedataWebsocketService from '../../helpers/stubs/services/onedata-websocket';
 import ActiveRequestsService from '../../helpers/stubs/services/active-requests';
-import { DummyBatchOnedataWebsocket } from '../../helpers/dummy-batch-onedata-websocket';
 import GrisBatchContainerSpec from 'onedata-gui-websocket-client/utils/gris-batch-container-spec';
 import _ from 'lodash';
 import {
