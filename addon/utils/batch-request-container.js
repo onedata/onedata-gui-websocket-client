@@ -272,7 +272,6 @@ export default class BatchRequestContainer {
     return wrapRequestPayload(subtype, payload);
   }
 
-  // FIXME: napisać test wielokrotnego użycia tego samego kontenera (np. schedulerem count)
   /**
    * @private
    */

@@ -69,7 +69,32 @@ describe('Unit | Utility | batch-request-container', function () {
         expect(payloadArg.batch[i]).to.have.property('payload');
         expect(payloadArg.batch[i].payload.gri).to.equal(messages[i].gri);
       }
-    });
+    }
+  );
+
+  it('can be reused after resolving batch response', async function () {
+    // given
+    const onedataWebsocket = new DummyBatchOnedataWebsocket();
+    const sendMessageSpy = sinon.spy(onedataWebsocket, 'sendMessage');
+    const containerSpec = new DummyContainerSpec(
+      new DummyContainerSpec(),
+      onedataWebsocket,
+    );
+    const container = new BatchRequestContainer(containerSpec, onedataWebsocket);
+    container.flushStrategy = new ImmediateBatchFlushStrategy(container);
+    const messages = _.times(3).map(() => Helper.generateDummyPayload());
+    for (const message of messages) {
+      container.addMessage(OwsMessageSubtype.Graph, message);
+    }
+
+    // when
+    await container.flush();
+    container.addMessage(OwsMessageSubtype.Graph, Helper.generateDummyPayload());
+    await container.flush();
+
+    // then
+    expect(sendMessageSpy).to.be.calledTwice;
+  });
 });
 
 class Helper {
