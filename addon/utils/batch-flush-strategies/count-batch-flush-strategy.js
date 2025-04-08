@@ -24,7 +24,7 @@ export default class CountBatchFlushStrategy extends AbstractBatchFlushStrategy 
     this.isFlushScheduled = false;
 
     /** @type {RSVP.Deferred} */
-    this.executorDeferred = defer();
+    this.executionDeferred = defer();
   }
 
   /**
@@ -46,7 +46,7 @@ export default class CountBatchFlushStrategy extends AbstractBatchFlushStrategy 
   }
 
   async waitForFlush() {
-    await this.executorDeferred.promise;
+    await this.executionDeferred.promise;
   }
 
   isRequiredCount() {
@@ -59,8 +59,12 @@ export default class CountBatchFlushStrategy extends AbstractBatchFlushStrategy 
 
   async tryExecute() {
     if (this.isRequiredCount()) {
-      const result = await this.container.execute();
-      this.executorDeferred.resolve(result);
+      try {
+        const result = await this.container.execute();
+        this.executionDeferred.resolve(result);
+      } catch (error) {
+        this.executionDeferred.reject(error);
+      }
     }
   }
 }

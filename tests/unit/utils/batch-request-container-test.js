@@ -9,7 +9,10 @@ import sinon from 'sinon';
 import { OwsMessageSubtype, OwsMessageType } from 'onedata-gui-websocket-client/services/onedata-websocket';
 import { registerService, lookupService } from '../../helpers/stub-service';
 import { DummyBatchOnedataWebsocket } from '../../helpers/dummy-batch-onedata-websocket';
-import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
+import {
+  ImmediateBatchFlushStrategy,
+  CountBatchFlushStrategy,
+} from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
 import BatchContainerSpec from 'onedata-gui-websocket-client/utils/batch-container-spec';
 
 /**
@@ -95,6 +98,54 @@ describe('Unit | Utility | batch-request-container', function () {
     // then
     expect(sendMessageSpy).to.be.calledTwice;
   });
+
+  it('rejects all single message promises when batch rejects',
+    async function () {
+      // given
+      const onedataWebsocket = new DummyBatchOnedataWebsocket();
+      const sendMessageError = new Error('message send failed');
+      sinon
+        .stub(onedataWebsocket, 'sendMessage')
+        .rejects(sendMessageError);
+      const containerSpec = new DummyContainerSpec(
+        new DummyContainerSpec(),
+        onedataWebsocket,
+      );
+      const messagesNumber = 3;
+      const container = new BatchRequestContainer(containerSpec, onedataWebsocket);
+      container.flushStrategy = new CountBatchFlushStrategy(container, {
+        requiredMessagesNumber: messagesNumber,
+      });
+      const messages = _.times(messagesNumber).map(() => Helper.generateDummyPayload());
+
+      // when
+      container.scheduleFlush();
+      const responsePromises = messages.map(message =>
+        container.addMessage(OwsMessageSubtype.Graph, message)
+      );
+      let flushError;
+      try {
+        await container.waitForFlush();
+      } catch (error) {
+        flushError = error;
+      }
+
+      // then
+      expect(flushError).to.equal(sendMessageError);
+      const promisesErrors = [];
+      for (const responsePromise of responsePromises) {
+        try {
+          await responsePromise;
+        } catch (error) {
+          promisesErrors.push(error);
+        }
+      }
+      expect(promisesErrors).to.have.lengthOf(messagesNumber);
+      for (let i = 0; i < messagesNumber; ++i) {
+        expect(promisesErrors[i]).to.equal(sendMessageError);
+      }
+    }
+  );
 });
 
 class Helper {

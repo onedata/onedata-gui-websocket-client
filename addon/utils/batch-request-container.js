@@ -210,7 +210,6 @@ export default class BatchRequestContainer {
           batchPayload
         );
       } catch (error) {
-        // FIXME: napisać test takiego errora batcha
         for (const { deferred } of Object.values(this.messageDefers)) {
           deferred.reject(error);
         }

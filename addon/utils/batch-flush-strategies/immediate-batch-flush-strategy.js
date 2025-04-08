@@ -17,9 +17,14 @@ export default class ImmediateBatchFlushStrategy extends AbstractBatchFlushStrat
    * @override
    */
   scheduleFlush() {
+    // this.tryExecute();
     (async () => {
-      const result = await this.container.execute();
-      this.executionDeferred.resolve(result);
+      try {
+        const result = await this.container.execute();
+        this.executionDeferred.resolve(result);
+      } catch (error) {
+        this.executionDeferred.reject(error);
+      }
     })();
   }
 
@@ -28,5 +33,14 @@ export default class ImmediateBatchFlushStrategy extends AbstractBatchFlushStrat
    */
   async waitForFlush() {
     return this.executionDeferred.promise;
+  }
+
+  async tryExecute() {
+    try {
+      const result = await this.container.execute();
+      this.executionDeferred.resolve(result);
+    } catch (error) {
+      this.executionDeferred.reject(error);
+    }
   }
 }

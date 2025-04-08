@@ -20,7 +20,7 @@ export default class DebouncedBatchFlushStrategy extends AbstractBatchFlushStrat
     this.timeoutId;
 
     this.isFlushScheduled = false;
-    this.executorDeferred = defer();
+    this.executionDeferred = defer();
   }
 
   /**
@@ -41,14 +41,20 @@ export default class DebouncedBatchFlushStrategy extends AbstractBatchFlushStrat
   }
 
   async waitForFlush() {
-    await this.executorDeferred.promise;
+    await this.executionDeferred.promise;
   }
 
   resetTimer() {
     clearTimeout(this.timeoutId);
-    this.timeoutId = setTimeout(async () => {
+    this.timeoutId = setTimeout(() => this.tryExecute(), this.debounceTime);
+  }
+
+  async tryExecute() {
+    try {
       const result = await this.container.execute();
-      this.executorDeferred.resolve(result);
-    }, this.debounceTime);
+      this.executionDeferred.resolve(result);
+    } catch (error) {
+      this.executionDeferred.reject(error);
+    }
   }
 }
