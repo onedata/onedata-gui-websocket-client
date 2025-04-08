@@ -10,11 +10,12 @@ import { OwsMessageSubtype, OwsMessageType } from 'onedata-gui-websocket-client/
 import { registerService, lookupService } from '../../helpers/stub-service';
 import { DummyBatchOnedataWebsocket } from '../../helpers/dummy-batch-onedata-websocket';
 import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
+import BatchContainerSpec from 'onedata-gui-websocket-client/utils/batch-container-spec';
 
 /**
- * @implements {BaseBatchContainerSpec}
+ * @implements {BatchContainerSpec}
  */
-class DummyContainerSpec {
+class DummyContainerSpec extends BatchContainerSpec {
   matches() {
     return true;
   }

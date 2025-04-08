@@ -5,6 +5,7 @@ import { v4 as uuid } from 'ember-uuid';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import GrisBatchContainerSpec from 'onedata-gui-websocket-client/utils/gris-batch-container-spec';
 import { OwsGraphOperation } from 'onedata-gui-websocket-client/services/onedata-graph';
+import { ConflictSpecContainerError } from 'onedata-gui-websocket-client/services/batch-request-registry';
 
 describe('Unit | Service | batch-request-registry', function () {
   setupTest();
@@ -144,6 +145,55 @@ describe('Unit | Service | batch-request-registry', function () {
       expect(containerGot2).to.be.equal(containerCreated);
     }
   );
+
+  it('createContainer throws an error if there is container with conflicting spec', function () {
+    // given
+    const service = this.owner.lookup('service:batch-request-registry');
+    const dummyGri1 = Helper.generateGri();
+    const dummyGri2 = Helper.generateGri();
+    const dummyGri3 = Helper.generateGri();
+    const container1 = service.createContainer(
+      new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri1, dummyGri2])
+    );
+
+    // when-then
+    const newSpec =
+      new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri2, dummyGri3]);
+    let expectedError;
+    try {
+      // This container would match dummyGri2, but it is already matched by other
+      // container. Creating such container would create inconsistent behavior - user does
+      // not know which one would be returned for dummyGri2 message.
+      service.createContainer(newSpec);
+    } catch (error) {
+      expectedError = error;
+    }
+    expect(expectedError).to.be.ok;
+    expect(expectedError.containerSpec).to.equal(newSpec);
+    expect(expectedError.existingContainer).to.equal(container1);
+  });
+
+  it('createContainer does not throw an error if there is no container with conflicting spec', function () {
+    // given
+    const service = this.owner.lookup('service:batch-request-registry');
+    const dummyGri1 = Helper.generateGri();
+    const dummyGri2 = Helper.generateGri();
+    const dummyGri3 = Helper.generateGri();
+    const dummyGri4 = Helper.generateGri();
+    service.createContainer(
+      new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri1, dummyGri2])
+    );
+
+    // when-then
+    expect(() => {
+      // This container would match dummyGri2, but it is already matched by other
+      // container. Creating such container would create inconsistent behavior - user does
+      // not know which one would be returned for dummyGri2 message.
+      service.createContainer(
+        new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri3, dummyGri4])
+      );
+    }).to.not.throw(ConflictSpecContainerError);
+  });
 });
 
 class Helper {

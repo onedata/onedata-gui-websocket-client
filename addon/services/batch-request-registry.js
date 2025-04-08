@@ -32,7 +32,7 @@ import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/
  */
 
 /**
- * @typedef {Object} BaseBatchContainerSpec
+ * @typedef {Object} BatchContainerSpec
  * @property {(message: OwsRequestPayload) => boolean} matches Returns true if the message
  *   should be executed within this batch container.
  */
@@ -57,6 +57,10 @@ export default class BatchRequestRegistryService extends Service {
    * @returns {BatchRequestContainer}
    */
   createContainer(containerSpec, flushStrategyClass, flushStrategyOptions) {
+    const conflictingContainer = this.findContainerMatchingSpec(containerSpec);
+    if (conflictingContainer) {
+      throw new ConflictSpecContainerError(containerSpec, conflictingContainer);
+    }
     const container = new BatchRequestContainer(
       containerSpec,
       this.onedataWebsocket,
@@ -87,5 +91,36 @@ export default class BatchRequestRegistryService extends Service {
    */
   async destroyContainer(container) {
     this.containers.delete(container);
+  }
+
+  /**
+   * @param {BatchContainerSpec} containerSpec
+   * @returns {BatchRequestContainer|null}
+   */
+  findContainerMatchingSpec(containerSpec) {
+    for (const container of this.containers.values()) {
+      if (container.containerSpec.overlaps(containerSpec)) {
+        return container;
+      }
+    }
+    return null;
+  }
+}
+
+export class ConflictSpecContainerError extends Error {
+  /**
+   * @param {BatchContainerSpec} containerSpec
+   * @param {BatchRequestContainer} existingContainer
+   */
+  constructor(containerSpec, existingContainer) {
+    super(
+      'BatchRequestContainer matching some messages of the spec is already registered'
+    );
+
+    /** @type {BatchContainerSpec} */
+    this.containerSpec = containerSpec;
+
+    /** @type {BatchRequestContainer} */
+    this.existingContainer = existingContainer;
   }
 }
