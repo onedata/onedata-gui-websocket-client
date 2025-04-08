@@ -217,24 +217,18 @@ export default class BatchRequestContainer {
       }
       for (const response of batchResult.payload.data.batch) {
         const messageDeferInfo = this.messageDefers[response.id];
-        const deferred = messageDeferInfo.deferred;
+        const deferred = messageDeferInfo?.deferred;
         if (deferred) {
           deferred.resolve(response);
           messageDeferInfo.isResolved = true;
         } else {
-          // FIXME: przetestować ten przypadek
-          console.warn(
-            `BatchRequestContainer.execute: no deferred registered for response: ${response.id}`,
-            response
-          );
+          this.handleNoResponseHandler(response);
         }
-
       }
-      // FIXME: test niezresolvowanego message
       const notResolved = Object.values(this.messageDefers)
         .filter(({ isResolved }) => !isResolved);
       for (const { message, deferred } of notResolved) {
-        deferred.reject(this.noResponseInBatchErrorMessage(message));
+        deferred.resolve(this.noResponseInBatchErrorMessage(message));
       }
       return batchResult;
     } finally {
@@ -300,5 +294,16 @@ export default class BatchRequestContainer {
         error: { id: 'noResponseInBatch' },
       },
     };
+  }
+
+  /**
+   * @param {OwsResponse} response
+   * @returns {void}
+   */
+  handleNoResponseHandler(response) {
+    console.warn(
+      `BatchRequestContainer.execute: no deferred registered for response: ${response.id}`,
+      response
+    );
   }
 }

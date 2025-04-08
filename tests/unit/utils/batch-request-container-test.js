@@ -146,6 +146,87 @@ describe('Unit | Utility | batch-request-container', function () {
       }
     }
   );
+
+  it('handles response when there is extra response without registered response handler', async function () {
+    // given
+    class ExtraBatchOnedataWebsocket extends DummyBatchOnedataWebsocket {
+      async sendMessage() {
+        const response = await super.sendMessage(...arguments);
+        const batchResponses = response.payload.data.batch;
+        const additionalResponse = {
+          id: 'extra_response',
+          type: OwsMessageType.Response,
+          subtype: OwsMessageSubtype.Graph,
+          payload: {
+            success: true,
+            error: null,
+            data: {
+              resource: {
+                gri: 'extra_gri',
+              },
+              format: 'resource',
+            },
+          },
+        };
+        batchResponses.push(additionalResponse);
+        return response;
+      }
+    }
+    const onedataWebsocket = new ExtraBatchOnedataWebsocket();
+    const containerSpec = new DummyContainerSpec(
+      new DummyContainerSpec(),
+      onedataWebsocket,
+    );
+    const container = new BatchRequestContainer(containerSpec, onedataWebsocket);
+    container.flushStrategy =
+      new ImmediateBatchFlushStrategy(container);
+    const handleNoResponseHandlerSpy = sinon.spy(container, 'handleNoResponseHandler');
+    const messages = _.times(2).map(() => Helper.generateDummyPayload());
+    for (const message of messages) {
+      container.addMessage(OwsMessageSubtype.Graph, message);
+    }
+
+    // when
+    await container.flush();
+
+    // then
+    expect(handleNoResponseHandlerSpy).to.be.calledOnce;
+  });
+
+  it('handles response when it lacks some single response in batch', async function () {
+    // given
+    class IncompleteBatchOnedataWebsocket extends DummyBatchOnedataWebsocket {
+      async sendMessage() {
+        const response = await super.sendMessage(...arguments);
+        const batchResponses = response.payload.data.batch;
+        response.payload.data.batch = batchResponses.slice(0, batchResponses.length - 1);
+        return response;
+      }
+    }
+    const messagesNumber = 3;
+    const onedataWebsocket = new IncompleteBatchOnedataWebsocket();
+    const containerSpec = new DummyContainerSpec(
+      new DummyContainerSpec(),
+      onedataWebsocket,
+    );
+    const container = new BatchRequestContainer(containerSpec, onedataWebsocket);
+    container.flushStrategy = new CountBatchFlushStrategy(container, {
+      requiredMessagesNumber: messagesNumber,
+    });
+    const messages = _.times(messagesNumber).map(() => Helper.generateDummyPayload());
+
+    // when
+    container.scheduleFlush();
+    const responsePromises = messages.map(message =>
+      container.addMessage(OwsMessageSubtype.Graph, message)
+    );
+    await container.waitForFlush();
+
+    // then
+    const thirdResponse = await responsePromises.at(-1);
+    expect(thirdResponse?.payload?.success).to.be.false;
+    expect(thirdResponse.payload.error?.id).to.equal('noResponseInBatch');
+  });
 });
 
 class Helper {
