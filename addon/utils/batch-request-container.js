@@ -183,7 +183,7 @@ export default class BatchRequestContainer {
   /**
    * Creates single batch message consisting of all messages added using `addMessage`. Do
    * not use this method manually - instead use `scheduleFlush` or `flush`, which will
-   * schedule the execution according to injected strategy. Use it in the stragegy
+   * schedule the execution according to injected strategy. Use it in the strategy
    * implementation.
    * @returns {Promise<OwsResponse|null>} Graph Sync batch response or null if there were
    *   no messages to send.

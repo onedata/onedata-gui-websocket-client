@@ -84,8 +84,6 @@ export default Service.extend(Evented, {
       activeRequests,
     } = this;
 
-    operation === '';
-
     const promise = this.getRequestPrerequisitePromise(requestPayload).then(() =>
       new Promise((resolve, reject) => {
         const effSubscribe = operation === OwsGraphOperation.Get ||
