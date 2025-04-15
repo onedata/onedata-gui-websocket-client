@@ -8,6 +8,10 @@ import { registerService, lookupService } from '../../helpers/stub-service';
 import Service from '@ember/service';
 import sinon from 'sinon';
 import { get } from '@ember/object';
+import {
+  OwsMessageSubtype,
+  OwsMessageType,
+} from 'onedata-gui-websocket-client/services/onedata-websocket';
 
 class WebSocketMock {
   constructor() {
@@ -73,11 +77,9 @@ describe('Unit | Service | onedata-websocket', function () {
     const _webSocket = service.get('_webSocket');
     _webSocket.onmessage({
       data: JSON.stringify({
-        batch: [{
-          type: 'push',
-          subtype: 'graph',
-          payload: 'hello',
-        }],
+        type: OwsMessageType.Push,
+        subtype: OwsMessageSubtype.Graph,
+        payload: 'hello',
       }),
     });
     await settled();
@@ -100,7 +102,7 @@ describe('Unit | Service | onedata-websocket', function () {
         this.onmessage({
           data: JSON.stringify({
             id: messageId,
-            type: 'response',
+            type: OwsMessageType.Response,
             payload: responsePayload,
           }),
         });

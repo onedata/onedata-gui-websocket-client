@@ -7,15 +7,16 @@
  * For real service, see `onedata-websocket`
  *
  * @author Jakub Liput
- * @copyright (C) 2017 ACK CYFRONET AGH
+ * @copyright (C) 2017-2025 ACK CYFRONET AGH
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
 import Service from '@ember/service';
 import { Promise } from 'rsvp';
 import { camelize } from '@ember/string';
+import Evented from '@ember/object/evented';
 
-export default Service.extend({
+export default Service.extend(Evented, {
   initPromise: null,
   closePromise: null,
 
@@ -88,19 +89,18 @@ export default Service.extend({
   },
 
   /**
-   * Mocking send messagecomputed
    * Please implement or override send handlers:
    * - `handleSendHandshake`
    * - `handleSendRpc`
    * - `handleSendGraph`
-   * @param {String} subtype one of: handshake, rpc, graph
-   * @param {object} message
-   * @returns {Promise<object>} resolves with message response
+   * @param {OwsMessageSubtype} subtype
+   * @param {OwsRequestPayload} payload
+   * @returns {Promise<OwsMessage>}
    */
-  sendMessage(subtype, message) {
+  sendMessage(subtype, payload) {
     const handlerFun = this[camelize(`handle-send-${subtype}`)];
     if (handlerFun) {
-      return handlerFun.bind(this)(message);
+      return handlerFun.bind(this)(payload);
     } else {
       throw new Error(
         `service:onedata-websocket-mock: sendMessage not implemented for type ${subtype}`
