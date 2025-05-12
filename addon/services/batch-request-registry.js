@@ -26,6 +26,7 @@
 import Service, { inject as service } from '@ember/service';
 import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-request-container';
 import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
+import { defer } from 'rsvp';
 
 /**
  * @typedef {GrisBatchContainerSpec} BatchContainerSpec
@@ -40,15 +41,18 @@ import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/
 export default class BatchRequestRegistryService extends Service {
   @service onedataWebsocket;
 
-  constructor() {
-    super(...arguments);
+  /**
+   * Store defers to wait for container to be destroyed and removed from the registry.
+   * It is used by `waitForContainerDestroy`.
+   * @type {Map<BatchRequestContainer, Deferred>}
+   */
+  #containerDestroyDefers = new Map();
 
-    /**
-     * @private
-     * @type {Set<BatchRequestContainer>}
-     */
-    this.containers = new Set();
-  }
+  /**
+   * @private
+   * @type {Set<BatchRequestContainer>}
+   */
+  containers = new Set();
 
   /**
    * @param {BatchContainerSpec} containerSpec
@@ -87,10 +91,11 @@ export default class BatchRequestRegistryService extends Service {
 
   /**
    * @param {BatchRequestContainer} container
-   * @returns {Promise<void>}
+   * @returns {void}
    */
-  async destroyContainer(container) {
+  destroyContainer(container) {
     this.containers.delete(container);
+    this.#containerDestroyDefers.get(container)?.resolve();
   }
 
   /**
@@ -104,6 +109,44 @@ export default class BatchRequestRegistryService extends Service {
       }
     }
     return null;
+  }
+
+  /**
+   * Wait for the container to not exists in the registry - either it could not exists at
+   * all when invoking the method or it can be registered and you want to wait for it to
+   * be destroyed.
+   * @param {BatchRequestContainer} container
+   * @returns {Promise<void>}
+   */
+  async waitForContainerDestroy(container) {
+    if (!this.containers.has(container)) {
+      return;
+    }
+    if (!this.#containerDestroyDefers.has(container)) {
+      this.#containerDestroyDefers.set(container, defer());
+    }
+    await this.#containerDestroyDefers.get(container).promise;
+    this.#containerDestroyDefers.delete(container);
+  }
+
+  /**
+   * The `createContainer` method used with container spec having conflict with existing
+   * containers (eg. two lists shares the same GRI) will throw an error. To prevent that,
+   * you can use this method to async wait for no conflicts in the whole registry (and
+   * then immediately creating the new container).
+   * @param {BatchContainerSpec} containerSpec
+   * @returns {Promise<void>}
+   */
+  async waitForNoConflicts(containerSpec) {
+    let noConflictFound = false;
+    while (!noConflictFound) {
+      const conflictingContainer = this.findContainerMatchingSpec(containerSpec);
+      if (conflictingContainer) {
+        await this.waitForContainerDestroy(conflictingContainer);
+      } else {
+        noConflictFound = true;
+      }
+    }
   }
 }
 
