@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
+import { settled } from 'ember-test-helpers';
 import { v4 as uuid } from 'ember-uuid';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import GrisBatchContainerSpec from 'onedata-gui-websocket-client/utils/gris-batch-container-spec';
@@ -104,7 +105,7 @@ describe('Unit | Service | batch-request-registry', function () {
       new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri]);
     const containerCreated =
       service.createContainer(containerSpec);
-    await service.destroyContainer(containerCreated);
+    service.destroyContainer(containerCreated);
 
     // when
     /** @type {OwsGraphRequestPayload} */
@@ -193,6 +194,57 @@ describe('Unit | Service | batch-request-registry', function () {
         new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri3, dummyGri4])
       );
     }).to.not.throw(ConflictSpecContainerError);
+  });
+
+  it('waitForNoConflicts resolves when there is no conflicting container', async function () {
+    // given
+    const service = this.owner.lookup('service:batch-request-registry');
+    const dummyGri1 = Helper.generateGri();
+    const dummyGri2 = Helper.generateGri();
+    const dummyGri3 = Helper.generateGri();
+    const dummyGri4 = Helper.generateGri();
+    const containerSpec12 =
+      new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri1, dummyGri2]);
+    service.createContainer(containerSpec12);
+
+    // when-then - it should just pass without timeout
+    const containerSpec34 =
+      new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri3, dummyGri4]);
+    await service.waitForNoConflicts(containerSpec34);
+  });
+
+  it('waitForNoConflicts resolves after wait when there is a conflicting container', async function () {
+    // given
+    const service = this.owner.lookup('service:batch-request-registry');
+    const dummyGri1 = Helper.generateGri();
+    const dummyGri2 = Helper.generateGri();
+    const dummyGri3 = Helper.generateGri();
+    const containerSpec12 =
+      new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri1, dummyGri2]);
+    const container12 = service.createContainer(containerSpec12);
+    const containerSpec23 =
+      new GrisBatchContainerSpec(OwsGraphOperation.Get, [dummyGri2, dummyGri3]);
+
+    // when
+    const waitPromise = service.waitForNoConflicts(containerSpec23);
+    let waiterResolved = false;
+    (async () => {
+      await waitPromise;
+      waiterResolved = true;
+    })();
+
+    // then 1: do not resolve waiter befer destroy container
+    await settled();
+    expect(waiterResolved).to.be.false;
+
+    // then 2: do not resolve waiter after flush befer destroy container
+    await container12.flush();
+    expect(waiterResolved).to.be.false;
+
+    // then 3: resolve waiter after destroy container
+    service.destroyContainer(container12);
+    await settled();
+    expect(waiterResolved).to.be.true;
   });
 });
 
