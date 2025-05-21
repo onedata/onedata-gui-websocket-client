@@ -104,12 +104,24 @@ export default Mixin.create(GraphModel, {
   },
 
   /**
-   * Should be called just after loading record and be a part of record loading promise.
+   * Async init for record - loads other records necessary to fulfill data of this record.
+   * In most models it is not used. Models which use it, will have some fields empty until
+   * these relations are fetched. In some cases, it is intended to fetch these relation
+   * lazily, eg. when there are large number of records and the fields are not yet needed.
+   * In some cases, there is a need to fully resolve model data - so this interface could
+   * be used for each record in collection.
    * @virtual
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
-  loadRequiredRelations() {
-    return resolve();
+  async loadRequiredRelations() {},
+
+  /**
+   * Should return array of GRIs for required relations fetched with
+   * `loadRequiredRelations`.
+   * @returns {Array<string>}
+   */
+  getRequiredRelationsGris() {
+    return [];
   },
 
   /**
