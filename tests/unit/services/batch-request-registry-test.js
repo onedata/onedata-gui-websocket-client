@@ -233,11 +233,11 @@ describe('Unit | Service | batch-request-registry', function () {
       waiterResolved = true;
     })();
 
-    // then 1: do not resolve waiter befer destroy container
+    // then 1: do not resolve waiter before destroy container
     await settled();
     expect(waiterResolved).to.be.false;
 
-    // then 2: do not resolve waiter after flush befer destroy container
+    // then 2: do not resolve waiter after flush before destroy container
     await container12.flush();
     expect(waiterResolved).to.be.false;
 
