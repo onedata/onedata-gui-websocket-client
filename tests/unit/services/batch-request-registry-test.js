@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { setupTest } from 'ember-mocha';
-import { settled } from 'ember-test-helpers';
+import { settled } from '@ember/test-helpers';
 import { v4 as uuid } from 'ember-uuid';
 import gri from 'onedata-gui-websocket-client/utils/gri';
 import GrisBatchContainerSpec from 'onedata-gui-websocket-client/utils/gris-batch-container-spec';
