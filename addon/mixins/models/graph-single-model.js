@@ -87,8 +87,7 @@ export default Mixin.create(GraphModel, {
           OwsGraphOperation.Get,
           itemsGris
         );
-        await this.batchRequestRegistry.waitForNoConflicts(containerSpec);
-        const container = this.batchRequestRegistry.createContainer(
+        const container = await this.batchRequestRegistry.createContainer(
           containerSpec,
           DebouncedBatchFlushStrategy
         );
