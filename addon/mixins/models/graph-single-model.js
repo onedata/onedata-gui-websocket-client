@@ -14,8 +14,27 @@ import { promise } from 'ember-awesome-macros';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import isDeletedEmberError from 'onedata-gui-websocket-client/utils/is-deleted-ember-error';
 import { asyncObserver as observer } from 'onedata-gui-websocket-client/utils/observer';
+import { inject as service } from '@ember/service';
+import GrisBatchContainerSpec from 'onedata-gui-websocket-client/utils/gris-batch-container-spec';
+import { OwsGraphOperation } from 'onedata-gui-websocket-client/services/onedata-graph';
+import { DebouncedBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
+
+/**
+ * @typedef {Object} ReloadRecordListOptions
+ * @property {boolean} onlyIds If true, reload only list of items IDs, ignoring items
+ *   records.
+ */
+
+/**
+ * @type {ReloadRecordListOptions}
+ */
+const defaultReloadRecordListOptions = Object.freeze({
+  onlyIds: false,
+});
 
 export default Mixin.create(GraphModel, {
+  batchRequestRegistry: service(),
+
   /**
    * Flag automatically set to true when the record hits the deleted saved state and the
    * callback for this transition has been invoked.
@@ -47,30 +66,61 @@ export default Mixin.create(GraphModel, {
   },
 
   /**
-   * Deeply reloads list relation. If list has not been fetched, nothing is
-   * reloaded.
+   * Deeply reloads list relation. If list has not been fetched, nothing is reloaded.
    * @param {string} listName
+   * @param {ReloadRecordListOptions} [options]
    * @returns {Promise}
    */
-  reloadList(listName) {
-    const list = this.belongsTo(listName).value();
-    if (list) {
-      const hasMany = list.hasMany('list').value();
-      return list.reload().then(result => {
-        return hasMany ? list.hasMany('list').reload() : result;
-      });
-    } else {
-      return resolve();
+  async reloadList(listName, options) {
+    const { onlyIds } = { ...defaultReloadRecordListOptions, ...options };
+    const listRecord = this.belongsTo(listName).value();
+    if (listRecord) {
+      await listRecord.reload();
+      if (onlyIds) {
+        return listRecord;
+      }
+      const hasManyReference = listRecord.hasMany('list');
+      const list = hasManyReference.value();
+      if (list) {
+        const itemsGris = hasManyReference.ids();
+        const containerSpec = new GrisBatchContainerSpec(
+          OwsGraphOperation.Get,
+          itemsGris
+        );
+        const container = await this.batchRequestRegistry.createContainer(
+          containerSpec,
+          DebouncedBatchFlushStrategy
+        );
+        try {
+          list.reload();
+          await container.flush();
+        } finally {
+          this.batchRequestRegistry.destroyContainer(container);
+        }
+      }
+      return list ?? listRecord;
     }
   },
 
   /**
-   * Should be called just after loading record and be a part of record loading promise.
+   * Async init for record - loads other records necessary to fulfill data of this record.
+   * In most models it is not used. Models which use it, will have some fields empty until
+   * these relations are fetched. In some cases, it is intended to fetch these relation
+   * lazily, eg. when there are large number of records and the fields are not yet needed.
+   * In some cases, there is a need to fully resolve model data - so this interface could
+   * be used for each record in collection.
    * @virtual
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
-  loadRequiredRelations() {
-    return resolve();
+  async loadRequiredRelations() {},
+
+  /**
+   * Should return array of GRIs for required relations fetched with
+   * `loadRequiredRelations`.
+   * @returns {Array<string>}
+   */
+  getRequiredRelationsGris() {
+    return [];
   },
 
   /**

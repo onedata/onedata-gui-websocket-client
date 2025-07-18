@@ -80,7 +80,7 @@ describe('Unit | Service | onedata-graph', function () {
       dummyGris
     );
     const batchRequestRegistry = this.owner.lookup('service:batch-request-registry');
-    const batchContainer = batchRequestRegistry.createContainer(
+    const batchContainer = await batchRequestRegistry.createContainer(
       containerSpec,
       CountBatchFlushStrategy, { requiredMessagesNumber: dummyGris.length }
     );

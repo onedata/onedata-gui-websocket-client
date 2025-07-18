@@ -27,6 +27,7 @@ import Service, { inject as service } from '@ember/service';
 import BatchRequestContainer from 'onedata-gui-websocket-client/utils/batch-request-container';
 import { ImmediateBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/batch-flush-strategies';
 import { defer } from 'rsvp';
+import { Mutex } from 'async-mutex';
 
 /**
  * @typedef {GrisBatchContainerSpec} BatchContainerSpec
@@ -49,31 +50,90 @@ export default class BatchRequestRegistryService extends Service {
   #containerDestroyDefers = new Map();
 
   /**
-   * @private
+   * Guards against creating batch containers with conflicts. See docs in
+   * `createContainer` for more information.
+   * @type {Mutex}
+   */
+  #creationMutex = new Mutex();
+
+  /**
+   * @protected
    * @type {Set<BatchRequestContainer>}
    */
   containers = new Set();
 
   /**
+   * Safely create new batch container using the spec, without conflicts with other
+   * containers. The asynchronicity is used to wait for conflicts to be ended.
+   *
    * @param {BatchContainerSpec} containerSpec
    * @param {typeof AbstractBatchFlushStrategy} [flushStrategyClass]
    * @param {Object} flushStrategyOptions
-   * @returns {BatchRequestContainer}
+   * @returns {Promise<BatchRequestContainer>}
    */
-  createContainer(containerSpec, flushStrategyClass, flushStrategyOptions) {
-    const conflictingContainer = this.findContainerMatchingSpec(containerSpec);
-    if (conflictingContainer) {
-      throw new ConflictSpecContainerError(containerSpec, conflictingContainer);
+  async createContainer(containerSpec, flushStrategyClass, flushStrategyOptions) {
+    /*
+     * This method uses single mutex in two areas:
+     * - finding conflicting containers (ones that overlaps specs),
+     * - creating the actual container.
+     *
+     * This is because we should not create a container that overlaps spec of another
+     * container. Before creating the container based on specs, we check all other
+     * registered container against overlapping specs. If we found one, we must wait for
+     * it to be destroyed, which is an async function. When it is destroyed, we want to
+     * create the container, but there can be more that one container waiting to be
+     * created. The problem is, that these multiple containers can have overlapping specs,
+     * but they are not registered yet, so our check for conflicts will not detect them
+     * until they are fully registered. The mutex guards against "simultaneous"
+     * registering new container and searching for conflicts.
+     */
+
+    /**
+     * We should release global mutex only if we acquired it before in this method.
+     * @type {boolean}
+     */
+    let isAcquiredLocally = false;
+    const acquire = async () => {
+      await this.#creationMutex.acquire();
+      isAcquiredLocally = true;
+    };
+    const release = async () => {
+      if (isAcquiredLocally) {
+        this.#creationMutex.release();
+        isAcquiredLocally = false;
+      }
+    };
+
+    try {
+      let noConflictFound = false;
+      await acquire();
+      while (!noConflictFound) {
+        const conflictingContainer = this.findContainerMatchingSpec(containerSpec);
+        if (conflictingContainer) {
+          // Do not globally lock this method when we wait for conflicting container to be
+          // destroyed, because the method could be used simultaneously for creating
+          // non-conflicting container.
+          release();
+          await this.waitForContainerDestroy(conflictingContainer);
+          await acquire();
+        } else {
+          noConflictFound = true;
+        }
+      }
+
+      const container = new BatchRequestContainer(
+        containerSpec,
+        this.onedataWebsocket,
+      );
+      /** @type {AbstractBatchFlushStrategy} */
+      const EffFlushStrategyClass = flushStrategyClass ?? ImmediateBatchFlushStrategy;
+      container.flushStrategy =
+        new EffFlushStrategyClass(container, flushStrategyOptions);
+      this.containers.add(container);
+      return container;
+    } finally {
+      release();
     }
-    const container = new BatchRequestContainer(
-      containerSpec,
-      this.onedataWebsocket,
-    );
-    /** @type {AbstractBatchFlushStrategy} */
-    const EffFlushStrategyClass = flushStrategyClass ?? ImmediateBatchFlushStrategy;
-    container.flushStrategy = new EffFlushStrategyClass(container, flushStrategyOptions);
-    this.containers.add(container);
-    return container;
   }
 
   /**
@@ -127,43 +187,5 @@ export default class BatchRequestRegistryService extends Service {
     }
     await this.#containerDestroyDefers.get(container).promise;
     this.#containerDestroyDefers.delete(container);
-  }
-
-  /**
-   * The `createContainer` method used with container spec having conflict with existing
-   * containers (eg. two lists shares the same GRI) will throw an error. To prevent that,
-   * you can use this method to async wait for no conflicts in the whole registry (and
-   * then immediately creating the new container).
-   * @param {BatchContainerSpec} containerSpec
-   * @returns {Promise<void>}
-   */
-  async waitForNoConflicts(containerSpec) {
-    let noConflictFound = false;
-    while (!noConflictFound) {
-      const conflictingContainer = this.findContainerMatchingSpec(containerSpec);
-      if (conflictingContainer) {
-        await this.waitForContainerDestroy(conflictingContainer);
-      } else {
-        noConflictFound = true;
-      }
-    }
-  }
-}
-
-export class ConflictSpecContainerError extends Error {
-  /**
-   * @param {BatchContainerSpec} containerSpec
-   * @param {BatchRequestContainer} existingContainer
-   */
-  constructor(containerSpec, existingContainer) {
-    super(
-      'BatchRequestContainer matching some messages of the spec is already registered'
-    );
-
-    /** @type {BatchContainerSpec} */
-    this.containerSpec = containerSpec;
-
-    /** @type {BatchRequestContainer} */
-    this.existingContainer = existingContainer;
   }
 }
