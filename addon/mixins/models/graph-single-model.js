@@ -34,6 +34,7 @@ const defaultReloadRecordListOptions = Object.freeze({
 
 export default Mixin.create(GraphModel, {
   batchRequestRegistry: service(),
+  recordRegistry: service(),
 
   /**
    * Flag automatically set to true when the record hits the deleted saved state and the
@@ -67,11 +68,13 @@ export default Mixin.create(GraphModel, {
 
   /**
    * Deeply reloads list relation. If list has not been fetched, nothing is reloaded.
+   * Use `options.onlyIds = true` for shallow reload (only list, without records).
    * @param {string} listName
    * @param {ReloadRecordListOptions} [options]
    * @returns {Promise}
    */
   async reloadList(listName, options) {
+    const { store, recordRegistry } = this;
     const { onlyIds } = { ...defaultReloadRecordListOptions, ...options };
     const listRecord = this.belongsTo(listName).value();
     if (listRecord) {
@@ -92,7 +95,15 @@ export default Mixin.create(GraphModel, {
           DebouncedBatchFlushStrategy
         );
         try {
-          list.reload();
+          const recordsInStore = itemsGris
+            .map(gri => {
+              const modelName = recordRegistry.getModelName(gri);
+              return modelName ? store.peekRecord(modelName, gri) : null;
+            })
+            .filter(Boolean);
+          for (const record of recordsInStore) {
+            record.reload();
+          }
           await container.flush();
         } finally {
           this.batchRequestRegistry.destroyContainer(container);

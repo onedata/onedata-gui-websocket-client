@@ -25,7 +25,7 @@ export default Service.extend({
    * @returns {undefined}
    */
   registerId(id, modelName) {
-    this.get('modelNameMapping').set(id, modelName);
+    this.modelNameMapping.set(id, modelName);
   },
 
   /**
@@ -34,6 +34,10 @@ export default Service.extend({
    * @returns {string|undefined}
    */
   getModelName(id) {
-    return this.get('modelNameMapping').get(id);
+    return this.modelNameMapping.get(id);
+  },
+
+  hasRecord(id) {
+    return this.modelNameMapping.has(id);
   },
 });
