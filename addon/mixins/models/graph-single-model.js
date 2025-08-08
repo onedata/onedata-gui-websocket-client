@@ -1,8 +1,9 @@
 /**
  * Adds properties and methods specific to single (non-list) records
  *
- * @author Michał Borzęcki
+ * @author Michał Borzęcki, Jakub Liput
  * @copyright (C) 2018-2024 ACK CYFRONET AGH
+ * @copyright (C) 2025 Onedata
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -21,15 +22,15 @@ import { DebouncedBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/
 
 /**
  * @typedef {Object} ReloadRecordListOptions
- * @property {boolean} onlyIds If true, reload only list of items IDs, ignoring items
- *   records.
+ * @property {boolean} [reloadRecords] If true, reload method reloads each record from the
+ *   list that has been already loaded into the store.
  */
 
 /**
  * @type {ReloadRecordListOptions}
  */
 const defaultReloadRecordListOptions = Object.freeze({
-  onlyIds: false,
+  reloadRecords: false,
 });
 
 export default Mixin.create(GraphModel, {
@@ -67,19 +68,20 @@ export default Mixin.create(GraphModel, {
   },
 
   /**
-   * Deeply reloads list relation. If list has not been fetched, nothing is reloaded.
-   * Use `options.onlyIds = true` for shallow reload (only list, without records).
+   * Reloads list relation of record.If list has not been fetched, nothing is reloaded.
+   * Optionally, you can enable `reloadRecords` which reloads each record from the list
+   * that has been already loaded into the store.
    * @param {string} listName
    * @param {ReloadRecordListOptions} [options]
    * @returns {Promise}
    */
   async reloadList(listName, options) {
     const { store, recordRegistry } = this;
-    const { onlyIds } = { ...defaultReloadRecordListOptions, ...options };
+    const { reloadRecords } = { ...defaultReloadRecordListOptions, ...options };
     const listRecord = this.belongsTo(listName).value();
     if (listRecord) {
       await listRecord.reload();
-      if (onlyIds) {
+      if (!reloadRecords) {
         return listRecord;
       }
       const hasManyReference = listRecord.hasMany('list');
