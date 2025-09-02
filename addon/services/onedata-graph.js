@@ -2,7 +2,8 @@
  * Onedata Websocket Sync API - Graph level service
  *
  * @author Jakub Liput, Michał Borzęcki
- * @copyright (C) 2017-2020 ACK CYFRONET AGH
+ * @copyright (C) 2017-2025 ACK CYFRONET AGH
+ * @copyright (C) 2025 Onedata (onedata.org)
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -29,6 +30,14 @@ import { OwsMessageSubtype, OwsMessageType } from './onedata-websocket';
  */
 
 /**
+ * @typedef {Object} OwsGraphRequestOptions
+ * @property {boolean} isBatchScheduleForced If true, when doing request, the batch is
+ *   scheduled automatically to be executed on message add. Normally you do not need it,
+ *   because some high-level code should schedule execution, but there are low-level parts
+ *   of code that, for example, repeat doing requests.
+ */
+
+/**
  * @enum {'get'|'create'|'update'|'delete'}
  */
 export const OwsGraphOperation = Object.freeze({
@@ -36,6 +45,10 @@ export const OwsGraphOperation = Object.freeze({
   Create: 'create',
   Update: 'update',
   Delete: 'delete',
+});
+
+const defaultOwsGraphRequestOptions = Object.freeze({
+  isBatchScheduleForced: false,
 });
 
 export default Service.extend(Evented, {
@@ -68,10 +81,11 @@ export default Service.extend(Evented, {
 
   /**
    * @param {OwsGraphRequestPayload} requestPayload
+   * @param {OwsGraphRequestOptions} [options]
    * @returns {Promise<Object>} Resolves with Onedata Graph resource (typically record
    *   data).
    */
-  request(requestPayload) {
+  request(requestPayload, options = {}) {
     const {
       gri,
       operation,
@@ -83,6 +97,7 @@ export default Service.extend(Evented, {
       onedataWebsocket,
       activeRequests,
     } = this;
+    const effOptions = { ...defaultOwsGraphRequestOptions, ...options };
 
     const promise = this.getRequestPrerequisitePromise(requestPayload).then(() =>
       new Promise((resolve, reject) => {
@@ -111,6 +126,9 @@ export default Service.extend(Evented, {
             OwsMessageSubtype.Graph,
             effPayload,
           );
+          if (effOptions.isBatchScheduleForced) {
+            batchContainer.scheduleFlush();
+          }
         } else {
           requesting = onedataWebsocket.sendMessage(
             OwsMessageSubtype.Graph,

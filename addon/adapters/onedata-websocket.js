@@ -2,7 +2,8 @@
  * Uses `service:onedata-graph` for CRUD operations on Onedata model
  *
  * @author Jakub Liput, Michał Borzęcki
- * @copyright (C) 2017-2019 ACK CYFRONET AGH
+ * @copyright (C) 2017-2024 ACK CYFRONET AGH
+ * @copyright (C) 2025 Onedata (onedata.org)
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -11,11 +12,12 @@ import { isArray } from '@ember/array';
 import { inject as service } from '@ember/service';
 import Adapter from '@ember-data/adapter';
 import AdapterBase from 'onedata-gui-websocket-client/mixins/adapters/adapter-base';
-import { reject, allSettled } from 'rsvp';
+import { allSettled } from 'rsvp';
 import createGri from 'onedata-gui-websocket-client/utils/gri';
 import parseGri from 'onedata-gui-websocket-client/utils/parse-gri';
 import Request from 'onedata-gui-websocket-client/utils/request';
 import _ from 'lodash';
+import { OwsGraphOperation } from 'onedata-gui-websocket-client/services/onedata-graph';
 
 export default Adapter.extend(AdapterBase, {
   onedataGraph: service(),
@@ -359,28 +361,33 @@ export default Adapter.extend(AdapterBase, {
    * @returns {Promise} resolves with successful request result, rejects if
    *   none of available contexts allows to reach specified resource
    */
-  searchForNextContext(gri, {
+  async searchForNextContext(gri, {
     allowEmptyAuthHint = true,
-    subscribe = this.get('subscribe'),
+    subscribe = this.subscribe,
   } = {}) {
     const {
       onedataGraphContext,
       onedataGraph,
-    } = this.getProperties('onedataGraphContext', 'onedataGraph');
+    } = this;
     const contextGri = onedataGraphContext.getContext(gri);
     const authHint = onedataGraphContext.getAuthHint(gri);
     if (!allowEmptyAuthHint && !authHint) {
-      return reject();
+      throw new Error();
     }
     console.debug(
       `adapter:onedata-websocket: trying to subscribe to ${gri} using authHint ${authHint}`
     );
-    return onedataGraph.request({
+    const requestPayload = {
       gri,
-      operation: 'get',
+      operation: OwsGraphOperation.Get,
       authHint,
       subscribe,
-    }).catch(error => {
+    };
+    try {
+      return await onedataGraph.request(requestPayload, {
+        isBatchScheduleForced: true,
+      });
+    } catch (error) {
       console.debug(
         `adapter:onedata-websocket: cannot subscribe to ${gri} using authHint ${authHint}, returned data :`,
         `${JSON.stringify(error)}`,
@@ -388,11 +395,11 @@ export default Adapter.extend(AdapterBase, {
       if (contextGri) {
         onedataGraphContext.deregister(contextGri, null, gri);
       }
-      return this.searchForNextContext(gri, {
+      return await this.searchForNextContext(gri, {
         allowEmptyAuthHint: allowEmptyAuthHint && !!contextGri,
         subscribe,
       });
-    });
+    }
   },
 
   /**
