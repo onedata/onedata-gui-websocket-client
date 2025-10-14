@@ -122,6 +122,32 @@ export default Mixin.create(GraphModel, {
     }
   },
 
+  // FIXME: usunąć redundancję z reloadList
+  /**
+   * Loads all records of list relation of this record using batch.
+   * @param {string} listName Eg. "groupList"
+   * @returns {ManyArray}
+   */
+  async loadList(listName) {
+    const listRecord = await this[listName];
+    const itemsGris = listRecord.hasMany('list').ids();
+    const containerSpec = new GrisBatchContainerSpec(
+      OwsGraphOperation.Get,
+      itemsGris
+    );
+    const container = await this.batchRequestRegistry.createContainer(
+      containerSpec,
+      DebouncedBatchFlushStrategy
+    );
+    try {
+      listRecord.list;
+      await container.flush();
+    } finally {
+      this.batchRequestRegistry.destroyContainer(container);
+    }
+    return await listRecord.list;
+  },
+
   /**
    * Async init for record - loads other records necessary to fulfill data of this record.
    * In most models it is not used. Models which use it, will have some fields empty until
