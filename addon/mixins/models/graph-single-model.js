@@ -70,6 +70,18 @@ export default Mixin.create(GraphModel, {
   },
 
   /**
+   * Async init for record - loads other records necessary to fulfill data of this record.
+   * In most models it is not used. Models which use it, will have some fields empty until
+   * these relations are fetched. In some cases, it is intended to fetch these relation
+   * lazily, eg. when there are large number of records and the fields are not yet needed.
+   * In some cases, there is a need to fully resolve model data - so this interface could
+   * be used for each record in collection.
+   * @virtual
+   * @returns {Promise<void>}
+   */
+  async loadRequiredRelations() {},
+
+  /**
    * Reloads list relation of record. If list has not been fetched, nothing is reloaded.
    * Optionally, you can enable `reloadRecords` which reloads each record from the list
    * that has been already loaded into the store.
@@ -94,14 +106,7 @@ export default Mixin.create(GraphModel, {
         return listRecord;
       }
       const itemsGris = listRecord.hasMany('list').ids();
-      const containerSpec = new GrisBatchContainerSpec(
-        OwsGraphOperation.Get,
-        itemsGris
-      );
-      const container = await this.batchRequestRegistry.createContainer(
-        containerSpec,
-        DebouncedBatchFlushStrategy
-      );
+      const container = await this.createContainerForListRecord(listRecord);
       try {
         const recordsInStore = itemsGris
           .map(gri => {
@@ -122,7 +127,6 @@ export default Mixin.create(GraphModel, {
     }
   },
 
-  // FIXME: usunąć redundancję z reloadList
   /**
    * Loads all records of list relation of this record using batch.
    * @param {string} listName Eg. "groupList"
@@ -130,15 +134,7 @@ export default Mixin.create(GraphModel, {
    */
   async loadList(listName) {
     const listRecord = await this[listName];
-    const itemsGris = listRecord.hasMany('list').ids();
-    const containerSpec = new GrisBatchContainerSpec(
-      OwsGraphOperation.Get,
-      itemsGris
-    );
-    const container = await this.batchRequestRegistry.createContainer(
-      containerSpec,
-      DebouncedBatchFlushStrategy
-    );
+    const container = await this.createContainerForListRecord(listRecord);
     try {
       listRecord.list;
       await container.flush();
@@ -147,18 +143,6 @@ export default Mixin.create(GraphModel, {
     }
     return await listRecord.list;
   },
-
-  /**
-   * Async init for record - loads other records necessary to fulfill data of this record.
-   * In most models it is not used. Models which use it, will have some fields empty until
-   * these relations are fetched. In some cases, it is intended to fetch these relation
-   * lazily, eg. when there are large number of records and the fields are not yet needed.
-   * In some cases, there is a need to fully resolve model data - so this interface could
-   * be used for each record in collection.
-   * @virtual
-   * @returns {Promise<void>}
-   */
-  async loadRequiredRelations() {},
 
   /**
    * Should return array of GRIs for required relations fetched with
@@ -229,6 +213,23 @@ export default Mixin.create(GraphModel, {
     if (relationGri) {
       return parseGri(relationGri).entityId;
     }
+  },
+
+  /**
+   * @private
+   * @param {GraphListModel} listRecord
+   * @returns {BatchRequestContainter}
+   */
+  async createContainerForListRecord(listRecord) {
+    const itemsGris = listRecord.hasMany('list').ids();
+    const containerSpec = new GrisBatchContainerSpec(
+      OwsGraphOperation.Get,
+      itemsGris
+    );
+    return await this.batchRequestRegistry.createContainer(
+      containerSpec,
+      DebouncedBatchFlushStrategy
+    );
   },
 });
 
