@@ -112,6 +112,29 @@ describe('Integration | Mixin | graph-single-model', function () {
     expect(r1ReloadSpy, 'r1').to.have.been.calledOnce;
     expect(r2ReloadSpy, 'r2').to.have.been.calledOnce;
   });
+
+  it('loadList: resolves when all records from list are loaded', async function () {
+    // given
+    const store = lookupService(this, 'store');
+    registerListModel(this);
+    const r1 = await store.createRecord('my-model', {}).save();
+    const r2 = await store.createRecord('my-model', {}).save();
+    const listRecord = await store.createRecord('list-model', { list: [r1, r2] }).save();
+    r1.unloadRecord();
+    r2.unloadRecord();
+    // check just in case that records are unloaded
+    expect(store.peekRecord('my-model', r1.id)).to.be.null;
+    expect(store.peekRecord('my-model', r2.id)).to.be.null;
+    const aggregatingRecord =
+      await store.createRecord('aggregating-model', { someList: listRecord }).save();
+
+    // when
+    await aggregatingRecord.loadList('someList');
+
+    // then
+    expect(store.peekRecord('my-model', r1.id)).to.be.not.null;
+    expect(store.peekRecord('my-model', r2.id)).to.be.not.null;
+  });
 });
 
 function registerListModel(mochaContext) {
