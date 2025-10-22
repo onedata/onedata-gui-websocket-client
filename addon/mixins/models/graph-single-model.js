@@ -3,7 +3,7 @@
  *
  * @author Michał Borzęcki, Jakub Liput
  * @copyright (C) 2018-2024 ACK CYFRONET AGH
- * @copyright (C) 2025 Onedata
+ * @copyright (C) 2025 Onedata (onedata.org)
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -24,6 +24,7 @@ import { DebouncedBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/
  * @typedef {Object} ReloadRecordListOptions
  * @property {boolean} [reloadRecords] If true, reload method reloads each record from the
  *   list that has been already loaded into the store.
+ * @property {boolean} [forceInit] If true, load data if the list was not loaded earlier.
  */
 
 /**
@@ -31,6 +32,7 @@ import { DebouncedBatchFlushStrategy } from 'onedata-gui-websocket-client/utils/
  */
 const defaultReloadRecordListOptions = Object.freeze({
   reloadRecords: false,
+  forceInit: false,
 });
 
 export default Mixin.create(GraphModel, {
@@ -68,54 +70,6 @@ export default Mixin.create(GraphModel, {
   },
 
   /**
-   * Reloads list relation of record.If list has not been fetched, nothing is reloaded.
-   * Optionally, you can enable `reloadRecords` which reloads each record from the list
-   * that has been already loaded into the store.
-   * @param {string} listName
-   * @param {ReloadRecordListOptions} [options]
-   * @returns {Promise}
-   */
-  async reloadList(listName, options) {
-    const { store, recordRegistry } = this;
-    const { reloadRecords } = { ...defaultReloadRecordListOptions, ...options };
-    const listRecord = this.belongsTo(listName).value();
-    if (listRecord) {
-      await listRecord.reload();
-      if (!reloadRecords) {
-        return listRecord;
-      }
-      const hasManyReference = listRecord.hasMany('list');
-      const list = hasManyReference.value();
-      if (list) {
-        const itemsGris = hasManyReference.ids();
-        const containerSpec = new GrisBatchContainerSpec(
-          OwsGraphOperation.Get,
-          itemsGris
-        );
-        const container = await this.batchRequestRegistry.createContainer(
-          containerSpec,
-          DebouncedBatchFlushStrategy
-        );
-        try {
-          const recordsInStore = itemsGris
-            .map(gri => {
-              const modelName = recordRegistry.getModelName(gri);
-              return modelName ? store.peekRecord(modelName, gri) : null;
-            })
-            .filter(Boolean);
-          for (const record of recordsInStore) {
-            record.reload();
-          }
-          await container.flush();
-        } finally {
-          this.batchRequestRegistry.destroyContainer(container);
-        }
-      }
-      return list ?? listRecord;
-    }
-  },
-
-  /**
    * Async init for record - loads other records necessary to fulfill data of this record.
    * In most models it is not used. Models which use it, will have some fields empty until
    * these relations are fetched. In some cases, it is intended to fetch these relation
@@ -126,6 +80,69 @@ export default Mixin.create(GraphModel, {
    * @returns {Promise<void>}
    */
   async loadRequiredRelations() {},
+
+  /**
+   * Reloads list relation of record. If list has not been fetched, nothing is reloaded.
+   * Optionally, you can enable `reloadRecords` which reloads each record from the list
+   * that has been already loaded into the store.
+   * @param {string} listName
+   * @param {ReloadRecordListOptions} [options]
+   * @returns {Promise}
+   */
+  async reloadList(listName, options) {
+    const { store, recordRegistry } = this;
+    const { reloadRecords, forceInit } = {
+      ...defaultReloadRecordListOptions,
+      ...options,
+    };
+    let listRecord = this.belongsTo(listName).value();
+    if (forceInit || listRecord) {
+      if (listRecord) {
+        await listRecord.reload();
+      } else {
+        listRecord = await this[listName];
+      }
+      if (!reloadRecords) {
+        return listRecord;
+      }
+      const itemsGris = listRecord.hasMany('list').ids();
+      const container = await this.createContainerForListRecord(listRecord);
+      try {
+        const recordsInStore = itemsGris
+          .map(gri => {
+            const modelName = recordRegistry.getModelName(gri);
+            return modelName ? store.peekRecord(modelName, gri) : null;
+          })
+          .filter(Boolean);
+        for (const record of recordsInStore) {
+          record.reload();
+        }
+        // force list fetching while batch containers are made
+        listRecord.list;
+        await container.flush();
+      } finally {
+        this.batchRequestRegistry.destroyContainer(container);
+      }
+      return (await listRecord.list) ?? listRecord;
+    }
+  },
+
+  /**
+   * Loads all records of list relation of this record using batch.
+   * @param {string} listName Eg. "groupList"
+   * @returns {ManyArray}
+   */
+  async loadList(listName) {
+    const listRecord = await this[listName];
+    const container = await this.createContainerForListRecord(listRecord);
+    try {
+      listRecord.list;
+      await container.flush();
+    } finally {
+      this.batchRequestRegistry.destroyContainer(container);
+    }
+    return await listRecord.list;
+  },
 
   /**
    * Should return array of GRIs for required relations fetched with
@@ -196,6 +213,23 @@ export default Mixin.create(GraphModel, {
     if (relationGri) {
       return parseGri(relationGri).entityId;
     }
+  },
+
+  /**
+   * @private
+   * @param {GraphListModel} listRecord
+   * @returns {BatchRequestContainter}
+   */
+  async createContainerForListRecord(listRecord) {
+    const itemsGris = listRecord.hasMany('list').ids();
+    const containerSpec = new GrisBatchContainerSpec(
+      OwsGraphOperation.Get,
+      itemsGris
+    );
+    return await this.batchRequestRegistry.createContainer(
+      containerSpec,
+      DebouncedBatchFlushStrategy
+    );
   },
 });
 

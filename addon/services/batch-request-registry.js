@@ -20,6 +20,7 @@
  *
  * @author Jakub Liput
  * @copyright (C) 2025 ACK CYFRONET AGH
+ * @copyright (C) 2025 Onedata (onedata.org)
  * @license This software is released under the MIT license cited in 'LICENSE.txt'.
  */
 
@@ -187,5 +188,16 @@ export default class BatchRequestRegistryService extends Service {
     }
     await this.#containerDestroyDefers.get(container).promise;
     this.#containerDestroyDefers.delete(container);
+  }
+
+  /**
+   * @param {BatchRequestContainer} container
+   */
+  async flushAndDestroy(container) {
+    try {
+      await container.flush();
+    } finally {
+      this.destroyContainer(container);
+    }
   }
 }
