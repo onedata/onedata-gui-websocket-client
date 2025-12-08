@@ -206,12 +206,7 @@ export default Adapter.extend(AdapterBase, {
    * @param {DS.Snapshot} snapshot
    * @returns {Promise} promise
    */
-  updateRecord(store, type, snapshot) {
-    const {
-      onedataGraph,
-      activeRequests,
-    } = this.getProperties('onedataGraph', 'activeRequests');
-
+  async updateRecord(store, type, snapshot) {
     const record = get(snapshot, 'record');
     const data = this.serialize(snapshot);
     const recordId = record.id;
@@ -219,13 +214,13 @@ export default Adapter.extend(AdapterBase, {
     griData.scope = 'private';
 
     const promise = this.getRequestPrerequisitePromise('update', type, record)
-      .then(() => onedataGraph.request({
+      .then(() => this.onedataGraph.request({
         gri: createGri(griData),
         operation: 'update',
         data,
       }));
 
-    activeRequests.addRequest(Request.create({
+    this.activeRequests.addRequest(Request.create({
       promise,
       type: 'update',
       modelEntityId: get(record, 'entityId'),
@@ -234,7 +229,7 @@ export default Adapter.extend(AdapterBase, {
       modelClassName: get(type, 'modelName'),
     }));
 
-    return promise;
+    return await promise;
   },
 
   /**
